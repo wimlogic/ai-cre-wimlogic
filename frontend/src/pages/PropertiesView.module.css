@@ -1,0 +1,541 @@
+/* WIMLOGIC Properties View CSS Module styles */
+
+.workspaceContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Header & Breadcrumbs */
+.headerArea {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  border-bottom: 1px solid var(--color-neutral-100);
+  padding-bottom: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .headerArea {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-neutral-400);
+  margin-bottom: 0.5rem;
+}
+
+.breadcrumbActive {
+  color: var(--color-brand-600);
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-neutral-900);
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+.pageSubtitle {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  margin: 0;
+}
+
+/* Header Actions */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .headerActions {
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+}
+
+.btnCancel {
+  background-color: #ffffff;
+  color: var(--color-neutral-600);
+  border: 1px solid var(--color-neutral-200);
+  transition: all 0.2s;
+}
+
+.btnCancel:hover {
+  background-color: var(--color-neutral-50);
+  border-color: var(--color-neutral-300);
+}
+
+.btnDelete {
+  background-color: #ffffff;
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  transition: all 0.2s;
+}
+
+.btnDelete:hover {
+  background-color: #fef2f2;
+  border-color: #ef4444;
+}
+
+.btnSaveDropdown {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--color-brand-600);
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.625rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSaveDropdown:hover {
+  background-color: var(--color-brand-700);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
+/* Two Column Grid */
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: 2.1fr 0.9fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .workspaceGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card Structures */
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+}
+
+.col12 { grid-column: span 12; }
+.col8 { grid-column: span 8; }
+.col6 { grid-column: span 6; }
+.col4 { grid-column: span 4; }
+.col3 { grid-column: span 3; }
+.col2 { grid-column: span 2; }
+
+@media (max-width: 768px) {
+  .col8, .col6, .col4, .col3, .col2 {
+    grid-column: span 12;
+  }
+}
+
+/* Collapsible Advanced Section */
+.advancedToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background-color: var(--color-neutral-50);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-neutral-200);
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+
+.advancedToggle:hover {
+  background-color: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+}
+
+.advancedContent {
+  margin-top: 1rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  background-color: #ffffff;
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+/* View JSON trigger and modal */
+.jsonTriggerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btnJsonViewer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-brand-600);
+  border: 1px dashed var(--color-brand-500);
+  background-color: var(--color-brand-50);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnJsonViewer:hover {
+  background-color: var(--color-brand-100);
+  color: var(--color-brand-700);
+}
+
+/* Overview and Readiness styling */
+.overviewList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.overviewItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--color-neutral-100);
+}
+
+.overviewLabel {
+  color: var(--color-neutral-400);
+  font-weight: 500;
+}
+
+.overviewValue {
+  color: var(--color-neutral-800);
+  font-weight: 600;
+  font-family: var(--font-sans);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.valueMono {
+  font-family: var(--font-mono);
+  font-size: 0.71875rem;
+}
+
+/* Circular progress gauge */
+.gaugeContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.gaugeCircleWrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.gaugeSvg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.gaugeBackground {
+  fill: none;
+  stroke: var(--color-neutral-100);
+  stroke-width: 8;
+}
+
+.gaugeValueCircle {
+  fill: none;
+  stroke: var(--color-brand-500);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.gaugeTextContent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gaugeValue {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--color-neutral-900);
+  line-height: 1;
+}
+
+.gaugeLabel {
+  font-size: 0.5625rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #10b981;
+  margin-top: 0.25rem;
+}
+
+/* Checklist items */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.checklistItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.71875rem;
+  font-weight: 500;
+  color: var(--color-neutral-800);
+}
+
+.checklistLabelWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checklistCheckedIcon {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.checklistWarningIcon {
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.checklistPercent {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--color-neutral-400);
+}
+
+.btnActionFull {
+  width: 100%;
+  margin-top: 1.25rem;
+  text-align: center;
+  padding: 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  background-color: var(--color-brand-600);
+  color: white;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnActionFull:hover {
+  background-color: var(--color-brand-700);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.15);
+}
+
+/* Highlighted state for missing fields */
+.fieldErrorHighlight {
+  border-color: #ef4444 !important;
+  background-color: #fffafb !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15) !important;
+  animation: shake 0.2s ease-in-out 2;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Sticky Action Bar at the bottom for quick edits on long pages */
+.stickyBottomBar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--color-neutral-200);
+  padding: 0.875rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.02);
+  z-index: 10;
+}
+
+@media (max-width: 640px) {
+  .stickyBottomBar {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+}
+
+.stickyStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-neutral-600);
+}
+
+.stickyDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+}
+
+.stickyActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* JSON view Modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 44rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;
+}
+
+.modalHeader {
+  padding: 1rem 1.25rem;
+  background-color: var(--color-neutral-900);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalTitle {
+  font-size: 0.8125rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.modalCloseBtn {
+  background: none;
+  border: none;
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.modalCloseBtn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.modalBody {
+  padding: 1.25rem;
+  overflow-y: auto;
+}
+
+.modalFooter {
+  padding: 1rem 1.25rem;
+  background-color: var(--color-neutral-50);
+  border-top: 1px solid var(--color-neutral-200);
+  display: flex;
+  justify-content: flex-end;
+}

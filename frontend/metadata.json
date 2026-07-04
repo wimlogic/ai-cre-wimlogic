@@ -1,0 +1,6 @@
+{
+  "name": "WIMLOGIC 1.0",
+  "description": "Enterprise Commercial Real Estate (CRE) Intelligence Platform for active regional project workspaces, properties, LIDAR scans, and multi-agent workflow results.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

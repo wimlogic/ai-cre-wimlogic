@@ -1,0 +1,42 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Backend",
+            "type": "shell",
+            "command": "venv\\Scripts\\python.exe -m uvicorn app.main:app --reload",
+            "options": {
+                "cwd": "${workspaceFolder}/backend"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "custom",
+                "pattern": {
+                    "regexp": "."
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*Started reloader.*",
+                    "endsPattern": ".*Application startup complete.*"
+                }
+            }
+        },
+        {
+            "label": "Frontend",
+            "type": "shell",
+            "command": "npm run dev",
+            "options": {
+                "cwd": "${workspaceFolder}/frontend"
+            },
+            "isBackground": true
+        },
+        {
+            "label": "AI-CRE Full Stack",
+            "dependsOn": [
+                "Backend",
+                "Frontend"
+            ],
+            "dependsOrder": "parallel"
+        }
+    ]
+}

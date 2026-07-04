@@ -1,0 +1,58 @@
+/* Enterprise Page & Panel Layout Rules */
+
+.enterprise-layout-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--color-neutral-50);
+}
+
+.enterprise-main-container {
+  flex: 1 1 0%;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+.enterprise-sidebar {
+  width: 16rem; /* 256px */
+  background-color: var(--color-neutral-900);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.25rem;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  z-index: 40;
+}
+
+.enterprise-main-content {
+  flex: 1 1 0%;
+  overflow-y: auto;
+  background-color: rgba(248, 250, 252, 0.4);
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .enterprise-main-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .enterprise-main-content {
+    padding: 2rem;
+  }
+}
+
+.enterprise-header {
+  height: 4rem; /* 64px */
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--color-neutral-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}

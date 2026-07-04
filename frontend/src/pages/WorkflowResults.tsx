@@ -1,0 +1,380 @@
+import React, { useState, useEffect } from 'react';
+import { workflowService } from '../services/workflowService';
+import { generatedAssetService } from '../services/generatedAssetService';
+import { projectService } from '../services/projectService';
+import { propertyService } from '../services/propertyService';
+import { WorkflowResult, ResultSection, GeneratedAsset, WorkflowExecution } from '../types';
+import { 
+  FileSpreadsheet, 
+  RefreshCw, 
+  Layers, 
+  Code, 
+  FileCheck, 
+  Download, 
+  ExternalLink,
+  ChevronRight,
+  Info,
+  Calendar,
+  Sparkles,
+  ClipboardList,
+  AlertCircle
+} from 'lucide-react';
+
+export default function WorkflowResults() {
+  const [results, setResults] = useState<WorkflowResult[]>([]);
+  const [selectedResult, setSelectedResult] = useState<WorkflowResult | null>(null);
+  
+  // Details related to selected result
+  const [sections, setSections] = useState<ResultSection[]>([]);
+  const [assets, setAssets] = useState<GeneratedAsset[]>([]);
+  const [execution, setExecution] = useState<WorkflowExecution | null>(null);
+  const [projName, setProjName] = useState('');
+  const [propAddress, setPropAddress] = useState('');
+
+  const [isLoadingList, setIsLoadingList] = useState(true);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [activeTab, setActiveTab] = useState<'summary' | 'sections' | 'raw' | 'assets'>('summary');
+
+  const loadResults = async () => {
+    setIsLoadingList(true);
+    setErrorMsg('');
+    try {
+      const res = await workflowService.listResults({ limit: 50 });
+      setResults(res.items || []);
+      if (res.items.length > 0) {
+        handleSelectResult(res.items[0]);
+      }
+    } catch (err) {
+      console.error('Failed to load workflow results:', err);
+      setErrorMsg('Error loading results catalog from the backend server.');
+    } finally {
+      setIsLoadingList(false);
+    }
+  };
+
+  useEffect(() => {
+    loadResults();
+  }, []);
+
+  const handleSelectResult = async (res: WorkflowResult) => {
+    setSelectedResult(res);
+    setIsLoadingDetails(true);
+    setSections([]);
+    setAssets([]);
+    setExecution(null);
+    setProjName('');
+    setPropAddress('');
+
+    try {
+      // 1. Fetch related sections
+      const sectionsRes = await workflowService.getResultSections(res.result_id);
+      setSections(sectionsRes.items || []);
+
+      // 2. Fetch related assets
+      const assetsRes = await generatedAssetService.list({ execution_id: res.execution_id });
+      setAssets(assetsRes.items || []);
+
+      // 3. Fetch related execution to map project / property metadata
+      const exec = await workflowService.getExecution(res.execution_id);
+      setExecution(exec);
+
+      // 4. Resolve names
+      if (exec.project_id) {
+        const proj = await projectService.get(exec.project_id).catch(() => null);
+        if (proj) setProjName(proj.project_name);
+      }
+      if (exec.property_id) {
+        const prop = await propertyService.get(exec.property_id).catch(() => null);
+        if (prop) setPropAddress(prop.address || '');
+      }
+
+    } catch (err) {
+      console.error('Failed to load result deep details:', err);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-sans font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <ClipboardList className="w-5 h-5 text-indigo-600" />
+            Workflow Results
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Browse structured analytical payloads delivered securely from WIMLOGIC cloud.
+          </p>
+        </div>
+        <button
+          onClick={loadResults}
+          className="p-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg transition-colors focus:outline-none"
+          title="Refresh results"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
+      </div>
+
+      {errorMsg && (
+        <div className="bg-rose-50 border-l-2 border-rose-500 text-rose-800 text-xs p-3.5 rounded-lg font-medium">
+          {errorMsg}
+        </div>
+      )}
+
+      {isLoadingList ? (
+        <div className="py-24 flex justify-center items-center text-slate-400 text-xs font-mono uppercase tracking-widest">
+          Polling Results Warehouse...
+        </div>
+      ) : results.length === 0 ? (
+        <div className="bg-white border border-slate-100 rounded-xl py-24 text-center text-slate-400 flex flex-col items-center justify-center space-y-3 shadow-sm">
+          <AlertCircle className="w-10 h-10 text-slate-200" />
+          <span className="text-xs font-mono uppercase tracking-wider">No results available</span>
+          <p className="text-xs text-slate-400 max-w-sm">
+            Launch workflow pipelines in the AI Orchestration module to generate structured results here.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Results Catalog sidebar */}
+          <div className="lg:col-span-1 bg-white border border-slate-100 rounded-xl p-4 shadow-sm h-fit space-y-3">
+            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono pb-2 border-b border-slate-100">
+              Delivered Payloads Catalog
+            </h3>
+            <div className="divide-y divide-slate-100 max-h-[70vh] overflow-y-auto space-y-2 pr-1">
+              {results.map((res) => {
+                const isActive = selectedResult?.result_id === res.result_id;
+                return (
+                  <button
+                    key={res.result_id}
+                    onClick={() => handleSelectResult(res)}
+                    className={`w-full text-left p-3.5 rounded-lg transition-all flex items-center justify-between border ${
+                      isActive 
+                        ? 'bg-indigo-50 border-indigo-200 text-indigo-900 shadow-xs' 
+                        : 'border-transparent hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-600">
+                          RES-{res.result_id}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-slate-100 text-slate-500 uppercase">
+                          {res.result_type}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-mono mt-1">
+                        Execution Ref: #{res.execution_id}
+                      </div>
+                    </div>
+                    <ChevronRight className={`w-4 h-4 text-slate-400 shrink-0 ${isActive ? 'text-indigo-600' : ''}`} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Results Details main view */}
+          <div className="lg:col-span-2 bg-white border border-slate-100 rounded-xl p-5 shadow-sm flex flex-col min-h-[500px]">
+            {isLoadingDetails ? (
+              <div className="flex-1 flex flex-col justify-center items-center text-slate-400 text-xs font-mono uppercase tracking-widest">
+                <RefreshCw className="w-6 h-6 animate-spin text-indigo-600 mb-2" />
+                Retrieving report packets...
+              </div>
+            ) : selectedResult ? (
+              <div className="space-y-6 flex-1 flex flex-col">
+                {/* Result header metadata */}
+                <div className="border-b border-slate-100 pb-4 shrink-0">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 bg-indigo-600 text-white rounded text-[10px] font-mono font-bold uppercase tracking-wider">
+                        {selectedResult.result_type} REPORT
+                      </span>
+                      <span className="text-xs font-mono text-slate-400">
+                        V{selectedResult.result_version || '1.0'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{new Date(selectedResult.received_at).toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <h2 className="text-base font-sans font-bold text-slate-800 mt-2">
+                    {propAddress || 'Analytical Dossier'}
+                  </h2>
+                  <p className="text-[11px] font-mono text-indigo-600 mt-1 uppercase">
+                    PROJECT: {projName || `REF:${execution?.project_id || '--'}`}
+                  </p>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex border-b border-slate-100 gap-4 text-xs font-semibold tracking-wide shrink-0">
+                  <button
+                    onClick={() => setActiveTab('summary')}
+                    className={`pb-2.5 px-1 border-b-2 transition-all focus:outline-none ${
+                      activeTab === 'summary' ? 'border-indigo-600 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    Executive Summary
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('sections')}
+                    className={`pb-2.5 px-1 border-b-2 transition-all focus:outline-none ${
+                      activeTab === 'sections' ? 'border-indigo-600 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    Report Sections ({sections.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('raw')}
+                    className={`pb-2.5 px-1 border-b-2 transition-all focus:outline-none ${
+                      activeTab === 'raw' ? 'border-indigo-600 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    Raw API JSON
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('assets')}
+                    className={`pb-2.5 px-1 border-b-2 transition-all focus:outline-none ${
+                      activeTab === 'assets' ? 'border-indigo-600 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    Deliverables ({assets.length})
+                  </button>
+                </div>
+
+                {/* Tab content */}
+                <div className="flex-1 overflow-y-auto">
+                  {/* Summary Tab */}
+                  {activeTab === 'summary' && (
+                    <div className="space-y-4 text-slate-700 leading-relaxed text-xs">
+                      <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl space-y-1">
+                        <h4 className="font-bold text-indigo-900 uppercase tracking-wide">Orchestrated Results Summary</h4>
+                        <p className="text-indigo-950 font-medium">
+                          The automation pipeline has completed successfully. Below is the processed audit timeline. Select the other tabs to inspect parsed model layers or download generated PDF reports and blueprints.
+                        </p>
+                      </div>
+
+                      {/* Display first section as executive summary or show placeholder */}
+                      {sections.length > 0 ? (
+                        <div className="space-y-4">
+                          <h3 className="font-sans font-bold text-slate-800 text-sm border-b border-slate-50 pb-2">
+                            {sections[0].title || 'Primary Analysis Overview'}
+                          </h3>
+                          <p className="whitespace-pre-line text-slate-600">{sections[0].content}</p>
+                        </div>
+                      ) : (
+                        <div className="text-slate-400 italic py-10 text-center font-mono uppercase">
+                          No report summaries found in results database.
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Sections Tab */}
+                  {activeTab === 'sections' && (
+                    <div className="space-y-5">
+                      {sections.length === 0 ? (
+                        <div className="text-center text-slate-400 py-12 italic font-mono uppercase">
+                          No parsed section data recorded.
+                        </div>
+                      ) : (
+                        sections.map((sec) => (
+                          <div key={sec.section_id} className="border border-slate-100 rounded-lg p-4 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">
+                                SECTION TYPE: {sec.section_type}
+                              </span>
+                              {sec.confidence_score !== undefined && (
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[9px] font-mono font-bold">
+                                  CONFIDENCE: {Math.round(sec.confidence_score * 100)}%
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="font-sans font-bold text-slate-800 text-xs uppercase tracking-wide">
+                              {sec.title}
+                            </h3>
+                            <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-line">
+                              {sec.content}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {/* Raw JSON Tab */}
+                  {activeTab === 'raw' && (
+                    <div className="bg-slate-950 text-emerald-400 font-mono text-xs rounded-xl p-4 overflow-x-auto max-h-[50vh]">
+                      <pre className="whitespace-pre-wrap leading-tight">
+                        {selectedResult.response_json ? (
+                          (() => {
+                            try {
+                              return JSON.stringify(JSON.parse(selectedResult.response_json), null, 2);
+                            } catch {
+                              return selectedResult.response_json;
+                            }
+                          })()
+                        ) : (
+                          '// No payload JSON data returned.'
+                        )}
+                      </pre>
+                    </div>
+                  )}
+
+                  {/* Deliverables/Assets Tab */}
+                  {activeTab === 'assets' && (
+                    <div className="space-y-3">
+                      {assets.length === 0 ? (
+                        <div className="text-center text-slate-400 py-12 italic font-mono uppercase">
+                          No attached deliverable documents or CAD charts.
+                        </div>
+                      ) : (
+                        assets.map((asset) => (
+                          <div key={asset.asset_id} className="border border-slate-100 rounded-lg p-4 flex items-center justify-between group hover:border-slate-200 hover:bg-slate-50 transition-all">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg shrink-0">
+                                <FileSpreadsheet className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <h4 className="font-sans font-bold text-slate-800 text-xs group-hover:text-indigo-600 transition-colors">
+                                  {asset.title || asset.file_name}
+                                </h4>
+                                <p className="text-[10px] font-mono text-slate-400 uppercase mt-0.5">
+                                  CATEGORY: {asset.asset_type} ({asset.file_size ? `${Math.round(asset.file_size / 1024)} KB` : 'Unknown size'})
+                                </p>
+                              </div>
+                            </div>
+
+                            <a
+                              href={asset.storage_path}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 hover:bg-white border border-transparent hover:border-slate-200 text-slate-400 hover:text-indigo-600 rounded-lg transition-colors focus:outline-none flex items-center gap-1.5 text-xs font-semibold"
+                            >
+                              Open file
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1 flex justify-center items-center text-slate-400 text-xs font-mono uppercase">
+                Select a result dossier from the catalog panel.
+              </div>
+            )}
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+}
