@@ -1,4 +1,4 @@
-# AI-CRE WIMLOGIC V1.0
+# AI-CRE WIMLOGIC V1.0A
 
 Enterprise AI-powered Commercial Real Estate Analysis Platform.
 
