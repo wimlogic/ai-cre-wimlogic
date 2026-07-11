@@ -3,8 +3,14 @@ import { workflowService } from '../services/workflowService';
 import { generatedAssetService } from '../services/generatedAssetService';
 import { projectService } from '../services/projectService';
 import { propertyService } from '../services/propertyService';
-import { WorkflowResult, ResultSection, GeneratedAsset, WorkflowExecution } from '../types';
-import { 
+// Explicit '../types/index' path: '../types' currently resolves to the
+// legacy types.ts sibling file under this project's bundler resolution,
+// which does not export these names. Pre-existing issue, deferred to
+// Phase 1C - Type Architecture Cleanup (see AIOrchestration.tsx /
+// EnterpriseJobPanel.tsx for the same documented workaround).
+import { WorkflowResult, ResultSection, GeneratedAsset, WorkflowExecution } from '../types/index';
+import StatusBadge from '../components/StatusBadge';
+import {
   FileSpreadsheet, 
   RefreshCw, 
   Layers, 
@@ -36,6 +42,14 @@ export default function WorkflowResults() {
   const [errorMsg, setErrorMsg] = useState('');
   const [activeTab, setActiveTab] = useState<'summary' | 'sections' | 'raw' | 'assets'>('summary');
 
+  /**
+   * Loads the results catalog. This is the same function a future
+   * EnterpriseJobContext subscriber would call on a JobCompletedEvent to
+   * auto-refresh this page - see the Phase 1A assessment's deferred
+   * cross-page refresh item. No such subscription exists yet, so this page
+   * still only refreshes on mount and on manual "Refresh results" clicks,
+   * exactly as before.
+   */
   const loadResults = async () => {
     setIsLoadingList(true);
     setErrorMsg('');
@@ -196,6 +210,7 @@ export default function WorkflowResults() {
                       <span className="text-xs font-mono text-slate-400">
                         V{selectedResult.result_version || '1.0'}
                       </span>
+                      {execution && <StatusBadge status={execution.status} type="workflow" />}
                     </div>
                     <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400">
                       <Calendar className="w-3.5 h-3.5" />

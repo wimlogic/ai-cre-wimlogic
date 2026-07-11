@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import LoadingState from './LoadingState';
 import EmptyState from './EmptyState';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import styles from './EnterpriseTable.module.css';
 
 export interface ColumnDefinition<T> {
   key: string;
@@ -67,7 +68,7 @@ export default function EnterpriseTable<T>({
   };
 
   return (
-    <div id={id || 'enterprise-table-wrapper'} className="space-y-4">
+    <div id={id || 'enterprise-table-wrapper'} className={styles.wrapper}>
       <div className="enterprise-table-container">
         <table className="enterprise-table">
           <thead className="enterprise-table-thead">
@@ -75,8 +76,8 @@ export default function EnterpriseTable<T>({
               {columns.map((col, idx) => (
                 <th
                   key={`${col.key}-${idx}`}
-                  style={{ width: col.width }}
-                  className={`enterprise-table-th text-${col.align || 'left'}`}
+                  style={{ width: col.width, textAlign: col.align || 'left' }}
+                  className="enterprise-table-th"
                 >
                   {col.header}
                 </th>
@@ -88,15 +89,13 @@ export default function EnterpriseTable<T>({
               <tr
                 key={String(row[rowKeyField]) || String(rowIdx)}
                 onClick={() => onRowClick?.(row)}
-                className={`
-                  enterprise-table-tr
-                  ${onRowClick ? 'cursor-pointer hover:bg-slate-50' : ''}
-                `}
+                className={`enterprise-table-tr ${onRowClick ? styles.rowClickable : ''}`}
               >
                 {columns.map((col, colIdx) => (
                   <td
                     key={`${col.key}-${colIdx}`}
-                    className={`enterprise-table-td text-${col.align || 'left'}`}
+                    style={{ textAlign: col.align || 'left' }}
+                    className="enterprise-table-td"
                   >
                     {col.render ? col.render(row) : String(row[col.key as keyof T] ?? '—')}
                   </td>
@@ -108,25 +107,21 @@ export default function EnterpriseTable<T>({
       </div>
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 pt-1">
-          <span className="text-xs text-slate-500 font-mono">
+        <div className={styles.paginationBar}>
+          <span className={styles.paginationInfo}>
             SHOWING {startIndex + 1} - {Math.min(startIndex + itemsPerPage, totalItems)} OF {totalItems}
           </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handlePrevPage}
-              disabled={currentPage === 1}
-              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
+          <div className={styles.paginationControls}>
+            <button onClick={handlePrevPage} disabled={currentPage === 1} className={styles.pageBtn}>
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs font-bold text-slate-700 px-3 py-1 font-mono">
+            <span className={styles.pageLabel}>
               PAGE {currentPage} OF {totalPages}
             </span>
             <button
               onClick={handleNextPage}
               disabled={currentPage === totalPages}
-              className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className={styles.pageBtn}
             >
               <ChevronRight className="w-4 h-4" />
             </button>

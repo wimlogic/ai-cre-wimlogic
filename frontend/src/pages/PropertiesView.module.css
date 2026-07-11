@@ -143,6 +143,84 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  position: sticky;
+  top: 1.25rem;
+  align-self: start;
+}
+
+/* Tab navigation for the left editing column */
+.tabBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.tabButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-neutral-500);
+  background-color: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.tabButton:hover {
+  color: var(--color-neutral-800);
+  background-color: var(--color-neutral-50);
+}
+
+.tabButtonActive {
+  color: var(--color-brand-700);
+  background-color: var(--color-brand-50);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.tabButtonActive:hover {
+  color: var(--color-brand-700);
+  background-color: var(--color-brand-50);
+}
+
+.tabPanel {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Lightweight link-out panel for the Images/Workflow tabs, which point to
+   their own dedicated pages rather than duplicating those modules here. */
+.linkOutPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+}
+
+.linkOutText {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  max-width: 26rem;
+  line-height: 1.6;
+}
+
+/* Quick Actions grid in the right inspector panel */
+.quickActionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.quickActionsGrid button {
+  width: 100%;
 }
 
 .formGrid {
@@ -162,40 +240,6 @@
   .col8, .col6, .col4, .col3, .col2 {
     grid-column: span 12;
   }
-}
-
-/* Collapsible Advanced Section */
-.advancedToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 1rem 1.25rem;
-  background-color: var(--color-neutral-50);
-  border-radius: 0.5rem;
-  border: 1px solid var(--color-neutral-200);
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--color-neutral-800);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  font-family: var(--font-mono);
-  letter-spacing: 0.05em;
-  transition: all 0.2s;
-}
-
-.advancedToggle:hover {
-  background-color: var(--color-neutral-100);
-  border-color: var(--color-neutral-300);
-}
-
-.advancedContent {
-  margin-top: 1rem;
-  border: 1px solid var(--color-neutral-200);
-  border-radius: 0.5rem;
-  padding: 1.25rem;
-  background-color: #ffffff;
-  animation: slideDown 0.2s ease-out forwards;
 }
 
 /* View JSON trigger and modal */
@@ -265,67 +309,42 @@
   font-size: 0.71875rem;
 }
 
-/* Circular progress gauge */
-.gaugeContainer {
+/* AI Readiness KPI tiles (replaces the old circular gauge) */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.kpiTile {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 1.5rem 0;
-  position: relative;
+  gap: 0.25rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-neutral-50);
+  border: 1px solid var(--color-neutral-100);
 }
 
-.gaugeCircleWrapper {
-  position: relative;
-  width: 140px;
-  height: 140px;
-}
-
-.gaugeSvg {
-  transform: rotate(-90deg);
-  width: 100%;
-  height: 100%;
-}
-
-.gaugeBackground {
-  fill: none;
-  stroke: var(--color-neutral-100);
-  stroke-width: 8;
-}
-
-.gaugeValueCircle {
-  fill: none;
-  stroke: var(--color-brand-500);
-  stroke-width: 8;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.6s ease;
-}
-
-.gaugeTextContent {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.gaugeValue {
-  font-size: 1.75rem;
-  font-weight: 900;
-  color: var(--color-neutral-900);
-  line-height: 1;
-}
-
-.gaugeLabel {
-  font-size: 0.5625rem;
-  text-transform: uppercase;
+.kpiLabel {
+  font-size: 0.625rem;
   font-weight: 700;
+  text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #10b981;
-  margin-top: 0.25rem;
+  color: var(--color-neutral-400);
+}
+
+.kpiValue {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-neutral-900);
+  font-family: var(--font-mono);
+}
+
+.kpiValueText {
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
 }
 
 /* Checklist items */
@@ -368,28 +387,6 @@
   color: var(--color-neutral-400);
 }
 
-.btnActionFull {
-  width: 100%;
-  margin-top: 1.25rem;
-  text-align: center;
-  padding: 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-  background-color: var(--color-brand-600);
-  color: white;
-  border-radius: 0.5rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btnActionFull:hover {
-  background-color: var(--color-brand-700);
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.15);
-}
-
 /* Highlighted state for missing fields */
 .fieldErrorHighlight {
   border-color: #ef4444 !important;
@@ -402,17 +399,6 @@
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-3px); }
   75% { transform: translateX(3px); }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Sticky Action Bar at the bottom for quick edits on long pages */
@@ -464,51 +450,9 @@
   gap: 0.75rem;
 }
 
-/* JSON view Modal */
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.modalContent {
-  background-color: #ffffff;
-  border-radius: 0.75rem;
-  border: 1px solid var(--color-neutral-200);
-  box-shadow: var(--shadow-xl);
-  width: 100%;
-  max-width: 44rem;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  max-height: 85vh;
-}
-
-.modalHeader {
-  padding: 1rem 1.25rem;
-  background-color: var(--color-neutral-900);
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.modalTitle {
-  font-size: 0.8125rem;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
+/* JSON view Modal close button (panel/header/body/footer now come from the
+   shared enterprise-dialog-* classes in components.css, which use a light
+   header - unlike the old bespoke dark slate-900 modal header) */
 .modalCloseBtn {
   background: none;
   border: none;
@@ -520,22 +464,10 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .modalCloseBtn:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.modalBody {
-  padding: 1.25rem;
-  overflow-y: auto;
-}
-
-.modalFooter {
-  padding: 1rem 1.25rem;
+  color: var(--color-neutral-800);
   background-color: var(--color-neutral-50);
-  border-top: 1px solid var(--color-neutral-200);
-  display: flex;
-  justify-content: flex-end;
 }

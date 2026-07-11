@@ -9,3 +9,11 @@ python-dotenv>=1.0.1
 python-multipart>=0.0.9
 httpx>=0.27.0
 Pillow>=10.0.0
+
+# NOTE: the WACP Client SDK is NOT a pip dependency of this project. The
+# WACP Platform Installer (install_wacp.py) vendors it directly as source
+# into backend/wacp/ (from the Core SDK and Client SDK packages in the
+# platform's package repository) - it is imported as a plain sibling
+# package of app/ (e.g. `from wacp.client.client import WacpClient`), not
+# installed via pip. See README_INSTALLER.md / PACKAGE_REGISTRATION.md for
+# how backend/wacp/ gets populated.

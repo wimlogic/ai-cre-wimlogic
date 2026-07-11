@@ -1,28 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { propertyService } from '../services/propertyService';
 import { projectService } from '../services/projectService';
-import { Property, Project } from '../types';
-import { 
-  Building2, 
-  Plus, 
-  Edit3, 
-  Trash2, 
+import { propertyImageService } from '../services/propertyImageService';
+import { workflowService } from '../services/workflowService';
+import { Property, Project } from '../types/index';
+import {
+  Building2,
+  Plus,
+  Edit3,
+  Trash2,
   X,
-  MapPin,
   ChevronRight,
-  ChevronDown,
   Eye,
   CheckCircle,
   AlertTriangle,
-  Info,
-  Layers,
   Sparkles,
-  ArrowLeft,
-  Settings as SettingsIcon,
-  Search,
-  Check,
   Calendar,
-  DollarSign
+  Image as ImageIcon,
+  GitBranch,
+  Users,
+  FileText,
+  LayoutGrid,
+  MapPin,
+  Layers,
+  DollarSign,
+  RefreshCw,
 } from 'lucide-react';
 import EnterpriseToolbar from '../components/EnterpriseToolbar';
 import EnterpriseTable from '../components/EnterpriseTable';
@@ -40,6 +42,31 @@ interface PropertiesViewProps {
   onNavigate: (view: string) => void;
 }
 
+type TabKey =
+  | 'overview'
+  | 'address'
+  | 'details'
+  | 'parcel'
+  | 'financial'
+  | 'ownership'
+  | 'images'
+  | 'workflow'
+  | 'ai'
+  | 'notes';
+
+const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+  { key: 'overview', label: 'Overview', icon: LayoutGrid },
+  { key: 'address', label: 'Address & Location', icon: MapPin },
+  { key: 'details', label: 'Property Details', icon: Building2 },
+  { key: 'parcel', label: 'Parcel & Zoning', icon: Layers },
+  { key: 'financial', label: 'Financial', icon: DollarSign },
+  { key: 'ownership', label: 'Ownership', icon: Users },
+  { key: 'images', label: 'Images', icon: ImageIcon },
+  { key: 'workflow', label: 'Workflow', icon: GitBranch },
+  { key: 'ai', label: 'AI Analysis', icon: Sparkles },
+  { key: 'notes', label: 'Notes', icon: FileText },
+];
+
 export default function PropertiesView({ selectedProjectId, onSelectProject, onNavigate }: PropertiesViewProps) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -49,25 +76,22 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
 
   const { success, error, warning } = useToast();
 
-  // Active workspace property state (when not null, we render the redesigned Property Workspace View)
   const [activeProperty, setActiveProperty] = useState<Property | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>('overview');
 
-  // Collapsible Advanced section state
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-
-  // JSON viewer modal state
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [jsonModalData, setJsonModalData] = useState<any>(null);
 
-  // Missing fields highlight trigger
   const [highlightMissing, setHighlightMissing] = useState(false);
 
-  // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<number | null>(null);
 
-  // Form states inside workspace
+  const [imageCount, setImageCount] = useState<number | null>(null);
+  const [workflowCount, setWorkflowCount] = useState<number | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const [formData, setFormData] = useState<Partial<Property>>({
     property_uid: '',
     address: '',
@@ -100,13 +124,11 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     api_source_url: ''
   });
 
-  // Load all projects for dropdowns and filtering
   const loadProjects = async () => {
     try {
       const res = await projectService.list({ limit: 300 });
       setProjects(res.items || []);
-      
-      // If we don't have an active project filter and have projects, default to first or selected
+
       if (!activeProjectFilter && res.items.length > 0) {
         if (selectedProjectId) {
           setActiveProjectFilter(selectedProjectId);
@@ -121,21 +143,19 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     }
   };
 
-  // Load properties based on selected Project Filter
   const loadProperties = async () => {
     if (!activeProjectFilter) {
       setIsLoading(false);
       return;
     }
-    
+
     setIsLoading(true);
     try {
       const props = await propertyService.listByProject(activeProjectFilter);
-      
-      // Apply client-side search query filter if active
+
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
-        setProperties(props.filter(p => 
+        setProperties(props.filter(p =>
           (p.address || '').toLowerCase().includes(query) ||
           (p.city || '').toLowerCase().includes(query) ||
           (p.property_uid || '').toLowerCase().includes(query) ||
@@ -163,7 +183,31 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     return () => clearTimeout(timer);
   }, [activeProjectFilter, searchQuery]);
 
-  // Calculations for completeness metrics
+  // Fetch real image/workflow counts for the Property Summary panel whenever
+  // an existing (already-saved) property is opened in the workspace.
+  useEffect(() => {
+    async function loadCounts() {
+      if (!activeProperty || !activeProperty.id || isCreatingNew) {
+        setImageCount(null);
+        setWorkflowCount(null);
+        return;
+      }
+      try {
+        const [imgRes, wfRes] = await Promise.all([
+          propertyImageService.list({ property_id: activeProperty.id, include_deleted: false, limit: 1 }),
+          workflowService.listExecutions({ property_id: activeProperty.id, limit: 1 }),
+        ]);
+        setImageCount(imgRes.count ?? 0);
+        setWorkflowCount(wfRes.count ?? 0);
+      } catch (err) {
+        console.error('Failed to load property summary counts:', err);
+        setImageCount(0);
+        setWorkflowCount(0);
+      }
+    }
+    loadCounts();
+  }, [activeProperty?.id, isCreatingNew]);
+
   const calculateCompletenessMetrics = () => {
     const importantFields = [
       'property_uid', 'address', 'city', 'state', 'zip', 'apn',
@@ -171,7 +215,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
       'existing_use', 'land_value', 'improvement_value', 'total_assessed_value',
       'street_number', 'street_name', 'side_of_street', 'notes'
     ];
-    
+
     let filledCount = 0;
     importantFields.forEach(field => {
       const val = formData[field as keyof typeof formData];
@@ -181,17 +225,15 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     });
 
     const completenessScore = Math.round((filledCount / importantFields.length) * 100);
-    
-    // Check specific categories
+
     const addressFilled = !!(formData.address && formData.city && formData.state && formData.zip);
     const basicsFilled = !!(formData.building_sqft && formData.lot_sqft && formData.year_built);
-    
+
     let financialFields = ['land_value', 'improvement_value', 'total_assessed_value'];
     let financialCount = financialFields.filter(f => formData[f as keyof typeof formData]).length;
     const financialsPercent = Math.round((financialCount / financialFields.length) * 100);
 
     const siteFilled = !!(formData.apn && formData.zoning_code);
-    const zoningPercent = formData.zoning_code ? 100 : 0;
     const marketPercent = (formData.business_name || formData.existing_use) ? 100 : 35;
 
     return {
@@ -200,7 +242,6 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
       basics: basicsFilled,
       financials: financialsPercent,
       site: siteFilled,
-      zoning: zoningPercent,
       market: marketPercent,
       workflowReady: completenessScore >= 65
     };
@@ -210,6 +251,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
 
   const handleOpenCreate = () => {
     setIsCreatingNew(true);
+    setActiveTab('overview');
     const generatedUid = `PROP-${Math.floor(10000000 + Math.random() * 90000000)}`;
     const emptyForm: Partial<Property> = {
       property_uid: generatedUid,
@@ -258,6 +300,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
 
   const handleOpenEdit = (prop: Property) => {
     setIsCreatingNew(false);
+    setActiveTab('overview');
     setFormData({ ...prop });
     setActiveProperty(prop);
     setHighlightMissing(false);
@@ -271,9 +314,9 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
   const handleDelete = async () => {
     if (propertyToDelete === null) return;
     try {
-      const assocRes = await propertyService.listAssociations({ 
-          project_id: activeProjectFilter, 
-          property_id: propertyToDelete 
+      const assocRes = await propertyService.listAssociations({
+        project_id: activeProjectFilter,
+        property_id: propertyToDelete
       });
       if (assocRes.items && assocRes.items.length > 0) {
         for (const assoc of assocRes.items) {
@@ -293,44 +336,54 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     if (!formData.property_uid?.trim()) {
       warning('Property UID is required');
+      setActiveTab('overview');
       return;
     }
     if (!formData.address?.trim()) {
       warning('Street Address is required');
       setHighlightMissing(true);
+      setActiveTab('address');
       return;
     }
 
     try {
       if (!isCreatingNew && activeProperty && activeProperty.id) {
-        // Edit flow
-        await propertyService.update(activeProperty.id, formData);
+        const updated = await propertyService.update(activeProperty.id, formData);
+        setActiveProperty(updated);
+        setFormData(updated);
         success('Property parameters saved successfully.');
       } else {
-        // Create flow
         const newProp = await propertyService.create(formData);
         await propertyService.assignToProject(newProp.id, activeProjectFilter);
         success('Registered new property parcel.');
+        setActiveProperty(null);
+        loadProperties();
       }
-      
-      setActiveProperty(null);
-      loadProperties();
     } catch (err: any) {
       console.error('Error submitting property:', err);
       error(err.message || 'UID duplication or DB validation error.');
     }
   };
 
-  const handleHighlightFields = () => {
-    setHighlightMissing(true);
-    warning("Missing elements highlighted in soft red.");
-    // Smooth scroll to top of form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleRefresh = async () => {
+    if (!activeProperty?.id) return;
+    setIsRefreshing(true);
+    try {
+      const fresh = await propertyService.get(activeProperty.id);
+      setActiveProperty(fresh);
+      setFormData(fresh);
+      success('Property data refreshed from the backend.');
+    } catch (err: any) {
+      console.error('Failed to refresh property:', err);
+      error('Failed to refresh property data.');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleTriggerViewJson = () => {
@@ -344,17 +397,18 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     }
   };
 
-  // Directory filter components
   const toolbarFilters = (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Workspace:</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <span style={{ fontSize: '0.625rem', fontWeight: 700, color: 'var(--color-neutral-400)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono)' }}>
+        Workspace:
+      </span>
       <select
         value={activeProjectFilter}
         onChange={(e) => {
           setActiveProjectFilter(e.target.value);
           onSelectProject(e.target.value);
         }}
-        className="border border-slate-200 rounded-lg text-xs px-3 py-1.5 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+        className="enterprise-form-input"
         id="properties-project-select"
       >
         {projects.length === 0 ? (
@@ -374,7 +428,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     <button
       onClick={handleOpenCreate}
       disabled={projects.length === 0}
-      className="enterprise-btn enterprise-btn-primary disabled:bg-slate-300 disabled:cursor-not-allowed"
+      className="enterprise-btn enterprise-btn-primary"
       id="add-property-btn"
     >
       <Plus className="w-3.5 h-3.5" />
@@ -382,7 +436,6 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     </button>
   );
 
-  // Table Column definitions
   const columns = [
     {
       key: 'property_uid',
@@ -443,7 +496,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
           <button
             onClick={() => handleOpenEdit(prop)}
             className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-indigo-600 rounded-lg transition-colors focus:outline-none"
-            title="Open AI Workspace"
+            title="Open Property Workspace"
           >
             <Edit3 className="w-3.5 h-3.5" />
           </button>
@@ -459,7 +512,6 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     }
   ];
 
-  // Helper for soft-red highlight on validation empty inputs
   const highlightClass = (fieldValue: any) => {
     if (highlightMissing && (!fieldValue || fieldValue === 0 || fieldValue === '')) {
       return styles.fieldErrorHighlight;
@@ -467,14 +519,18 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     return '';
   };
 
+  const currentProject = projects.find((p) => p.project_id === activeProjectFilter);
+  const propertyName = formData.business_name || formData.address || 'Unnamed Property';
+  const combinedAddress = formData.address
+    ? `${formData.address}, ${formData.city || ''}, ${formData.state || ''} ${formData.zip || ''}`
+    : '—';
+
   return (
     <div className={styles.workspaceContainer}>
-      
-      {/* 1. RENDER DETAILED PROPERTY WORKSPACE VIEW */}
+
       {activeProperty ? (
         <div className="space-y-6 animate-fade-in">
-          
-          {/* Breadcrumbs & Header bar */}
+
           <div className={styles.headerArea}>
             <div className={styles.titleArea}>
               <div className={styles.breadcrumbs}>
@@ -484,487 +540,556 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                 <ChevronRight className="w-3 h-3 text-slate-300" />
                 <span className={styles.breadcrumbActive}>{formData.address || 'PROP NEW PARCEL'}</span>
               </div>
-              <h1 className={styles.pageTitle}>Property Details</h1>
+              <h1 className={styles.pageTitle}>Property Workspace</h1>
               <p className={styles.pageSubtitle}>Manage property metrics, land assessments, and AI-readiness context</p>
             </div>
-            
+
             <div className={styles.headerActions}>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setActiveProperty(null)}
-                className="enterprise-btn styles.btnCancel"
+                className={`enterprise-btn ${styles.btnCancel}`}
                 id="cancel-details-btn"
               >
                 Cancel
               </button>
-              
+
               {!isCreatingNew && activeProperty.id && (
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => confirmDeleteProperty(activeProperty.id!)}
-                  className="enterprise-btn styles.btnDelete"
+                  className={`enterprise-btn ${styles.btnDelete}`}
                   id="delete-details-btn"
                 >
                   Delete
                 </button>
               )}
-              
-              <button 
+
+              <button
                 type="button"
                 onClick={handleSave}
                 className={styles.btnSaveDropdown}
                 id="save-details-btn"
               >
                 <span>Save Changes</span>
-                <ChevronDown className="w-3 h-3" />
               </button>
             </div>
           </div>
 
-          {/* TWO-COLUMN LAYOUT GRID */}
           <div className={styles.workspaceGrid}>
-            
-            {/* LEFT COLUMN: Property Detail Form Sections */}
+
             <div className={styles.leftColumn}>
-              
-              {/* Card 1: Address & Location */}
-              <EnterpriseCard title="Address & Location" subtitle="Geocoding indicators, street parameters, and mapping references.">
-                <div className={styles.formGrid}>
-                  
-                  <div className={styles.col8}>
-                    <FormField label="Street Address" required>
-                      <input 
-                        type="text" 
-                        required
-                        value={formData.address || ''} 
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className={`enterprise-form-input ${highlightClass(formData.address)}`}
-                        placeholder="e.g. 1227 W Valley Blvd"
-                      />
-                    </FormField>
-                  </div>
 
-                  <div className={styles.col4}>
-                    <FormField label="City" required>
-                      <input 
-                        type="text" 
-                        required
-                        value={formData.city || ''} 
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                        className={`enterprise-form-input ${highlightClass(formData.city)}`}
-                        placeholder="Alhambra"
-                      />
-                    </FormField>
-                  </div>
+              <div className={styles.tabBar} id="property-workspace-tabs">
+                {TABS.map((tab) => {
+                  const TabIcon = tab.icon;
+                  const isActive = activeTab === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setActiveTab(tab.key)}
+                      className={`${styles.tabButton} ${isActive ? styles.tabButtonActive : ''}`}
+                      id={`property-tab-${tab.key}`}
+                    >
+                      <TabIcon className="w-3.5 h-3.5" />
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
 
-                  <div className={styles.col4}>
-                    <FormField label="State" required>
-                      <select 
-                        value={formData.state || ''} 
-                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                        className={`enterprise-form-input ${highlightClass(formData.state)} font-bold text-slate-700`}
+              <div className={styles.tabPanel}>
+
+                {activeTab === 'overview' && (
+                  <EnterpriseCard title="Overview" subtitle="Core identity fields for this property record.">
+                    <div className={styles.formGrid}>
+                      <div className={styles.col12}>
+                        <FormField label="Property UID Code" required>
+                          <input
+                            type="text"
+                            required
+                            disabled={!isCreatingNew}
+                            value={formData.property_uid || ''}
+                            onChange={(e) => setFormData({ ...formData, property_uid: e.target.value })}
+                            className={`enterprise-form-input ${highlightClass(formData.property_uid)}`}
+                            placeholder="PROP-00001227"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Business / Entity Name" helpText="Used as the property's display name where a formal name isn't available.">
+                          <input
+                            type="text"
+                            value={formData.business_name || ''}
+                            onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                            className="enterprise-form-input"
+                            placeholder="e.g. Alhambra Plaza Inc"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Status">
+                          <select
+                            value={formData.status || 'Active'}
+                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            className="enterprise-form-input"
+                          >
+                            <option value="Active">Active (Ready for Workflow)</option>
+                            <option value="Draft">Draft (Incomplete data)</option>
+                            <option value="Flagged">Flagged (Conflicting tax data)</option>
+                            <option value="Archived">Archived (historical reference)</option>
+                          </select>
+                        </FormField>
+                      </div>
+                    </div>
+                  </EnterpriseCard>
+                )}
+
+                {activeTab === 'address' && (
+                  <EnterpriseCard title="Address & Location" subtitle="Geocoding indicators, street parameters, and mapping references.">
+                    <div className={styles.formGrid}>
+
+                      <div className={styles.col8}>
+                        <FormField label="Street Address" required>
+                          <input
+                            type="text"
+                            required
+                            value={formData.address || ''}
+                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            className={`enterprise-form-input ${highlightClass(formData.address)}`}
+                            placeholder="e.g. 1227 W Valley Blvd"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col4}>
+                        <FormField label="City" required>
+                          <input
+                            type="text"
+                            required
+                            value={formData.city || ''}
+                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                            className={`enterprise-form-input ${highlightClass(formData.city)}`}
+                            placeholder="Alhambra"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col4}>
+                        <FormField label="State" required>
+                          <select
+                            value={formData.state || ''}
+                            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                            className={`enterprise-form-input ${highlightClass(formData.state)}`}
+                          >
+                            <option value="CA">California (CA)</option>
+                            <option value="NY">New York (NY)</option>
+                            <option value="TX">Texas (TX)</option>
+                            <option value="FL">Florida (FL)</option>
+                            <option value="NV">Nevada (NV)</option>
+                          </select>
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col4}>
+                        <FormField label="Zip Code" required>
+                          <input
+                            type="text"
+                            required
+                            value={formData.zip || ''}
+                            onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                            className={`enterprise-form-input ${highlightClass(formData.zip)}`}
+                            placeholder="91803"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col4}>
+                        <FormField label="Street Number">
+                          <input
+                            type="text"
+                            value={formData.street_number || ''}
+                            onChange={(e) => setFormData({ ...formData, street_number: e.target.value })}
+                            className="enterprise-form-input"
+                            placeholder="1227"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Street Name">
+                          <input
+                            type="text"
+                            value={formData.street_name || ''}
+                            onChange={(e) => setFormData({ ...formData, street_name: e.target.value })}
+                            className="enterprise-form-input"
+                            placeholder="W Valley Blvd"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Side of Street">
+                          <select
+                            value={formData.side_of_street || ''}
+                            onChange={(e) => setFormData({ ...formData, side_of_street: e.target.value })}
+                            className="enterprise-form-input"
+                          >
+                            <option value="-">-</option>
+                            <option value="North">North Side</option>
+                            <option value="South">South Side</option>
+                            <option value="East">East Side</option>
+                            <option value="West">West Side</option>
+                            <option value="Both">Both Sides</option>
+                          </select>
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col12}>
+                        <FormField label="Display Address (Combined)">
+                          <input
+                            type="text"
+                            readOnly
+                            value={combinedAddress === '—' ? '' : combinedAddress}
+                            className="enterprise-form-input"
+                            placeholder="Auto-calculated display representation"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Latitude (WGS 84)">
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.latitude || ''}
+                            onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) || undefined })}
+                            className="enterprise-form-input"
+                            placeholder="34.08185"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Longitude (WGS 84)">
+                          <input
+                            type="number"
+                            step="any"
+                            value={formData.longitude || ''}
+                            onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || undefined })}
+                            className="enterprise-form-input"
+                            placeholder="-118.14872"
+                          />
+                        </FormField>
+                      </div>
+
+                    </div>
+                  </EnterpriseCard>
+                )}
+
+                {activeTab === 'details' && (
+                  <EnterpriseCard title="Property Details" subtitle="Structural characteristics and current use profile.">
+                    <div className={styles.formGrid}>
+
+                      <div className={styles.col4}>
+                        <FormField label="Lot Area (SQFT)" required>
+                          <input
+                            type="number"
+                            required
+                            value={formData.lot_sqft || ''}
+                            onChange={(e) => setFormData({ ...formData, lot_sqft: parseInt(e.target.value) || 0 })}
+                            className={`enterprise-form-input ${highlightClass(formData.lot_sqft)}`}
+                            placeholder="15,000"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col4}>
+                        <FormField label="Building Area (SQFT)" required>
+                          <input
+                            type="number"
+                            required
+                            value={formData.building_sqft || ''}
+                            onChange={(e) => setFormData({ ...formData, building_sqft: parseInt(e.target.value) || 0 })}
+                            className={`enterprise-form-input ${highlightClass(formData.building_sqft)}`}
+                            placeholder="8,500"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col4}>
+                        <FormField label="Year Built" required>
+                          <input
+                            type="number"
+                            required
+                            value={formData.year_built || ''}
+                            onChange={(e) => setFormData({ ...formData, year_built: parseInt(e.target.value) || 0 })}
+                            className={`enterprise-form-input ${highlightClass(formData.year_built)}`}
+                            placeholder="2005"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col12}>
+                        <FormField label="Existing Use Profile">
+                          <select
+                            value={formData.existing_use || ''}
+                            onChange={(e) => setFormData({ ...formData, existing_use: e.target.value })}
+                            className="enterprise-form-input"
+                          >
+                            <option value="Retail Commercial">Retail Commercial</option>
+                            <option value="Medical Office">Medical Office</option>
+                            <option value="Warehouse / Industrial">Warehouse / Industrial</option>
+                            <option value="Multi-Family Residential">Multi-Family Residential</option>
+                            <option value="Mixed-Use Redevelopment">Mixed-Use Redevelopment</option>
+                          </select>
+                        </FormField>
+                      </div>
+
+                    </div>
+                  </EnterpriseCard>
+                )}
+
+                {activeTab === 'parcel' && (
+                  <EnterpriseCard title="Parcel & Zoning" subtitle="Assessor and municipal zoning identifiers.">
+                    <div className={styles.formGrid}>
+
+                      <div className={styles.col6}>
+                        <FormField label="Zoning Designation Code" required>
+                          <input
+                            type="text"
+                            required
+                            value={formData.zoning_code || ''}
+                            onChange={(e) => setFormData({ ...formData, zoning_code: e.target.value })}
+                            className={`enterprise-form-input ${highlightClass(formData.zoning_code)}`}
+                            placeholder="e.g. C2-1"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Assessor Parcel Number (APN)" required>
+                          <input
+                            type="text"
+                            required
+                            value={formData.apn || ''}
+                            onChange={(e) => setFormData({ ...formData, apn: e.target.value })}
+                            className={`enterprise-form-input ${highlightClass(formData.apn)}`}
+                            placeholder="e.g. 5342-016-012"
+                          />
+                        </FormField>
+                      </div>
+
+                    </div>
+                  </EnterpriseCard>
+                )}
+
+                {activeTab === 'financial' && (
+                  <EnterpriseCard title="Financial" subtitle="Tax assessments, land versus improvements valuations.">
+                    <div className={styles.formGrid}>
+
+                      <div className={styles.col4}>
+                        <FormField label="Land Value ($)">
+                          <input
+                            type="number"
+                            value={formData.land_value || ''}
+                            onChange={(e) => setFormData({ ...formData, land_value: parseInt(e.target.value) || 0 })}
+                            className={`enterprise-form-input ${highlightClass(formData.land_value)}`}
+                            placeholder="3,600,000"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col4}>
+                        <FormField label="Improvement Value ($)">
+                          <input
+                            type="number"
+                            value={formData.improvement_value || ''}
+                            onChange={(e) => setFormData({ ...formData, improvement_value: parseInt(e.target.value) || 0 })}
+                            className={`enterprise-form-input ${highlightClass(formData.improvement_value)}`}
+                            placeholder="2,400,000"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col4}>
+                        <FormField label="Total Assessed Value ($)">
+                          <input
+                            type="number"
+                            value={formData.total_assessed_value || ''}
+                            onChange={(e) => setFormData({ ...formData, total_assessed_value: parseInt(e.target.value) || 0 })}
+                            className={`enterprise-form-input ${highlightClass(formData.total_assessed_value)}`}
+                            placeholder="6,000,000"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Calculated Land Value / SQFT">
+                          <input
+                            type="text"
+                            readOnly
+                            value={formData.land_value && formData.lot_sqft ? `$${(formData.land_value / formData.lot_sqft).toFixed(2)}` : '--'}
+                            className="enterprise-form-input"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Calculated Improvement Value / SQFT">
+                          <input
+                            type="text"
+                            readOnly
+                            value={formData.improvement_value && formData.building_sqft ? `$${(formData.improvement_value / formData.building_sqft).toFixed(2)}` : '--'}
+                            className="enterprise-form-input"
+                          />
+                        </FormField>
+                      </div>
+
+                    </div>
+                  </EnterpriseCard>
+                )}
+
+                {activeTab === 'ownership' && (
+                  <EnterpriseCard title="Ownership" subtitle="Data provenance, confidence, and secondary source references.">
+                    <div className={styles.formGrid}>
+
+                      <div className={styles.col6}>
+                        <FormField label="Primary Data Source">
+                          <select
+                            value={formData.data_source || 'County Assessor'}
+                            onChange={(e) => setFormData({ ...formData, data_source: e.target.value })}
+                            className="enterprise-form-input"
+                          >
+                            <option value="County Assessor">County Assessor Office</option>
+                            <option value="Manual Entry">Manual Desk Review</option>
+                            <option value="CoStar Group">CoStar Enterprise API</option>
+                            <option value="PropStream">PropStream API Integration</option>
+                          </select>
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Assessor Data Confidence">
+                          <select
+                            value={formData.confidence_score || 'High'}
+                            onChange={(e) => setFormData({ ...formData, confidence_score: e.target.value })}
+                            className="enterprise-form-input"
+                          >
+                            <option value="High">High Confidence (95%+ match)</option>
+                            <option value="Medium">Medium Confidence (80%+ match)</option>
+                            <option value="Low">Low Confidence (Manual check needed)</option>
+                          </select>
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col6}>
+                        <FormField label="Record Source" helpText="How this property record originally entered the system.">
+                          <input
+                            type="text"
+                            value={formData.source || ''}
+                            onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                            className="enterprise-form-input"
+                            placeholder="e.g. Manual Entry"
+                          />
+                        </FormField>
+                      </div>
+
+                      <div className={styles.col12}>
+                        <FormField label="Phase 2 Source Provider">
+                          <select
+                            value={formData.phase2_source || ''}
+                            onChange={(e) => setFormData({ ...formData, phase2_source: e.target.value })}
+                            className="enterprise-form-input"
+                          >
+                            <option value="">No Active Provider</option>
+                            <option value="Google Maps">Google Maps API (Roads/Entrances)</option>
+                            <option value="Esri ArcGIS">Esri ArcGIS Urban Core</option>
+                            <option value="OpenStreetMap">OpenStreetMap Geodata</option>
+                          </select>
+                        </FormField>
+                      </div>
+
+                    </div>
+                  </EnterpriseCard>
+                )}
+
+                {activeTab === 'images' && (
+                  <EnterpriseCard title="Images" subtitle="Property image assets are managed in the dedicated Property Images workspace.">
+                    <div className={styles.linkOutPanel}>
+                      <ImageIcon className="w-8 h-8" style={{ color: 'var(--color-neutral-300)' }} />
+                      <p className={styles.linkOutText}>
+                        {imageCount === null
+                          ? 'Save this property to begin attaching images.'
+                          : `${imageCount} image${imageCount === 1 ? '' : 's'} currently attached to this property.`}
+                      </p>
+                      <button
+                        type="button"
+                        className="enterprise-btn enterprise-btn-secondary"
+                        onClick={() => onNavigate('Property Images')}
+                        disabled={!activeProperty.id}
                       >
-                        <option value="CA">California (CA)</option>
-                        <option value="NY">New York (NY)</option>
-                        <option value="TX">Texas (TX)</option>
-                        <option value="FL">Florida (FL)</option>
-                        <option value="NV">Nevada (NV)</option>
-                      </select>
-                    </FormField>
-                  </div>
+                        Open Property Images
+                      </button>
+                    </div>
+                  </EnterpriseCard>
+                )}
 
-                  <div className={styles.col4}>
-                    <FormField label="Zip Code" required>
-                      <input 
-                        type="text" 
-                        required
-                        value={formData.zip || ''} 
-                        onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
-                        className={`enterprise-form-input ${highlightClass(formData.zip)}`}
-                        placeholder="91803"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col4}>
-                    <FormField label="Street Number">
-                      <input 
-                        type="text" 
-                        value={formData.street_number || ''} 
-                        onChange={(e) => setFormData({ ...formData, street_number: e.target.value })}
-                        className="enterprise-form-input font-mono"
-                        placeholder="1227"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Street Name">
-                      <input 
-                        type="text" 
-                        value={formData.street_name || ''} 
-                        onChange={(e) => setFormData({ ...formData, street_name: e.target.value })}
-                        className="enterprise-form-input"
-                        placeholder="W Valley Blvd"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Side of Street">
-                      <select 
-                        value={formData.side_of_street || ''} 
-                        onChange={(e) => setFormData({ ...formData, side_of_street: e.target.value })}
-                        className="enterprise-form-input text-slate-600"
+                {activeTab === 'workflow' && (
+                  <EnterpriseCard title="Workflow" subtitle="AI workflow executions are run and monitored from AI Orchestration.">
+                    <div className={styles.linkOutPanel}>
+                      <GitBranch className="w-8 h-8" style={{ color: 'var(--color-neutral-300)' }} />
+                      <p className={styles.linkOutText}>
+                        {workflowCount === null
+                          ? 'Save this property to become eligible for AI workflows.'
+                          : workflowCount > 0
+                            ? `${workflowCount} workflow execution${workflowCount === 1 ? '' : 's'} on record for this property.`
+                            : 'No workflow executions have been run for this property yet.'}
+                      </p>
+                      <button
+                        type="button"
+                        className="enterprise-btn enterprise-btn-secondary"
+                        onClick={() => onNavigate('AI Orchestration')}
+                        disabled={!activeProperty.id}
                       >
-                        <option value="-">-</option>
-                        <option value="North">North Side</option>
-                        <option value="South">South Side</option>
-                        <option value="East">East Side</option>
-                        <option value="West">West Side</option>
-                        <option value="Both">Both Sides</option>
-                      </select>
-                    </FormField>
-                  </div>
+                        Open AI Orchestration
+                      </button>
+                    </div>
+                  </EnterpriseCard>
+                )}
 
-                  <div className={styles.col12}>
-                    <FormField label="Display Address (Combined)">
-                      <input 
-                        type="text" 
-                        readOnly
-                        value={formData.address ? `${formData.address}, ${formData.city || ''}, ${formData.state || ''} ${formData.zip || ''}` : ''}
-                        className="enterprise-form-input bg-slate-50 text-slate-500 font-semibold"
-                        placeholder="Auto-calculated display representation"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Latitude (WGS 84)">
-                      <input 
-                        type="number" 
-                        step="any"
-                        value={formData.latitude || ''} 
-                        onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) || undefined })}
-                        className="enterprise-form-input font-mono"
-                        placeholder="34.08185"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Longitude (WGS 84)">
-                      <input 
-                        type="number" 
-                        step="any"
-                        value={formData.longitude || ''} 
-                        onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || undefined })}
-                        className="enterprise-form-input font-mono"
-                        placeholder="-118.14872"
-                      />
-                    </FormField>
-                  </div>
-
-                </div>
-              </EnterpriseCard>
-
-              {/* Card 2: Property Basics */}
-              <EnterpriseCard title="Property Basics" subtitle="Structured spatial and regulatory codes for municipal alignment.">
-                <div className={styles.formGrid}>
-                  
-                  <div className={styles.col4}>
-                    <FormField label="Lot Area (SQFT)" required>
-                      <input 
-                        type="number" 
-                        required
-                        value={formData.lot_sqft || ''} 
-                        onChange={(e) => setFormData({ ...formData, lot_sqft: parseInt(e.target.value) || 0 })}
-                        className={`enterprise-form-input ${highlightClass(formData.lot_sqft)}`}
-                        placeholder="15,000"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col4}>
-                    <FormField label="Building Area (SQFT)" required>
-                      <input 
-                        type="number" 
-                        required
-                        value={formData.building_sqft || ''} 
-                        onChange={(e) => setFormData({ ...formData, building_sqft: parseInt(e.target.value) || 0 })}
-                        className={`enterprise-form-input ${highlightClass(formData.building_sqft)}`}
-                        placeholder="8,500"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col4}>
-                    <FormField label="Year Built" required>
-                      <input 
-                        type="number" 
-                        required
-                        value={formData.year_built || ''} 
-                        onChange={(e) => setFormData({ ...formData, year_built: parseInt(e.target.value) || 0 })}
-                        className={`enterprise-form-input ${highlightClass(formData.year_built)}`}
-                        placeholder="2005"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Existing Use Profile">
-                      <select 
-                        value={formData.existing_use || ''} 
-                        onChange={(e) => setFormData({ ...formData, existing_use: e.target.value })}
-                        className="enterprise-form-input text-slate-700"
-                      >
-                        <option value="Retail Commercial">Retail Commercial</option>
-                        <option value="Medical Office">Medical Office</option>
-                        <option value="Warehouse / Industrial">Warehouse / Industrial</option>
-                        <option value="Multi-Family Residential">Multi-Family Residential</option>
-                        <option value="Mixed-Use Redevelopment">Mixed-Use Redevelopment</option>
-                      </select>
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Zoning Designation Code" required>
-                      <input 
-                        type="text" 
-                        required
-                        value={formData.zoning_code || ''} 
-                        onChange={(e) => setFormData({ ...formData, zoning_code: e.target.value })}
-                        className={`enterprise-form-input font-mono ${highlightClass(formData.zoning_code)}`}
-                        placeholder="e.g. C2-1"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Assessor Parcel Number (APN)" required>
-                      <input 
-                        type="text" 
-                        required
-                        value={formData.apn || ''} 
-                        onChange={(e) => setFormData({ ...formData, apn: e.target.value })}
-                        className={`enterprise-form-input font-mono ${highlightClass(formData.apn)}`}
-                        placeholder="e.g. 5342-016-012"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Business / Entity Name">
-                      <input 
-                        type="text" 
-                        value={formData.business_name || ''} 
-                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
-                        className="enterprise-form-input"
-                        placeholder="e.g. Alhambra Plaza Inc"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col12}>
-                    <FormField label="Property UID Code" required>
-                      <input 
-                        type="text" 
-                        required
-                        disabled={!isCreatingNew}
-                        value={formData.property_uid || ''} 
-                        onChange={(e) => setFormData({ ...formData, property_uid: e.target.value })}
-                        className="enterprise-form-input font-mono bg-slate-50 text-indigo-700 font-bold"
-                        placeholder="PROP-00001227"
-                      />
-                    </FormField>
-                  </div>
-
-                </div>
-              </EnterpriseCard>
-
-              {/* Card 3: Land & Value */}
-              <EnterpriseCard title="Land & Value" subtitle="Tax assessments, land versus improvements valuations.">
-                <div className={styles.formGrid}>
-                  
-                  <div className={styles.col4}>
-                    <FormField label="Land Value ($)">
-                      <input 
-                        type="number" 
-                        value={formData.land_value || ''} 
-                        onChange={(e) => setFormData({ ...formData, land_value: parseInt(e.target.value) || 0 })}
-                        className={`enterprise-form-input font-mono ${highlightClass(formData.land_value)}`}
-                        placeholder="3,600,000"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col4}>
-                    <FormField label="Improvement Value ($)">
-                      <input 
-                        type="number" 
-                        value={formData.improvement_value || ''} 
-                        onChange={(e) => setFormData({ ...formData, improvement_value: parseInt(e.target.value) || 0 })}
-                        className={`enterprise-form-input font-mono ${highlightClass(formData.improvement_value)}`}
-                        placeholder="2,400,000"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col4}>
-                    <FormField label="Total Assessed Value ($)">
-                      <input 
-                        type="number" 
-                        value={formData.total_assessed_value || ''} 
-                        onChange={(e) => setFormData({ ...formData, total_assessed_value: parseInt(e.target.value) || 0 })}
-                        className={`enterprise-form-input font-mono ${highlightClass(formData.total_assessed_value)}`}
-                        placeholder="6,000,000"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Calculated Land Value / SQFT">
-                      <input 
-                        type="text" 
-                        readOnly
-                        value={formData.land_value && formData.lot_sqft ? `$${(formData.land_value / formData.lot_sqft).toFixed(2)}` : '--'} 
-                        className="enterprise-form-input bg-slate-50 text-slate-500 font-mono font-semibold"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Calculated Improvement Value / SQFT">
-                      <input 
-                        type="text" 
-                        readOnly
-                        value={formData.improvement_value && formData.building_sqft ? `$${(formData.improvement_value / formData.building_sqft).toFixed(2)}` : '--'} 
-                        className="enterprise-form-input bg-slate-50 text-slate-500 font-mono font-semibold"
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Primary Data Source">
-                      <select 
-                        value={formData.data_source || 'County Assessor'} 
-                        onChange={(e) => setFormData({ ...formData, data_source: e.target.value })}
-                        className="enterprise-form-input text-slate-700"
-                      >
-                        <option value="County Assessor">County Assessor Office</option>
-                        <option value="Manual Entry">Manual Desk Review</option>
-                        <option value="CoStar Group">CoStar Enterprise API</option>
-                        <option value="PropStream">PropStream API Integration</option>
-                      </select>
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Assessor Data Confidence">
-                      <select 
-                        value={formData.confidence_score || 'High'} 
-                        onChange={(e) => setFormData({ ...formData, confidence_score: e.target.value })}
-                        className="enterprise-form-input text-slate-700"
-                      >
-                        <option value="High">High Confidence (95%+ match)</option>
-                        <option value="Medium">Medium Confidence (80%+ match)</option>
-                        <option value="Low">Low Confidence (Manual check needed)</option>
-                      </select>
-                    </FormField>
-                  </div>
-
-                </div>
-              </EnterpriseCard>
-
-              {/* Card 4: Location & Access */}
-              <EnterpriseCard title="Location & Access" subtitle="Detailed entry points, physical notes, and phase 2 references.">
-                <div className={styles.formGrid}>
-                  
-                  <div className={styles.col6}>
-                    <FormField label="Phase 2 Source Provider">
-                      <select 
-                        value={formData.phase2_source || ''} 
-                        onChange={(e) => setFormData({ ...formData, phase2_source: e.target.value })}
-                        className="enterprise-form-input text-slate-700"
-                      >
-                        <option value="">No Active Provider</option>
-                        <option value="Google Maps">Google Maps API (Roads/Entrances)</option>
-                        <option value="Esri ArcGIS">Esri ArcGIS Urban Core</option>
-                        <option value="OpenStreetMap">OpenStreetMap Geodata</option>
-                      </select>
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col6}>
-                    <FormField label="Integration Status Code">
-                      <select 
-                        value={formData.status || 'Active'} 
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                        className="enterprise-form-input font-semibold text-slate-700"
-                      >
-                        <option value="Active">Active (Ready for Workflow)</option>
-                        <option value="Draft">Draft (Incomplete data)</option>
-                        <option value="Flagged">Flagged (Conflicting tax data)</option>
-                        <option value="Archived">Archived (historical reference)</option>
-                      </select>
-                    </FormField>
-                  </div>
-
-                  <div className={styles.col12}>
-                    <FormField label="Strategic Descriptors & Property Notes">
-                      <textarea 
-                        rows={4}
-                        value={formData.notes || ''} 
-                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        className={`enterprise-form-input ${highlightClass(formData.notes)}`}
-                        placeholder="Add annotations about property easements, height limits, access corridors, pedestrian density, or street frontages..."
-                      />
-                    </FormField>
-                  </div>
-
-                </div>
-              </EnterpriseCard>
-
-              {/* Card 5: AI & Metadata (Collapsible) */}
-              <div className="space-y-3">
-                <button 
-                  type="button"
-                  onClick={() => setAdvancedOpen(!advancedOpen)}
-                  className={styles.advancedToggle}
-                >
-                  <span>Advanced Developer & AI Context</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${advancedOpen ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {advancedOpen && (
-                  <div className={styles.advancedContent}>
+                {activeTab === 'ai' && (
+                  <EnterpriseCard title="AI Analysis" subtitle="Raw API payload context used by downstream AI workflows.">
                     <div className="space-y-4">
                       <FormField label="Municipal API Source Endpoint">
-                        <input 
-                          type="text" 
-                          value={formData.api_source_url || ''} 
+                        <input
+                          type="text"
+                          value={formData.api_source_url || ''}
                           onChange={(e) => setFormData({ ...formData, api_source_url: e.target.value })}
-                          className="enterprise-form-input font-mono text-[11px] text-slate-500"
+                          className="enterprise-form-input"
                           placeholder="https://api.cre-handshake.gov/parcels/"
                         />
                       </FormField>
 
-                      <FormField label="Raw Database/API JSON Context">
-                        <textarea 
-                          rows={3}
-                          value={formData.raw_api_json || ''} 
+                      <FormField label="Raw Database/API JSON Context" helpText="This structured payload is what DEV-TOOLS WIMLOGIC receives as AI analysis context.">
+                        <textarea
+                          rows={6}
+                          value={formData.raw_api_json || ''}
                           onChange={(e) => setFormData({ ...formData, raw_api_json: e.target.value })}
-                          className="enterprise-form-input font-mono text-[11px] text-emerald-600 bg-slate-950 border-slate-800"
+                          className="enterprise-form-input"
                           placeholder="{}"
                         />
                       </FormField>
 
                       <div className={styles.jsonTriggerRow}>
-                        <span className="text-[10px] font-medium text-slate-400">
+                        <span className="enterprise-form-help">
                           Verify parsed developer payloads inside Sandbox context.
                         </span>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={handleTriggerViewJson}
                           className={styles.btnJsonViewer}
                         >
@@ -973,104 +1098,109 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </EnterpriseCard>
                 )}
-              </div>
 
+                {activeTab === 'notes' && (
+                  <EnterpriseCard title="Notes" subtitle="Strategic descriptors and freeform property annotations.">
+                    <FormField label="Strategic Descriptors & Property Notes">
+                      <textarea
+                        rows={10}
+                        value={formData.notes || ''}
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        className={`enterprise-form-input ${highlightClass(formData.notes)}`}
+                        placeholder="Add annotations about property easements, height limits, access corridors, pedestrian density, or street frontages..."
+                      />
+                    </FormField>
+                  </EnterpriseCard>
+                )}
+
+              </div>
             </div>
 
-            {/* RIGHT COLUMN: Workspace Overview and AI Readiness Gauge */}
+            {/* RIGHT COLUMN: Fixed inspector panel - Quick Actions, then AI
+                Readiness KPIs, then Property Summary. Stays visible and
+                unchanged while the left tab selection changes. */}
             <div className={styles.rightColumn}>
-              
-              {/* Card 1: Property Overview Panel */}
-              <EnterpriseCard title="Property Overview" subtitle="Quick indicators representing registry handshake status.">
-                <div className={styles.overviewList}>
-                  
-                  <div className={styles.overviewItem}>
-                    <span className={styles.overviewLabel}>Property UID</span>
-                    <span className={`${styles.overviewValue} ${styles.valueMono} text-indigo-600 font-bold`}>
-                      {formData.property_uid || '--'}
-                    </span>
-                  </div>
 
-                  <div className={styles.overviewItem}>
-                    <span className={styles.overviewLabel}>Status</span>
-                    <span className={styles.overviewValue}>
-                      <span className={`${styles.stickyDot} ${formData.status !== 'Active' ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
-                      {formData.status || 'Active'}
-                    </span>
-                  </div>
-
-                  <div className={styles.overviewItem}>
-                    <span className={styles.overviewLabel}>Confidence Score</span>
-                    <span className={`${styles.overviewValue} text-emerald-600`}>
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
-                      {formData.confidence_score || 'High'}
-                    </span>
-                  </div>
-
-                  <div className={styles.overviewItem}>
-                    <span className={styles.overviewLabel}>Data Completeness</span>
-                    <span className={`${styles.overviewValue} text-indigo-600 font-bold font-mono`}>
-                      {metrics.score}%
-                    </span>
-                  </div>
-
-                  <div className={styles.overviewItem}>
-                    <span className={styles.overviewLabel}>Last Updated</span>
-                    <span className={styles.overviewValue}>
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      {formData.updated_at ? new Date(formData.updated_at).toLocaleDateString() : 'Just now'}
-                    </span>
-                  </div>
-
-                  <div className={styles.overviewItem}>
-                    <span className={styles.overviewLabel}>Created At</span>
-                    <span className={styles.overviewValue}>
-                      {formData.created_at ? new Date(formData.created_at).toLocaleDateString() : 'Just now'}
-                    </span>
-                  </div>
-
-                  <div className={styles.overviewItem}>
-                    <span className={styles.overviewLabel}>Source</span>
-                    <span className={styles.overviewValue}>{formData.source || 'Manual Entry'}</span>
-                  </div>
-
-                  <div className="pt-2 text-[11px] text-slate-500 italic leading-relaxed">
-                    <strong>Lead Note:</strong> {formData.notes ? (formData.notes.length > 80 ? formData.notes.substring(0, 80) + '...' : formData.notes) : 'No strategic notes registered.'}
-                  </div>
-
+              <EnterpriseCard title="Quick Actions">
+                <div className={styles.quickActionsGrid}>
+                  <button type="button" className="enterprise-btn enterprise-btn-primary" onClick={handleSave} id="quick-action-save">
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="enterprise-btn enterprise-btn-secondary"
+                    onClick={handleRefresh}
+                    disabled={!activeProperty.id || isRefreshing}
+                    id="quick-action-refresh"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </button>
+                  <button
+                    type="button"
+                    className="enterprise-btn enterprise-btn-outline"
+                    onClick={() => onNavigate('Property Images')}
+                    disabled={!activeProperty.id}
+                    id="quick-action-open-images"
+                  >
+                    Open Images
+                  </button>
+                  <button
+                    type="button"
+                    className="enterprise-btn enterprise-btn-outline"
+                    onClick={() => onNavigate('AI Orchestration')}
+                    disabled={!activeProperty.id}
+                    id="quick-action-run-workflow"
+                  >
+                    Run Workflow
+                  </button>
+                  <button
+                    type="button"
+                    className="enterprise-btn enterprise-btn-ghost"
+                    onClick={() => onNavigate('Workflow Results')}
+                    disabled={!activeProperty.id}
+                    id="quick-action-view-analysis"
+                  >
+                    View Analysis
+                  </button>
                 </div>
               </EnterpriseCard>
 
-              {/* Card 2: AI Readiness Progress Circle & Checklist */}
-              <EnterpriseCard title="AI Readiness" subtitle="Data payload mapping audits for orchestrating WIMLOGIC AI.">
-                
-                <div className={styles.gaugeContainer}>
-                  <div className={styles.gaugeCircleWrapper}>
-                    <svg className={styles.gaugeSvg}>
-                      <circle className={styles.gaugeBackground} cx="70" cy="70" r="60" />
-                      <circle 
-                        className={styles.gaugeValueCircle} 
-                        cx="70" 
-                        cy="70" 
-                        r="60" 
-                        strokeDasharray={2 * Math.PI * 60}
-                        strokeDashoffset={((100 - metrics.score) / 100) * (2 * Math.PI * 60)}
-                      />
-                    </svg>
-                    <div className={styles.gaugeTextContent}>
-                      <span className={styles.gaugeValue}>{metrics.score}%</span>
-                      <span className={styles.gaugeLabel} style={{ color: metrics.workflowReady ? '#10b981' : '#f59e0b' }}>
-                        {metrics.workflowReady ? 'Ready for Workflows' : 'Draft Status'}
-                      </span>
-                    </div>
+              <EnterpriseCard title="AI Readiness" subtitle="Real-time readiness signals for this property.">
+                <div className={styles.kpiGrid}>
+
+                  <div className={styles.kpiTile}>
+                    <span className={styles.kpiLabel}>Data Completeness</span>
+                    <span className={styles.kpiValue}>{metrics.score}%</span>
                   </div>
+
+                  <div className={styles.kpiTile}>
+                    <span className={styles.kpiLabel}>Image Readiness</span>
+                    <span className={`${styles.kpiValue} ${styles.kpiValueText}`}>
+                      {imageCount === null ? '—' : imageCount > 0 ? 'Ready' : 'Needs Images'}
+                    </span>
+                  </div>
+
+                  <div className={styles.kpiTile}>
+                    <span className={styles.kpiLabel}>Workflow Ready</span>
+                    <span className={`${styles.kpiValue} ${styles.kpiValueText}`} style={{ color: metrics.workflowReady ? '#059669' : '#d97706' }}>
+                      {metrics.workflowReady ? 'Ready' : 'Draft'}
+                    </span>
+                  </div>
+
+                  <div className={styles.kpiTile}>
+                    <span className={styles.kpiLabel}>Analysis Status</span>
+                    <span className={`${styles.kpiValue} ${styles.kpiValueText}`}>
+                      {workflowCount === null ? '—' : workflowCount > 0 ? 'Analyzed' : 'Pending'}
+                    </span>
+                  </div>
+
                 </div>
 
-                {/* Audit categories list */}
                 <div className={styles.checklist}>
-                  
+
                   <div className={styles.checklistItem}>
                     <div className={styles.checklistLabelWithIcon}>
                       {metrics.address ? (
@@ -1090,7 +1220,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                       ) : (
                         <AlertTriangle className={`w-4 h-4 ${styles.checklistWarningIcon}`} />
                       )}
-                      <span>Property Basics Block</span>
+                      <span>Property Details Block</span>
                     </div>
                     <span className={styles.checklistPercent}>{metrics.basics ? '100%' : 'Incomplete'}</span>
                   </div>
@@ -1114,21 +1244,9 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                       ) : (
                         <AlertTriangle className={`w-4 h-4 ${styles.checklistWarningIcon}`} />
                       )}
-                      <span>Site & Land Information</span>
+                      <span>Parcel & Zoning</span>
                     </div>
                     <span className={styles.checklistPercent}>{metrics.site ? '100%' : 'Incomplete'}</span>
-                  </div>
-
-                  <div className={styles.checklistItem}>
-                    <div className={styles.checklistLabelWithIcon}>
-                      {metrics.zoning === 100 ? (
-                        <CheckCircle className={`w-4 h-4 ${styles.checklistCheckedIcon}`} />
-                      ) : (
-                        <AlertTriangle className={`w-4 h-4 ${styles.checklistWarningIcon}`} />
-                      )}
-                      <span>Zoning & Entitlements</span>
-                    </div>
-                    <span className={styles.checklistPercent}>{metrics.zoning}%</span>
                   </div>
 
                   <div className={styles.checklistItem}>
@@ -1138,59 +1256,80 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                       ) : (
                         <AlertTriangle className={`w-4 h-4 ${styles.checklistWarningIcon}`} />
                       )}
-                      <span>Market & Tenancy Context</span>
+                      <span>Ownership & Market Context</span>
                     </div>
                     <span className={styles.checklistPercent}>{metrics.market}%</span>
                   </div>
 
                 </div>
+              </EnterpriseCard>
 
-                <button 
-                  type="button" 
-                  onClick={metrics.workflowReady ? handleSave : handleHighlightFields}
-                  className={styles.btnActionFull}
-                >
-                  {metrics.workflowReady ? 'Execute AI Workflow Readiness' : 'View Missing Information'}
-                </button>
+              <EnterpriseCard title="Property Summary" subtitle="Live snapshot - stays visible while you edit other tabs.">
+                <div className={styles.overviewList}>
 
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Project</span>
+                    <span className={styles.overviewValue}>{currentProject?.project_name || activeProjectFilter || '--'}</span>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Property Name</span>
+                    <span className={styles.overviewValue}>{propertyName}</span>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Property Type</span>
+                    <span className={styles.overviewValue}>{formData.existing_use || '--'}</span>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Address</span>
+                    <span className={styles.overviewValue} style={{ textAlign: 'right' }}>{combinedAddress}</span>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Status</span>
+                    <span className={styles.overviewValue}>
+                      <span className={styles.stickyDot} style={{ backgroundColor: formData.status !== 'Active' ? '#f59e0b' : '#10b981' }} />
+                      {formData.status || 'Active'}
+                    </span>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Image Count</span>
+                    <span className={styles.overviewValue}>{imageCount === null ? '—' : imageCount}</span>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Workflow Count</span>
+                    <span className={styles.overviewValue}>{workflowCount === null ? '—' : workflowCount}</span>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Last Updated</span>
+                    <span className={styles.overviewValue}>
+                      <Calendar className="w-3.5 h-3.5" style={{ color: 'var(--color-neutral-400)' }} />
+                      {formData.updated_at ? new Date(formData.updated_at).toLocaleDateString() : 'Just now'}
+                    </span>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewLabel}>Property ID</span>
+                    <span className={`${styles.overviewValue} ${styles.valueMono}`}>{formData.property_uid || '--'}</span>
+                  </div>
+
+                </div>
               </EnterpriseCard>
 
             </div>
 
           </div>
 
-          {/* Sticky Quick-Action Bar */}
-          <div className={styles.stickyBottomBar}>
-            <div className={styles.stickyStatus}>
-              <span className={styles.stickyDot}></span>
-              <span>Workspace changes are buffered locally</span>
-            </div>
-            
-            <div className={styles.stickyActions}>
-              <button 
-                type="button" 
-                onClick={() => setActiveProperty(null)}
-                className="px-4 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-lg text-xs font-semibold tracking-wide transition-all focus:outline-none"
-              >
-                Cancel
-              </button>
-              
-              <button 
-                type="button" 
-                onClick={handleSave}
-                className="px-5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold tracking-wide transition-all shadow-md shadow-indigo-600/10 focus:outline-none"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-
         </div>
       ) : (
-        
-        // 2. RENDER THE PRIMARY PROPERTY DIRECTORY (LIST VIEW)
+
         <div className="space-y-6 animate-fade-in">
-          
+
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-xl font-sans font-bold tracking-tight text-slate-900 flex items-center gap-2">
@@ -1225,29 +1364,32 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
         </div>
       )}
 
-      {/* MODAL WINDOWS */}
-      
-      {/* 1. Modal JSON Viewer for Advanced section */}
       {showJsonModal && (
-        <div className={styles.modalOverlay} onClick={() => setShowJsonModal(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>WIMLOGIC Sandbox JSON Handshake</h2>
+        <div className="enterprise-dialog-overlay" onClick={() => setShowJsonModal(false)}>
+          <div
+            className="enterprise-dialog-panel"
+            style={{ maxWidth: '44rem' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="enterprise-dialog-header">
+              <div>
+                <h2 className="enterprise-dialog-title">WIMLOGIC Sandbox JSON Handshake</h2>
+                <p className="enterprise-dialog-subtitle">
+                  Verify the structured payload context extracted from the municipal geocoding assessor integrations.
+                </p>
+              </div>
               <button className={styles.modalCloseBtn} onClick={() => setShowJsonModal(false)}>
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className={styles.modalBody}>
-              <p className="text-xs text-slate-500 mb-4">
-                Verify the structured payload context extracted from the municipal geocoding assessor integrations.
-              </p>
+            <div className="enterprise-dialog-body">
               <JsonViewer data={jsonModalData} title="Structured Assessor Metadata Payload" />
             </div>
-            <div className={styles.modalFooter}>
-              <button 
-                type="button" 
+            <div className="enterprise-dialog-footer">
+              <button
+                type="button"
                 onClick={() => setShowJsonModal(false)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold"
+                className="enterprise-btn enterprise-btn-primary"
               >
                 Close Sandbox
               </button>
@@ -1256,7 +1398,6 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
         </div>
       )}
 
-      {/* 2. Global Delete Confirm Dialog */}
       <ConfirmDialog
         isOpen={showDeleteDialog}
         title="Delete Property Parcel"

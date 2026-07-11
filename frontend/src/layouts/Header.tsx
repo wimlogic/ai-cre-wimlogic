@@ -1,6 +1,8 @@
-import React from 'react';
-import { Menu, User, Bell } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Menu, Bell, Wifi, WifiOff, Loader2 } from 'lucide-react';
 import { WimLogicLogo } from './Sidebar';
+import { AppConfig } from '../config/app';
+import styles from './Header.module.css';
 
 export interface HeaderProps {
   currentView: string;
@@ -8,73 +10,125 @@ export interface HeaderProps {
   id?: string;
 }
 
+type BackendStatus = 'checking' | 'online' | 'offline';
+
+/**
+ * Polls the existing root-level /health endpoint (already present in
+ * main.py - no new endpoint invented) to drive the "Backend Linked"
+ * indicator. Silently treats any failure (network error, non-2xx) as
+ * offline rather than throwing, since this is a passive status indicator.
+ */
+function useBackendStatus(intervalMs = 30000): BackendStatus {
+  const [status, setStatus] = useState<BackendStatus>('checking');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkHealth() {
+      try {
+        const res = await fetch(`${AppConfig.apiOrigin}/health`);
+        if (!cancelled) setStatus(res.ok ? 'online' : 'offline');
+      } catch {
+        if (!cancelled) setStatus('offline');
+      }
+    }
+
+    checkHealth();
+    const interval = setInterval(checkHealth, intervalMs);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [intervalMs]);
+
+  return status;
+}
+
+function useUtcClock(): string {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatted = now
+    .toISOString()
+    .slice(0, 16)
+    .replace('T', ' ');
+  return `${formatted} UTC`;
+}
+
 export default function Header({ currentView, onOpenMobile, id }: HeaderProps) {
-  // Personalized email from system context
-  const userEmail = 'timg@kshoesusa.com';
+  const backendStatus = useBackendStatus();
+  const utcClock = useUtcClock();
+
+  const statusConfig: Record<BackendStatus, { label: string; className: string; icon: React.ReactNode }> = {
+    checking: {
+      label: 'Checking...',
+      className: styles.statusChecking,
+      icon: <Loader2 className="w-3 h-3 animate-spin" />,
+    },
+    online: {
+      label: 'Backend Linked',
+      className: styles.statusOnline,
+      icon: <Wifi className="w-3 h-3" />,
+    },
+    offline: {
+      label: 'Backend Offline',
+      className: styles.statusOffline,
+      icon: <WifiOff className="w-3 h-3" />,
+    },
+  };
+  const currentStatus = statusConfig[backendStatus];
 
   return (
-    <header
-      id={id || 'enterprise-header-panel'}
-      className="bg-white border-b border-slate-200/80 h-16 flex items-center justify-between px-4 sm:px-6 md:px-8 shrink-0 select-none z-20 shadow-xs"
-    >
-      <div className="flex items-center gap-3">
+    <header id={id || 'enterprise-header-panel'} className={styles.header}>
+      <div className={styles.leftGroup}>
         {/* Mobile menu toggle */}
         <button
           onClick={onOpenMobile}
-          className="lg:hidden p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-lg transition-colors focus:outline-none"
+          className={styles.mobileMenuBtn}
           id="open-sidebar-mobile-btn"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         {/* Small branding for mobile */}
-        <div className="flex lg:hidden items-center gap-2">
+        <div className={styles.mobileBrand}>
           <WimLogicLogo className="w-5 h-5" />
-          <span className="font-sans font-black tracking-widest text-[10px] text-slate-900 uppercase">
-            WIMLOGIC
-          </span>
+          <span className={styles.mobileBrandText}>WIMLOGIC</span>
         </div>
 
-        {/* Active Page Title - Desktop only */}
-        <div className="hidden lg:block space-y-0.5">
-          <h1 className="text-sm font-bold text-slate-900 tracking-tight uppercase font-mono">
-            {currentView}
-          </h1>
-          <p className="text-[10px] text-slate-400 font-mono tracking-wider">
-            AI-CRE ORCHESTRATION CLIENT
-          </p>
+        {/* Breadcrumb - desktop only */}
+        <div className={styles.breadcrumbArea}>
+          <div className={styles.breadcrumbRow}>
+            <span>Console</span>
+            <span className={styles.breadcrumbSeparator}>/</span>
+            <span className={styles.breadcrumbActive}>{currentView}</span>
+          </div>
+          <span className={styles.pageSubtitle}>AI-CRE ORCHESTRATION CLIENT</span>
         </div>
+
+        {/* Active view name on mobile */}
+        <span className={styles.mobileTitle}>{currentView}</span>
       </div>
 
-      {/* User profile and system icons */}
-      <div className="flex items-center gap-4">
-        {/* Active view name on mobile */}
-        <span className="lg:hidden text-xs font-bold text-slate-800 font-mono tracking-wide uppercase">
-          {currentView}
-        </span>
-
-        <div className="flex items-center gap-3">
-          {/* Notifications Placeholder */}
-          <button className="hidden sm:flex p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-50 transition-colors relative">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-          </button>
-
-          {/* User badge */}
-          <div className="flex items-center gap-2 border-l border-slate-100 pl-3">
-            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200 shrink-0">
-              <User className="w-4 h-4" />
-            </div>
-            <div className="hidden sm:block text-left">
-              <span className="block text-[10px] font-bold text-slate-700 tracking-wide">
-                Tim G.
-              </span>
-              <span className="block text-[9px] font-mono text-slate-400">
-                {userEmail}
-              </span>
-            </div>
-          </div>
+      <div className={styles.rightGroup}>
+        <div className={styles.clockBlock} title="Current UTC time" id="header-utc-clock">
+          <span>{utcClock}</span>
         </div>
+
+        <div className={`${styles.statusPill} ${currentStatus.className}`} id="header-backend-status">
+          <span className={styles.statusDot} />
+          {currentStatus.icon}
+          <span className={styles.statusLabel}>{currentStatus.label}</span>
+        </div>
+
+        <button className={styles.notifBtn} id="header-notifications-btn" title="Notifications">
+          <Bell className="w-4 h-4" />
+          <span className={styles.notifDot} />
+        </button>
       </div>
     </header>
   );

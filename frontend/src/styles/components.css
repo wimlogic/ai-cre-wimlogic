@@ -1,18 +1,25 @@
 /* Enterprise Reusable Custom UI Component Styles */
 
+/* ---------- Card ---------- */
+
 .enterprise-card {
   background-color: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--radius-lg);
+  /* Double-layer border: a crisp 1px outer border plus a subtle inset
+     highlight, giving cards a more professional, less "flat" edge than a
+     single border alone. */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6) inset, var(--shadow-sm);
   transition: all var(--transition-normal);
   overflow: hidden;
 }
 
 .enterprise-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6) inset, var(--shadow-md);
   border-color: rgba(99, 102, 241, 0.15);
 }
+
+/* ---------- Buttons ---------- */
 
 .enterprise-btn {
   display: inline-flex;
@@ -22,10 +29,24 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.025em;
-  padding: 0.625rem 1rem;
-  border-radius: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  min-height: 2.375rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
   transition: all var(--transition-fast);
   cursor: pointer;
+  line-height: 1;
+}
+
+.enterprise-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.enterprise-btn-lg {
+  padding: 0.875rem 1.75rem;
+  font-size: 0.8125rem;
+  min-height: 2.75rem;
 }
 
 .enterprise-btn-primary {
@@ -33,21 +54,87 @@
   color: #ffffff;
 }
 
-.enterprise-btn-primary:hover {
+.enterprise-btn-primary:hover:not(:disabled) {
   background-color: var(--color-brand-700);
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.18);
 }
 
 .enterprise-btn-secondary {
   background-color: #ffffff;
   color: var(--color-neutral-800);
-  border: 1px solid var(--color-neutral-200);
+  border-color: var(--color-neutral-200);
 }
 
-.enterprise-btn-secondary:hover {
+.enterprise-btn-secondary:hover:not(:disabled) {
   background-color: var(--color-neutral-50);
   border-color: var(--color-neutral-300);
 }
+
+.enterprise-btn-danger {
+  background-color: var(--color-danger-600);
+  color: #ffffff;
+}
+
+.enterprise-btn-danger:hover:not(:disabled) {
+  background-color: var(--color-danger-700);
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.18);
+}
+
+.enterprise-btn-ghost {
+  background-color: transparent;
+  color: var(--color-neutral-600);
+}
+
+.enterprise-btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-800);
+}
+
+.enterprise-btn-outline {
+  background-color: transparent;
+  color: var(--color-brand-600);
+  border-color: var(--color-brand-500);
+}
+
+.enterprise-btn-outline:hover:not(:disabled) {
+  background-color: var(--color-brand-50);
+  border-color: var(--color-brand-600);
+}
+
+/* Loading state: dim content and show a spinner in place of the icon slot.
+   Usage: add alongside a variant class, e.g.
+   className="enterprise-btn enterprise-btn-primary enterprise-btn-loading" */
+.enterprise-btn-loading {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+.enterprise-btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: #ffffff;
+  animation: enterprise-btn-spin 0.6s linear infinite;
+}
+
+.enterprise-btn-secondary.enterprise-btn-loading::after,
+.enterprise-btn-outline.enterprise-btn-loading::after,
+.enterprise-btn-ghost.enterprise-btn-loading::after {
+  border-color: rgba(79, 70, 229, 0.25);
+  border-top-color: var(--color-brand-600);
+}
+
+@keyframes enterprise-btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Badge ---------- */
 
 .enterprise-badge {
   display: inline-flex;
@@ -60,4 +147,103 @@
   letter-spacing: 0.05em;
   border-radius: 9999px;
   border: 1px solid;
+}
+
+/* ---------- Section header (for tabbed/grouped forms) ---------- */
+
+.enterprise-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.625rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.enterprise-section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-neutral-800);
+  font-family: var(--font-mono);
+}
+
+.enterprise-section-subtitle {
+  font-size: 0.6875rem;
+  color: var(--color-neutral-400);
+}
+
+/* ---------- Enterprise Dialog Shell ----------
+   Reusable structure for every Add/Edit popup app-wide (ConfirmDialog today;
+   Project/Workflow/Property dialogs can adopt these same classes as each
+   module is modernized). Stronger elevation, larger radius, sticky footer,
+   professional spacing - matches the DEV-TOOLS reference dialog treatment. */
+
+.enterprise-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.enterprise-dialog-panel {
+  background-color: #ffffff;
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6) inset, var(--shadow-xl);
+  width: 100%;
+  max-height: calc(100vh - 3rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.enterprise-dialog-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-neutral-100);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.enterprise-dialog-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-neutral-900);
+  letter-spacing: -0.01em;
+}
+
+.enterprise-dialog-subtitle {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  margin-top: 0.125rem;
+}
+
+.enterprise-dialog-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.enterprise-dialog-footer {
+  padding: 1rem 1.5rem;
+  background-color: var(--color-neutral-50);
+  border-top: 1px solid var(--color-neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  /* Sticky within a scrolling dialog body of the same flex container */
+  position: sticky;
+  bottom: 0;
 }

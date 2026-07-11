@@ -93,7 +93,7 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold tracking-wide transition-all shadow-md shadow-indigo-600/10 flex items-center gap-2 focus:outline-none cursor-pointer"
             >
               <Cpu className="w-4 h-4" />
-              Launch Orchestrator
+              Generate Analysis
             </button>
             <button
               onClick={() => onNavigate('Projects')}
@@ -246,7 +246,7 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
                       <StatusBadge status={exec.status} type="workflow" />
                     </div>
                     <div className="text-xs text-slate-600 font-sans">
-                      Workflow: <span className="font-mono font-bold text-indigo-600">{exec.workflow_code}</span>
+                      Pipeline: <span className="font-mono font-bold text-indigo-600">{exec.workflow_code}</span>
                     </div>
                     <div className="text-[10px] text-slate-400 font-mono">
                       Started: {new Date(exec.submitted_at || exec.created_at).toLocaleTimeString()}

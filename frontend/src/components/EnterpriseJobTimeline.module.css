@@ -1,0 +1,80 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.entry {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ---------- Marker column ---------- */
+
+.markerColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 0.625rem;
+}
+
+.marker {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background-color: var(--color-brand-500);
+  border: 2px solid var(--color-brand-100);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.connector {
+  flex: 1 1 auto;
+  width: 1px;
+  min-height: 1.25rem;
+  background-color: var(--color-neutral-200);
+  margin: 0.25rem 0;
+}
+
+/* ---------- Content ---------- */
+
+.content {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-bottom: 1.125rem;
+}
+
+.entryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.eventType {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-neutral-800);
+}
+
+.message {
+  margin: 0.375rem 0 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--color-neutral-600);
+}
+
+.timestamp {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--color-neutral-400);
+  font-family: var(--font-mono);
+}

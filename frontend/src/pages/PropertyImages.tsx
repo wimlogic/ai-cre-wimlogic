@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { propertyImageService } from '../services/propertyImageService';
 import { projectService } from '../services/projectService';
 import { propertyService } from '../services/propertyService';
@@ -9,13 +9,15 @@ import {
   Trash2,
   Image as ImageIcon,
   X,
-  LayoutGrid,
-  Rows3,
   RefreshCw,
   CircleHelp,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Pencil,
+  Star,
 } from 'lucide-react';
 
-import EnterpriseToolbar from '../components/EnterpriseToolbar';
 import EnterpriseCard from '../components/EnterpriseCard';
 import EmptyState from '../components/EmptyState';
 import LoadingState from '../components/LoadingState';
@@ -28,10 +30,8 @@ import styles from './PropertyImages.module.css';
 
 /**
  * Real image categories, taken directly from the locked backend schema
- * (`cre_property_images.image_type` enum). The WIMLOGIC Property Images spec
- * lists additional categories (drone photography, floor plans, comparable
- * photos, etc.) that do not exist in the database today - only these four
- * are real, so only these four are used for category-coverage reporting.
+ * (`cre_property_images.image_type` enum). Only these four exist in the
+ * database today.
  */
 const IMAGE_CATEGORIES: { value: string; label: string }[] = [
   { value: 'street_view', label: 'Street View' },
@@ -40,16 +40,10 @@ const IMAGE_CATEGORIES: { value: string; label: string }[] = [
   { value: 'uploaded', label: 'Uploaded' },
 ];
 
+const GALLERY_PAGE_SIZE = 5;
+
 function categoryLabel(value?: string): string {
   return IMAGE_CATEGORIES.find((c) => c.value === value)?.label || value || 'Uncategorized';
-}
-
-function formatBytes(bytes?: number): string {
-  if (bytes === undefined || bytes === null) return '—';
-  if (bytes === 0) return '0 B';
-  const units = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
-  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
 function displayFileName(img: PropertyImage): string {
@@ -70,12 +64,8 @@ function resolveSrc(img: PropertyImage): string {
   // full absolute image_url - render directly.
   if (img.image_url) return img.image_url;
 
-  // Uploaded images only have cached_path, a relative POSIX-style path
-  // (e.g. "properties/927/original/6e3dc6c2....jpg") with no scheme or host.
-  // Using it directly as an <img src> resolves it relative to the current
-  // page URL, not the backend's static file server - that mismatch is what
-  // produced the broken image icon. Resolve it against the configured
-  // upload base URL instead.
+  // Uploaded images only have cached_path, a relative POSIX-style path with
+  // no scheme or host - resolve it against the configured upload base URL.
   if (img.cached_path) {
     const base = AppConfig.uploadBaseUrl.replace(/\/$/, '');
     const path = img.cached_path.replace(/^\//, '');
@@ -85,7 +75,16 @@ function resolveSrc(img: PropertyImage): string {
   return '';
 }
 
-type ViewMode = 'gallery' | 'list';
+/**
+ * There is no `is_primary` column in cre_property_images. Rather than
+ * inventing one, "primary" is encoded into the existing free-text
+ * `image_role` field (a real, already-editable column) as the literal
+ * value "primary". This is a UI convention on top of real storage, not a
+ * fabricated backend capability.
+ */
+function isPrimaryImage(img: PropertyImage): boolean {
+  return (img.image_role || '').trim().toLowerCase() === 'primary';
+}
 
 interface UploadQueueItem {
   key: string;
@@ -108,11 +107,8 @@ export default function PropertyImages() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [imageTypeFilter, setImageTypeFilter] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('gallery');
+  const [galleryPage, setGalleryPage] = useState(0);
 
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [detailImage, setDetailImage] = useState<PropertyImage | null>(null);
   const [detailDraft, setDetailDraft] = useState<{ notes: string; status: string; image_role: string }>({
     notes: '',
@@ -122,10 +118,11 @@ export default function PropertyImages() {
   const [isSavingDetail, setIsSavingDetail] = useState(false);
 
   const [confirmSingleDeleteId, setConfirmSingleDeleteId] = useState<number | null>(null);
-  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
 
+  // Compact upload toolbar state
   const [uploadCategory, setUploadCategory] = useState('uploaded');
-  const [isDropzoneActive, setIsDropzoneActive] = useState(false);
+  const [uploadNotes, setUploadNotes] = useState('');
+  const [uploadIsPrimary, setUploadIsPrimary] = useState(false);
   const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -178,54 +175,33 @@ export default function PropertyImages() {
       };
       if (selectedProjectId) params.project_id = selectedProjectId;
       if (selectedPropertyId) params.property_id = Number(selectedPropertyId);
-      if (imageTypeFilter) params.image_type = imageTypeFilter;
-      if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await propertyImageService.list(params);
       setImages(res.items || []);
-      setSelectedIds(new Set());
+      setGalleryPage(0);
     } catch (err) {
       console.error('[Property Images] Failed to load images:', err);
       setErrorMsg('Error loading property images from backend.');
     } finally {
       setIsLoading(false);
     }
-  }, [selectedProjectId, selectedPropertyId, imageTypeFilter, searchQuery]);
+  }, [selectedProjectId, selectedPropertyId]);
 
   useEffect(() => {
-    const timeout = setTimeout(
-      () => {
-        loadImages();
-      },
-      searchQuery ? 300 : 0
-    );
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProjectId, selectedPropertyId, imageTypeFilter, searchQuery]);
+    loadImages();
+  }, [selectedProjectId, selectedPropertyId]);
 
   const selectedProperty = properties.find((p) => String(p.id) === selectedPropertyId);
+  const currentProject = projects.find((p) => p.project_id === selectedProjectId);
 
-  // ---- KPI derivations (real data only) ----
-  const totalImages = images.length;
-  const totalStorage = images.reduce((sum, img) => sum + (img.file_size || 0), 0);
-  const statusCounts = images.reduce<Record<string, number>>((acc, img) => {
-    const key = (img.status || 'Unspecified').trim();
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-  const presentCategories = new Set(images.map((img) => img.image_type));
+  const totalPages = Math.max(1, Math.ceil(images.length / GALLERY_PAGE_SIZE));
+  const visibleImages = images.slice(
+    galleryPage * GALLERY_PAGE_SIZE,
+    galleryPage * GALLERY_PAGE_SIZE + GALLERY_PAGE_SIZE
+  );
 
-  // ---- Selection ----
-  const toggleSelect = (id: number) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const clearSelection = () => setSelectedIds(new Set());
+  const goPrevPage = () => setGalleryPage((p) => Math.max(0, p - 1));
+  const goNextPage = () => setGalleryPage((p) => Math.min(totalPages - 1, p + 1));
 
   // ---- Detail panel ----
   const openDetail = (img: PropertyImage) => {
@@ -259,6 +235,17 @@ export default function PropertyImages() {
     }
   };
 
+  const handleMakePrimary = async (img: PropertyImage) => {
+    try {
+      const updated = await propertyImageService.update(img.id, { image_role: 'primary' });
+      setImages((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      success('Marked as primary image.');
+    } catch (err) {
+      console.error('[Property Images] Failed to set primary image:', err);
+      toastError('Failed to update primary image.');
+    }
+  };
+
   // ---- Delete ----
   const handleConfirmSingleDelete = async () => {
     if (confirmSingleDeleteId === null) return;
@@ -275,22 +262,6 @@ export default function PropertyImages() {
     }
   };
 
-  const handleConfirmBulkDelete = async () => {
-    const ids = Array.from(selectedIds);
-    try {
-      await Promise.all(ids.map((id) => propertyImageService.delete(id, false)));
-      setImages((prev) => prev.filter((img) => !selectedIds.has(img.id)));
-      clearSelection();
-      success(`${ids.length} image${ids.length === 1 ? '' : 's'} removed.`);
-    } catch (err) {
-      console.error('[Property Images] Bulk delete failed:', err);
-      toastError('Some images could not be removed.');
-      loadImages();
-    } finally {
-      setConfirmBulkDelete(false);
-    }
-  };
-
   // ---- Upload ----
   const handleFiles = (files: FileList | File[]) => {
     if (!selectedPropertyId || !selectedProjectId) {
@@ -298,10 +269,9 @@ export default function PropertyImages() {
       return;
     }
 
-    // IMPORTANT: the upload endpoint requires the numeric database property_id
-    // (e.g. 927), never the business-facing property_uid (e.g. "UID-83788").
-    // Resolve it from the already-fetched Property record's `.id` field rather
-    // than trusting derived string state, to guarantee the correct value.
+    // IMPORTANT: the upload endpoint requires the numeric database property_id,
+    // never the business-facing property_uid. Resolve it from the
+    // already-fetched Property record's `.id` field.
     const propertyId = selectedProperty?.id;
     if (propertyId === undefined || Number.isNaN(propertyId)) {
       toastError('Could not resolve the numeric property ID for the selected property.');
@@ -324,6 +294,8 @@ export default function PropertyImages() {
           property_id: propertyId,
           project_id: projectId,
           image_type: uploadCategory,
+          notes: uploadNotes || undefined,
+          image_role: uploadIsPrimary ? 'primary' : undefined,
         },
         (percent) => {
           setUploadQueue((prev) =>
@@ -338,6 +310,7 @@ export default function PropertyImages() {
             prev.map((item) => (item.key === key ? { ...item, progress: 100, status: 'done' } : item))
           );
           setImages((prev) => [newImage, ...prev]);
+          setGalleryPage(0);
           success(`${file.name} uploaded.`);
           setTimeout(() => {
             setUploadQueue((prev) => prev.filter((item) => item.key !== key));
@@ -357,19 +330,9 @@ export default function PropertyImages() {
     });
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDropzoneActive(false);
-    if (e.dataTransfer.files?.length) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
   const dismissUploadItem = (key: string) => {
     setUploadQueue((prev) => prev.filter((item) => item.key !== key));
   };
-
-  const filteredImages = images;
 
   return (
     <div className={styles.workspaceContainer} id="property-images-page">
@@ -431,299 +394,243 @@ export default function PropertyImages() {
 
       {errorMsg && <div className={styles.errorBanner}>{errorMsg}</div>}
 
-      {/* KPI Summary */}
-      <div className={styles.summaryGrid}>
-        <div className={`enterprise-card ${styles.summaryCard}`}>
-          <span className={styles.summaryLabel}>Total Images</span>
-          <span className={styles.summaryValue}>{totalImages}</span>
-        </div>
-        <div className={`enterprise-card ${styles.summaryCard}`}>
-          <span className={styles.summaryLabel}>Storage Used</span>
-          <span className={styles.summaryValue}>{formatBytes(totalStorage)}</span>
-          <span className={styles.summaryHint}>Based on file_size across loaded records</span>
-        </div>
-        <div className={`enterprise-card ${styles.summaryCard}`}>
-          <span className={styles.summaryLabel}>Category Coverage</span>
-          <span className={styles.summaryValue}>
-            {presentCategories.size}/{IMAGE_CATEGORIES.length}
-          </span>
-          <div className={styles.categoryChipRow}>
-            {IMAGE_CATEGORIES.map((cat) => (
-              <span
-                key={cat.value}
-                className={`${styles.categoryChip} ${
-                  presentCategories.has(cat.value) ? styles.categoryChipPresent : styles.categoryChipMissing
-                }`}
-              >
-                {cat.label}
-              </span>
-            ))}
+      {/* TOP: Property Summary */}
+      <EnterpriseCard id="property-images-summary-card">
+        <div className={styles.summaryRow}>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Project</span>
+            <span className={styles.summaryValue}>{currentProject?.project_name || '—'}</span>
           </div>
-        </div>
-        <div className={`enterprise-card ${styles.summaryCard}`}>
-          <span className={styles.summaryLabel}>By Status</span>
-          {Object.keys(statusCounts).length === 0 ? (
-            <span className={styles.summaryValueMuted}>No records</span>
-          ) : (
-            <div className={styles.categoryChipRow}>
-              {Object.entries(statusCounts).map(([status, count]) => (
-                <span key={status} className={styles.categoryChip}>
-                  {status}: {count}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className={`enterprise-card ${styles.summaryCard}`}>
-          <span className={styles.summaryLabel}>AI Readiness</span>
-          <span className={styles.summaryValueMuted}>Not available</span>
-          <span className={styles.summaryHint}>No backend field configured for this property yet</span>
-        </div>
-      </div>
-
-      {/* Upload Dropzone */}
-      <EnterpriseCard title="Upload Images" id="property-images-upload-card">
-        <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <FormField label="Category for new uploads" id="upload-category-field">
-              <select
-                className="enterprise-form-input"
-                value={uploadCategory}
-                onChange={(e) => setUploadCategory(e.target.value)}
-                id="upload-category-select"
-              >
-                {IMAGE_CATEGORIES.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
-            </FormField>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Property</span>
+            <span className={styles.summaryValue}>
+              {selectedProperty?.address || selectedProperty?.property_uid || '—'}
+            </span>
           </div>
-
-          <div
-            className={`${styles.dropzone} ${isDropzoneActive ? styles.dropzoneActive : ''}`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDropzoneActive(true);
-            }}
-            onDragLeave={() => setIsDropzoneActive(false)}
-            onDrop={handleDrop}
-            id="property-images-dropzone"
-          >
-            <div className={styles.dropzoneIcon}>
-              <Upload className="w-5 h-5" />
-            </div>
-            <span className={styles.dropzoneTitle}>Drag & drop images here, or click to browse</span>
-            <span className={styles.dropzoneSubtitle}>JPG, JPEG, PNG, WEBP - multiple files supported</span>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".jpg,.jpeg,.png,.webp"
-              multiple
-              className={styles.dropzoneInput}
-              onChange={(e) => {
-                if (e.target.files?.length) handleFiles(e.target.files);
-                e.target.value = '';
-              }}
-              id="property-images-file-input"
-            />
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Property UID</span>
+            <span className={`${styles.summaryValue} ${styles.summaryValueMono}`}>
+              {selectedProperty?.property_uid || '—'}
+            </span>
           </div>
-
-          {uploadQueue.length > 0 && (
-            <div className={styles.uploadQueue}>
-              {uploadQueue.map((item) => (
-                <div key={item.key} className={styles.uploadQueueItem}>
-                  <img src={item.previewUrl} alt={item.fileName} className={styles.uploadThumb} />
-                  <div className={styles.uploadItemBody}>
-                    <span className={styles.uploadItemName}>{item.fileName}</span>
-                    <div className={styles.progressTrack}>
-                      <div
-                        className={`${styles.progressFill} ${
-                          item.status === 'error' ? styles.progressFillError : ''
-                        } ${item.status === 'done' ? styles.progressFillDone : ''}`}
-                        style={{ width: `${item.progress}%` }}
-                      />
-                    </div>
-                    <span className={styles.uploadItemMeta}>
-                      {item.status === 'uploading' && `Uploading - ${item.progress}%`}
-                      {item.status === 'done' && 'Upload complete'}
-                      {item.status === 'error' && (item.errorMessage || 'Upload failed')}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.uploadItemAction}
-                    onClick={() => dismissUploadItem(item.key)}
-                    title="Dismiss"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Status</span>
+            <span className={styles.summaryValue}>{selectedProperty?.status || '—'}</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>Image Count</span>
+            <span className={`${styles.summaryValue} ${styles.summaryValueMono}`}>{images.length}</span>
+          </div>
         </div>
       </EnterpriseCard>
 
-      {/* Toolbar */}
-      <EnterpriseToolbar
-        id="property-images-toolbar"
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchPlaceholder="Search by file name, category, provider..."
-        filterContent={
+      {/* MIDDLE: Horizontal Image Gallery, max 5 visible at once */}
+      <EnterpriseCard
+        title="Image Gallery"
+        subtitle={images.length > 0 ? `Showing ${visibleImages.length} of ${images.length} images` : undefined}
+        id="property-images-gallery-card"
+      >
+        {isLoading ? (
+          <LoadingState message="Loading property images..." type="skeleton" />
+        ) : images.length === 0 ? (
+          <EmptyState
+            title="No Images Available"
+            description={
+              selectedPropertyId
+                ? 'This property has no image records yet. Upload images below to get started.'
+                : 'Select a Project and Property to view or upload images.'
+            }
+            icon={ImageIcon}
+          />
+        ) : (
+          <div className={styles.galleryRow}>
+            <button
+              type="button"
+              className={styles.galleryNavBtn}
+              onClick={goPrevPage}
+              disabled={galleryPage === 0}
+              aria-label="Previous images"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            <div className={styles.galleryTrack} id="property-images-gallery-track">
+              {visibleImages.map((img) => (
+                <div key={img.id} className={`${styles.galleryCard} enterprise-card`}>
+                  <div className={styles.galleryThumbWrap}>
+                    {resolveSrc(img) ? (
+                      <img src={resolveSrc(img)} alt={displayFileName(img)} className={styles.galleryThumb} />
+                    ) : (
+                      <div className={styles.galleryThumb} />
+                    )}
+                    {isPrimaryImage(img) && (
+                      <span className={styles.primaryBadge}>
+                        <Star className="w-3 h-3" />
+                        Primary
+                      </span>
+                    )}
+                    <span className={styles.categoryBadge}>{categoryLabel(img.image_type)}</span>
+                  </div>
+                  <div className={styles.galleryCardBody}>
+                    <div className={styles.galleryCardTitleRow}>
+                      <span className={styles.galleryFileName}>{displayFileName(img)}</span>
+                      <StatusBadge status={img.status} type="property" />
+                    </div>
+                    <div className={styles.galleryActions}>
+                      <button
+                        type="button"
+                        className={styles.galleryActionBtn}
+                        onClick={() => openDetail(img)}
+                        title="View"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.galleryActionBtn}
+                        onClick={() => openDetail(img)}
+                        title="Edit"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.galleryActionBtn}
+                        onClick={() => handleMakePrimary(img)}
+                        title="Set as primary"
+                        disabled={isPrimaryImage(img)}
+                      >
+                        <Star className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        className={`${styles.galleryActionBtn} ${styles.galleryActionBtnDanger}`}
+                        onClick={() => setConfirmSingleDeleteId(img.id)}
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className={styles.galleryNavBtn}
+              onClick={goNextPage}
+              disabled={galleryPage >= totalPages - 1}
+              aria-label="Next images"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {images.length > GALLERY_PAGE_SIZE && (
+          <div className={styles.galleryPagerInfo}>
+            Page {galleryPage + 1} of {totalPages}
+          </div>
+        )}
+      </EnterpriseCard>
+
+      {/* BOTTOM: Compact single-row Upload toolbar */}
+      <EnterpriseCard title="Upload Images" id="property-images-upload-card">
+        <div className={styles.uploadToolbarRow}>
           <select
             className="enterprise-form-input"
-            value={imageTypeFilter}
-            onChange={(e) => setImageTypeFilter(e.target.value)}
-            id="property-images-category-filter"
+            value={uploadCategory}
+            onChange={(e) => setUploadCategory(e.target.value)}
+            id="upload-category-select"
+            style={{ maxWidth: '11rem' }}
           >
-            <option value="">All Categories</option>
             {IMAGE_CATEGORIES.map((cat) => (
               <option key={cat.value} value={cat.value}>
                 {cat.label}
               </option>
             ))}
           </select>
-        }
-        actionContent={
-          <div className={styles.toolbarActions}>
-            <div className={styles.viewToggle}>
-              <button
-                type="button"
-                className={`${styles.viewToggleBtn} ${
-                  viewMode === 'gallery' ? styles.viewToggleBtnActive : ''
-                }`}
-                onClick={() => setViewMode('gallery')}
-                title="Gallery view"
-                id="property-images-view-gallery-btn"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                className={`${styles.viewToggleBtn} ${
-                  viewMode === 'list' ? styles.viewToggleBtnActive : ''
-                }`}
-                onClick={() => setViewMode('list')}
-                title="List view"
-                id="property-images-view-list-btn"
-              >
-                <Rows3 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        }
-      />
 
-      {/* Bulk action bar */}
-      {selectedIds.size > 0 && (
-        <div className={styles.bulkBar} id="property-images-bulk-bar">
-          <span className={styles.bulkBarLabel}>
-            {selectedIds.size} image{selectedIds.size === 1 ? '' : 's'} selected
-          </span>
-          <div className={styles.bulkBarActions}>
-            <button type="button" className={styles.bulkBtn} onClick={clearSelection}>
-              Clear
-            </button>
-            <button
-              type="button"
-              className={`${styles.bulkBtn} ${styles.bulkBtnDanger}`}
-              onClick={() => setConfirmBulkDelete(true)}
-            >
-              <Trash2 className="w-3.5 h-3.5" style={{ marginRight: '0.25rem' }} />
-              Delete Selected
-            </button>
-          </div>
-        </div>
-      )}
+          <input
+            type="text"
+            className="enterprise-form-input"
+            value={uploadNotes}
+            onChange={(e) => setUploadNotes(e.target.value)}
+            placeholder="Notes (optional)"
+            id="upload-notes-input"
+            style={{ flex: '1 1 auto', minWidth: '10rem' }}
+          />
 
-      {/* Content */}
-      {isLoading ? (
-        <LoadingState message="Loading property images..." type="skeleton" />
-      ) : filteredImages.length === 0 ? (
-        <EmptyState
-          title="No Images Available"
-          description={
-            selectedPropertyId
-              ? 'This property has no image records yet. Upload images to get started.'
-              : 'Select a Project and Property to view or upload images.'
-          }
-          icon={ImageIcon}
-          actionLabel="Upload Images"
-          onAction={() => fileInputRef.current?.click()}
-        />
-      ) : viewMode === 'gallery' ? (
-        <div className={styles.galleryGrid} id="property-images-gallery">
-          {filteredImages.map((img) => (
-            <div
-              key={img.id}
-              className={`${styles.imageCard} enterprise-card ${
-                selectedIds.has(img.id) ? styles.imageCardSelected : ''
-              }`}
-              onClick={() => openDetail(img)}
-            >
-              <div className={styles.thumbWrap}>
-                <input
-                  type="checkbox"
-                  className={styles.thumbCheckbox}
-                  checked={selectedIds.has(img.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={() => toggleSelect(img.id)}
-                />
-                {resolveSrc(img) ? (
-                  <img src={resolveSrc(img)} alt={displayFileName(img)} className={styles.thumbImg} />
-                ) : (
-                  <div className={styles.thumbImg} />
-                )}
-                <div className={styles.thumbFooterOverlay}>
-                  <span className={styles.thumbCategory}>{categoryLabel(img.image_type)}</span>
-                </div>
-              </div>
-              <div className={styles.cardBody}>
-                <div className={styles.cardTitleRow}>
-                  <span className={styles.cardFileName}>{displayFileName(img)}</span>
-                  <StatusBadge status={img.status} type="property" />
-                </div>
-                <div className={styles.cardMetaRow}>
-                  <span>{formatDate(img.created_at)}</span>
-                  <span>{formatBytes(img.file_size)}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+          <label className={styles.uploadPrimaryCheckboxLabel}>
+            <input
+              type="checkbox"
+              className="enterprise-form-checkbox"
+              checked={uploadIsPrimary}
+              onChange={(e) => setUploadIsPrimary(e.target.checked)}
+              id="upload-primary-checkbox"
+            />
+            Primary Image
+          </label>
+
+          <button
+            type="button"
+            className="enterprise-btn enterprise-btn-secondary"
+            onClick={() => fileInputRef.current?.click()}
+            id="upload-choose-files-btn"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Choose Files
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp"
+            multiple
+            style={{ display: 'none' }}
+            onChange={(e) => {
+              if (e.target.files?.length) handleFiles(e.target.files);
+              e.target.value = '';
+            }}
+            id="property-images-file-input"
+          />
         </div>
-      ) : (
-        <div className={`${styles.galleryList} enterprise-card`} id="property-images-list">
-          {filteredImages.map((img) => (
-            <div
-              key={img.id}
-              className={`${styles.listRow} ${selectedIds.has(img.id) ? styles.listRowSelected : ''}`}
-              onClick={() => openDetail(img)}
-            >
-              <input
-                type="checkbox"
-                checked={selectedIds.has(img.id)}
-                onClick={(e) => e.stopPropagation()}
-                onChange={() => toggleSelect(img.id)}
-              />
-              {resolveSrc(img) ? (
-                <img src={resolveSrc(img)} alt={displayFileName(img)} className={styles.listThumb} />
-              ) : (
-                <div className={styles.listThumb} />
-              )}
-              <div className={styles.listBody}>
-                <span className={styles.listFileName}>{displayFileName(img)}</span>
-                <span className={styles.listMeta}>{categoryLabel(img.image_type)}</span>
-                <span className={styles.listMeta}>{formatDate(img.created_at)}</span>
-                <span className={styles.listMeta}>{formatBytes(img.file_size)}</span>
-                <StatusBadge status={img.status} type="property" />
+
+        {uploadQueue.length > 0 && (
+          <div className={styles.uploadQueue}>
+            {uploadQueue.map((item) => (
+              <div key={item.key} className={styles.uploadQueueItem}>
+                <img src={item.previewUrl} alt={item.fileName} className={styles.uploadThumb} />
+                <div className={styles.uploadItemBody}>
+                  <span className={styles.uploadItemName}>{item.fileName}</span>
+                  <div className={styles.progressTrack}>
+                    <div
+                      className={`${styles.progressFill} ${
+                        item.status === 'error' ? styles.progressFillError : ''
+                      } ${item.status === 'done' ? styles.progressFillDone : ''}`}
+                      style={{ width: `${item.progress}%` }}
+                    />
+                  </div>
+                  <span className={styles.uploadItemMeta}>
+                    {item.status === 'uploading' && `Uploading - ${item.progress}%`}
+                    {item.status === 'done' && 'Upload complete'}
+                    {item.status === 'error' && (item.errorMessage || 'Upload failed')}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className={styles.uploadItemAction}
+                  onClick={() => dismissUploadItem(item.key)}
+                  title="Dismiss"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </EnterpriseCard>
 
       {/* Detail Panel */}
       {detailImage && (
@@ -759,10 +666,6 @@ export default function PropertyImages() {
                     <span className={styles.metaValue}>{detailImage.provider || '—'}</span>
                   </div>
                   <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>File Size</span>
-                    <span className={styles.metaValue}>{formatBytes(detailImage.file_size)}</span>
-                  </div>
-                  <div className={styles.metaItem}>
                     <span className={styles.metaLabel}>File Type</span>
                     <span className={styles.metaValue}>{detailImage.file_type || '—'}</span>
                   </div>
@@ -770,28 +673,6 @@ export default function PropertyImages() {
                     <span className={styles.metaLabel}>Uploaded</span>
                     <span className={styles.metaValue}>{formatDate(detailImage.created_at)}</span>
                   </div>
-                  <div className={styles.metaItem}>
-                    <span className={styles.metaLabel}>Property</span>
-                    <span className={styles.metaValue}>
-                      {selectedProperty?.address || selectedProperty?.property_uid || '—'}
-                    </span>
-                  </div>
-                  {(detailImage.heading !== undefined || detailImage.pitch !== undefined) && (
-                    <>
-                      <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>Heading</span>
-                        <span className={styles.metaValue}>
-                          {detailImage.heading !== undefined ? `${detailImage.heading}°` : '—'}
-                        </span>
-                      </div>
-                      <div className={styles.metaItem}>
-                        <span className={styles.metaLabel}>Pitch</span>
-                        <span className={styles.metaValue}>
-                          {detailImage.pitch !== undefined ? `${detailImage.pitch}°` : '—'}
-                        </span>
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
 
@@ -807,13 +688,13 @@ export default function PropertyImages() {
 
               <div>
                 <div className={styles.detailSectionTitle}>Business Notes</div>
-                <FormField label="Image Role" id="detail-image-role-field">
+                <FormField label="Image Role" id="detail-image-role-field" helpText="Set to 'primary' to mark this as the property's primary image.">
                   <input
                     type="text"
                     className="enterprise-form-input"
                     value={detailDraft.image_role}
                     onChange={(e) => setDetailDraft((prev) => ({ ...prev, image_role: e.target.value }))}
-                    placeholder="e.g. Primary front entrance elevation"
+                    placeholder="e.g. primary"
                   />
                 </FormField>
                 <FormField label="Status" id="detail-status-field">
@@ -860,7 +741,6 @@ export default function PropertyImages() {
         </div>
       )}
 
-      {/* Confirm dialogs */}
       <ConfirmDialog
         isOpen={confirmSingleDeleteId !== null}
         title="Remove Image"
@@ -869,17 +749,6 @@ export default function PropertyImages() {
         isDanger
         onConfirm={handleConfirmSingleDelete}
         onCancel={() => setConfirmSingleDeleteId(null)}
-      />
-      <ConfirmDialog
-        isOpen={confirmBulkDelete}
-        title="Remove Selected Images"
-        message={`Are you sure you want to remove ${selectedIds.size} image${
-          selectedIds.size === 1 ? '' : 's'
-        }? This action cannot be undone.`}
-        confirmLabel="Remove All"
-        isDanger
-        onConfirm={handleConfirmBulkDelete}
-        onCancel={() => setConfirmBulkDelete(false)}
       />
     </div>
   );

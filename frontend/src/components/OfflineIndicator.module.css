@@ -1,0 +1,90 @@
+.bannerPosition {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  width: 100%;
+  max-width: 28rem;
+  padding-inline: 1rem;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid;
+  box-shadow: var(--shadow-lg);
+}
+
+.bannerOnline {
+  background-color: var(--color-success-50);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: var(--color-success-700);
+}
+
+.bannerOffline {
+  background-color: var(--color-warning-50);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: var(--color-warning-700);
+}
+
+.contentGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.iconWrap {
+  padding: 0.375rem;
+  border-radius: var(--radius-sm);
+}
+
+.iconWrapOnline {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: var(--color-success-700);
+}
+
+.iconWrapOffline {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: var(--color-warning-700);
+  animation: offline-pulse 1.4s ease-in-out infinite;
+}
+
+.textTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.textSubtitle {
+  font-size: 0.6875rem;
+  opacity: 0.8;
+  margin-top: 0.125rem;
+}
+
+.closeBtn {
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.6;
+  color: inherit;
+  transition: opacity var(--transition-fast);
+}
+
+.closeBtn:hover {
+  opacity: 1;
+}
+
+@keyframes offline-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

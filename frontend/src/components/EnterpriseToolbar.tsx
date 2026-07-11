@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search } from 'lucide-react';
+import styles from './EnterpriseToolbar.module.css';
 
 export interface EnterpriseToolbarProps {
   searchQuery?: string;
@@ -21,14 +22,11 @@ export default function EnterpriseToolbar({
   const hasSearch = onSearchChange !== undefined;
 
   return (
-    <div
-      id={id || 'enterprise-toolbar'}
-      className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 enterprise-card bg-white mb-6"
-    >
-      <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
+    <div id={id || 'enterprise-toolbar'} className={`enterprise-card ${styles.toolbar}`}>
+      <div className={styles.leftGroup}>
         {hasSearch && (
-          <div className="relative flex-1 max-w-md">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div className={styles.searchWrap}>
+            <span className={styles.searchIcon}>
               <Search className="w-4 h-4" />
             </span>
             <input
@@ -36,23 +34,15 @@ export default function EnterpriseToolbar({
               value={searchQuery || ''}
               onChange={(e) => onSearchChange?.(e.target.value)}
               placeholder={searchPlaceholder}
-              className="enterprise-form-input pl-9"
+              className={`enterprise-form-input ${styles.searchInput}`}
               id={id ? `${id}-search` : 'toolbar-search-input'}
             />
           </div>
         )}
-        {filterContent && (
-          <div className="flex items-center gap-2 overflow-x-auto py-0.5 shrink-0">
-            {filterContent}
-          </div>
-        )}
+        {filterContent && <div className={styles.filterGroup}>{filterContent}</div>}
       </div>
 
-      {actionContent && (
-        <div className="flex items-center gap-2 shrink-0 md:justify-end">
-          {actionContent}
-        </div>
-      )}
+      {actionContent && <div className={styles.actionGroup}>{actionContent}</div>}
     </div>
   );
 }

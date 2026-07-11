@@ -1,5 +1,5 @@
-import React from 'react';
 import { Loader2 } from 'lucide-react';
+import styles from './LoadingState.module.css';
 
 export interface LoadingStateProps {
   message?: string;
@@ -16,12 +16,12 @@ export default function LoadingState({
 }: LoadingStateProps) {
   if (type === 'skeleton') {
     return (
-      <div id={id || 'loading-skeleton'} className="space-y-4 w-full animate-pulse">
-        <div className="h-8 bg-slate-200/80 rounded w-1/4" />
-        <div className="space-y-2">
-          <div className="h-4 bg-slate-200/80 rounded" />
-          <div className="h-4 bg-slate-200/80 rounded w-5/6" />
-          <div className="h-4 bg-slate-200/80 rounded w-2/3" />
+      <div id={id || 'loading-skeleton'} className={styles.skeletonWrap}>
+        <div className={styles.skeletonBlock} />
+        <div className={styles.skeletonLines}>
+          <div className={styles.skeletonLine} style={{ width: '100%' }} />
+          <div className={styles.skeletonLine} style={{ width: '83.33%' }} />
+          <div className={styles.skeletonLine} style={{ width: '66.67%' }} />
         </div>
       </div>
     );
@@ -29,17 +29,14 @@ export default function LoadingState({
 
   if (type === 'rows') {
     return (
-      <div id={id || 'loading-rows'} className="space-y-3 w-full">
+      <div id={id || 'loading-rows'} className={styles.rowsWrap}>
         {Array.from({ length: rowsCount }).map((_, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between p-4 enterprise-card bg-white animate-pulse"
-          >
-            <div className="flex items-center gap-3 w-full">
-              <div className="w-8 h-8 bg-slate-100 rounded-full shrink-0" />
-              <div className="space-y-1.5 w-full">
-                <div className="h-3 bg-slate-200 rounded w-1/3" />
-                <div className="h-2.5 bg-slate-150 rounded w-1/2" />
+          <div key={index} className={`enterprise-card ${styles.rowItem}`}>
+            <div className={styles.rowContent}>
+              <div className={styles.rowAvatar} />
+              <div className={styles.rowLines}>
+                <div className={styles.rowLineWide} />
+                <div className={styles.rowLineNarrow} />
               </div>
             </div>
           </div>
@@ -49,12 +46,9 @@ export default function LoadingState({
   }
 
   return (
-    <div
-      id={id || 'loading-spinner'}
-      className="flex flex-col items-center justify-center py-12 text-center"
-    >
-      <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-      <p className="text-xs font-semibold text-slate-500 mt-3">{message}</p>
+    <div id={id || 'loading-spinner'} className={styles.spinnerWrap}>
+      <Loader2 className={styles.spinnerIcon} />
+      <p className={styles.spinnerMessage}>{message}</p>
     </div>
   );
 }

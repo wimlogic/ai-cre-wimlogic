@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { generatedAssetService } from '../services/generatedAssetService';
-import { GeneratedAsset } from '../types';
+// Explicit '../types/index' path: see AIOrchestration.tsx / WorkflowResults.tsx
+// for the documented reason (pre-existing types.ts collision, deferred to
+// Phase 1C - Type Architecture Cleanup).
+import { GeneratedAsset } from '../types/index';
 import { 
   FileCheck, 
   Search, 
@@ -23,6 +26,15 @@ export default function GeneratedAssets() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
 
+  /**
+   * Loads the generated assets catalog. This is the same function a future
+   * EnterpriseJobContext subscriber would call on a JobCompletedEvent to
+   * auto-refresh this page - see the Phase 1A assessment's deferred
+   * cross-page refresh item, and the identical seam documented in
+   * WorkflowResults.tsx. No such subscription exists yet, so this page
+   * still only refreshes on mount, on search/filter change, and on manual
+   * "Refresh deliverables" clicks, exactly as before.
+   */
   const loadAssets = async () => {
     setIsLoading(true);
     setErrorMsg('');

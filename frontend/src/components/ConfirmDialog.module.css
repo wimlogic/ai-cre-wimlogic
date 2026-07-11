@@ -1,0 +1,42 @@
+.bodyRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.iconWrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.iconWrapDanger {
+  background-color: var(--color-danger-50);
+  color: var(--color-danger-600);
+}
+
+.iconWrapNeutral {
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-600);
+}
+
+.textGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.message {
+  font-size: 0.75rem;
+  color: var(--color-neutral-600);
+  line-height: 1.6;
+}

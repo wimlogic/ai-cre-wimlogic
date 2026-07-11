@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './EnterpriseCard.module.css';
 
 export interface EnterpriseCardProps {
   children: React.ReactNode;
@@ -24,28 +25,16 @@ export default function EnterpriseCard({
   return (
     <div id={id || 'enterprise-card'} className={`enterprise-card ${className}`}>
       {hasHeader && (
-        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
-          <div className="space-y-0.5">
-            {title && (
-              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest font-mono">
-                {title}
-              </h3>
-            )}
-            {subtitle && (
-              <p className="text-[11px] text-slate-500 leading-normal">
-                {subtitle}
-              </p>
-            )}
+        <div className={styles.header}>
+          <div className={styles.headerText}>
+            {title && <h3 className={styles.title}>{title}</h3>}
+            {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
           </div>
-          {headerAction && <div className="shrink-0">{headerAction}</div>}
+          {headerAction && <div className={styles.headerAction}>{headerAction}</div>}
         </div>
       )}
-      <div className="p-5">{children}</div>
-      {footer && (
-        <div className="px-5 py-3.5 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-4">
-          {footer}
-        </div>
-      )}
+      <div className={styles.body}>{children}</div>
+      {footer && <div className={styles.footer}>{footer}</div>}
     </div>
   );
 }

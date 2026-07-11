@@ -1,0 +1,295 @@
+.sidebar {
+  position: fixed;
+  inset-block: 0;
+  left: 0;
+  z-index: 40;
+  background-color: var(--color-neutral-900);
+  color: #ffffff;
+  width: 16rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--color-neutral-800);
+  box-shadow: var(--shadow-xl);
+  flex-shrink: 0;
+  transition: transform var(--transition-normal);
+  transform: translateX(-100%);
+}
+
+.sidebarOpen {
+  transform: translateX(0);
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    position: static;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.topSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Brand */
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-neutral-800);
+}
+
+.brandGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brandIconWrap {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background-color: var(--color-neutral-800);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+}
+
+.brandName {
+  display: block;
+  font-family: var(--font-sans);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #f1f5f9;
+}
+
+.brandSubtitle {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  color: var(--color-brand-500);
+  letter-spacing: 0.05em;
+  margin-top: 0.125rem;
+}
+
+.closeMobileBtn {
+  display: flex;
+  padding: 0.25rem;
+  color: var(--color-neutral-400);
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.closeMobileBtn:hover {
+  color: #ffffff;
+}
+
+@media (min-width: 1024px) {
+  .closeMobileBtn {
+    display: none;
+  }
+}
+
+/* Nav groups */
+
+.navGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.navGroupLabel {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-neutral-500);
+  padding: 0 0.375rem;
+  margin-bottom: 0.25rem;
+}
+
+.navButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-neutral-400);
+  transition: all var(--transition-fast);
+}
+
+.navButton:hover {
+  color: #e2e8f0;
+  background-color: rgba(30, 41, 59, 0.65);
+}
+
+.navButtonActive {
+  background-color: var(--color-brand-600);
+  color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.15);
+}
+
+.navButtonActive:hover {
+  background-color: var(--color-brand-600);
+  color: #ffffff;
+}
+
+.navButtonContent {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--color-neutral-400);
+}
+
+.navButtonActive .navIcon {
+  color: #ffffff;
+}
+
+.navButton:hover .navIcon {
+  color: #e2e8f0;
+}
+
+.navChevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: #ffffff;
+}
+
+/* Footer */
+
+.footerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-neutral-800);
+  flex-shrink: 0;
+}
+
+.activeProjectCard {
+  background-color: rgba(30, 41, 59, 0.4);
+  border: 1px solid var(--color-neutral-800);
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+}
+
+.activeProjectLabel {
+  display: block;
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-neutral-500);
+  font-family: var(--font-mono);
+}
+
+.activeProjectValue {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--color-brand-500);
+  margin-top: 0.125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userCard {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+.userAvatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background-color: var(--color-neutral-800);
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.userTextGroup {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.userName {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userEmail {
+  font-size: 0.5625rem;
+  font-family: var(--font-mono);
+  color: var(--color-neutral-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.versionTag {
+  font-size: 0.5625rem;
+  font-family: var(--font-mono);
+  color: var(--color-neutral-500);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Mobile backdrop */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 30;
+  backdrop-filter: blur(2px);
+  transition: opacity var(--transition-fast);
+}
+
+@media (min-width: 1024px) {
+  .backdrop {
+    display: none;
+  }
+}

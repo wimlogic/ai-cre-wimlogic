@@ -1,5 +1,5 @@
-import React from 'react';
 import { AlertTriangle, HelpCircle } from 'lucide-react';
+import styles from './ConfirmDialog.module.css';
 
 export interface ConfirmDialogProps {
   isOpen: boolean;
@@ -29,29 +29,28 @@ export default function ConfirmDialog({
   return (
     <div
       id={id || 'confirm-dialog-overlay'}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+      className="enterprise-dialog-overlay"
+      onClick={onCancel}
     >
       <div
         id={id ? `${id}-content` : 'confirm-dialog-content'}
-        className="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden animate-fade-in"
+        className="enterprise-dialog-panel"
+        style={{ maxWidth: '28rem' }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
-          <div className="flex items-start gap-4">
-            <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                isDanger ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'
-              }`}
-            >
-              {isDanger ? <AlertTriangle className="w-5 h-5" /> : <HelpCircle className="w-5 h-5" />}
+        <div className="enterprise-dialog-body">
+          <div className={styles.bodyRow}>
+            <div className={`${styles.iconWrap} ${isDanger ? styles.iconWrapDanger : styles.iconWrapNeutral}`}>
+              {isDanger ? <AlertTriangle className={styles.icon} /> : <HelpCircle className={styles.icon} />}
             </div>
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-slate-900 tracking-tight">{title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">{message}</p>
+            <div className={styles.textGroup}>
+              <h3 className="enterprise-dialog-title">{title}</h3>
+              <p className={styles.message}>{message}</p>
             </div>
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-slate-50 flex items-center justify-end gap-2.5 border-t border-slate-100">
+        <div className="enterprise-dialog-footer">
           <button
             onClick={onCancel}
             className="enterprise-btn enterprise-btn-secondary"
@@ -61,10 +60,7 @@ export default function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className={`
-              enterprise-btn
-              ${isDanger ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs' : 'enterprise-btn-primary'}
-            `}
+            className={`enterprise-btn ${isDanger ? 'enterprise-btn-danger' : 'enterprise-btn-primary'}`}
             id={id ? `${id}-confirm` : 'confirm-dialog-btn-confirm'}
           >
             {confirmLabel}

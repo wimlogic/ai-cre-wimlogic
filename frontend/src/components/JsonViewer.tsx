@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Copy, Check, Eye, EyeOff } from 'lucide-react';
+import styles from './JsonViewer.module.css';
 
 export interface JsonViewerProps {
   data: any;
@@ -26,33 +27,28 @@ export default function JsonViewer({ data, title = 'JSON Payload', id }: JsonVie
   };
 
   return (
-    <div
-      id={id || 'json-viewer-card'}
-      className="enterprise-card overflow-hidden border border-slate-200"
-    >
-      <div className="px-4 py-2.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-white select-none">
-        <span className="text-[10px] font-bold tracking-widest font-mono uppercase text-slate-400">
-          {title}
-        </span>
-        <div className="flex items-center gap-1.5">
+    <div id={id || 'json-viewer-card'} className={`enterprise-card ${styles.wrapper}`}>
+      <div className={styles.header}>
+        <span className={styles.title}>{title}</span>
+        <div className={styles.actions}>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="p-1 text-slate-400 hover:text-white rounded transition-colors focus:outline-none"
+            className={styles.actionBtn}
             title={expanded ? 'Collapse' : 'Expand'}
           >
             {expanded ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           </button>
-          <button
-            onClick={handleCopy}
-            className="p-1 text-slate-400 hover:text-white rounded transition-colors focus:outline-none"
-            title="Copy JSON"
-          >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 animate-pulse" /> : <Copy className="w-3.5 h-3.5" />}
+          <button onClick={handleCopy} className={styles.actionBtn} title="Copy JSON">
+            {copied ? (
+              <Check className={`w-3.5 h-3.5 ${styles.copiedIcon}`} />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
           </button>
         </div>
       </div>
       {expanded && (
-        <pre className="p-4 bg-slate-950 text-emerald-400 text-[11px] font-mono overflow-auto max-h-[300px] leading-relaxed">
+        <pre className={styles.codeBlock}>
           <code>{jsonString}</code>
         </pre>
       )}

@@ -1,0 +1,92 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------- Transient notices ---------- */
+
+.notice {
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.noticeInfo {
+  background-color: var(--color-info-50);
+  border-color: var(--color-info-500);
+  color: var(--color-info-700);
+}
+
+.noticeWarning {
+  background-color: var(--color-warning-50);
+  border-color: var(--color-warning-500);
+  color: var(--color-warning-700);
+}
+
+/* ---------- Timeline section ---------- */
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.625rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-neutral-800);
+  font-family: var(--font-mono);
+}
+
+.liveIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-success-600);
+}
+
+.liveDot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--color-success-500);
+  animation: enterprise-job-panel-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes enterprise-job-panel-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ---------- Actions ---------- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-neutral-100);
+}
+
+.actionIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}

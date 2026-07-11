@@ -1,48 +1,194 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { projectService } from '../services/projectService';
 import { propertyService } from '../services/propertyService';
 import { workflowService } from '../services/workflowService';
-import { Project, Property, WorkflowExecution } from '../types';
-import { 
-  Cpu, 
-  Clock, 
-  Play, 
-  RefreshCw, 
-  CheckCircle, 
-  AlertTriangle, 
-  Layers, 
-  Sparkles,
-  Search,
-  Calendar,
-  Settings as SettingsIcon,
-  HelpCircle,
-  Activity
-} from 'lucide-react';
+import type { Project, Property, WorkflowExecution, WorkflowEvent, EnterpriseJobClientPhase, EnterpriseJobCapabilities } from '../types/index';
+import useEnterpriseJobPolling from '../hooks/useEnterpriseJobPolling';
+import { isTerminalWorkflowStatus } from '../utils/status';
+import EnterpriseCard from '../components/EnterpriseCard';
+import EnterpriseJobPanel from '../components/EnterpriseJobPanel';
+import StatusBadge from '../components/StatusBadge';
+import LoadingState from '../components/LoadingState';
+import EmptyState from '../components/EmptyState';
+import FormField from '../components/FormField';
+import type { EnterpriseJobTimelineEntry } from '../components/EnterpriseJobTimeline';
+import { Cpu, Clock, Sparkles, RefreshCw, Activity, Play } from 'lucide-react';
+import styles from './AIOrchestration.module.css';
+
+/**
+ * pages/AIOrchestration.tsx
+ *
+ * AI-CRE WIMLOGIC V1.0 - Phase 1A WACP Frontend Integration.
+ *
+ * This page replaces the previous fire-and-forget "Execute Workflow" UX
+ * with Enterprise Job Submission: the same business form as before (project,
+ * property, pipeline, priority, schedule, custom notes), now paired with an
+ * automatically-polling Enterprise Job monitor built entirely from the
+ * Phase 1A component library - useEnterpriseJobPolling (File 3),
+ * EnterpriseJobProgress and EnterpriseJobTimeline (Files 4-5, composed
+ * inside EnterpriseJobPanel), and EnterpriseJobPanel itself (File 6).
+ *
+ * This page introduces no new backend endpoints and no new business logic:
+ * - Submission still calls workflowService.submit (POST /ai-orchestration/submit).
+ * - Monitoring still calls workflowService.checkStatus (GET
+ *   /ai-orchestration/status/{execution_id}) - now automatically, via the
+ *   polling hook, instead of a manual per-row "Sync Status" button, which
+ *   is removed as obsolete execution UI per the approved plan.
+ * - History still comes from workflowService.listExecutions.
+ * - Timeline entries still come from workflowService.getExecutionEvents,
+ *   mapped onto the generic EnterpriseJobTimelineEntry shape the panel
+ *   expects.
+ *
+ * Cancel/Retry (approved decision D1): JOB_CAPABILITIES below is the single
+ * place that gates both actions, and both are false until the AI-CRE
+ * backend exposes the corresponding endpoints. EnterpriseJobPanel hides the
+ * controls entirely while these flags are false - no fake handlers are
+ * wired up here.
+ *
+ * Cross-page refresh of Workflow Results / Generated Assets on job
+ * completion (called for in the original master prompt) is intentionally
+ * NOT implemented in this file. That behavior depends on the
+ * EnterpriseJobContext subscriber pattern approved alongside this phase,
+ * which has not yet been built - this page only refreshes what it owns
+ * (its own execution history) and tells the user where to look next.
+ */
+
+/** Same five pipelines the pre-Phase-1A page offered - preserved exactly, not new business logic. */
+const WORKFLOW_CODE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'ZONING_ANALYSIS', label: 'Zoning Feasibility Model (SB-9/SB-10)' },
+  { value: 'RENOVATION_ESTIMATE', label: 'Commercial Renovation Pro-Forma' },
+  { value: 'CONCEPTUAL_DESIGN', label: 'CAD Massing / Architectural Concept Study' },
+  { value: 'PROPERTY_SCAN', label: 'Full Digital LiDAR Scanning Simulation' },
+  { value: 'AUDIT_REPORT', label: 'Assessor Tax & APN Audit Synthesis' },
+];
+
+function workflowLabel(code: string | undefined): string {
+  return WORKFLOW_CODE_OPTIONS.find((o) => o.value === code)?.label || code || 'Enterprise Job';
+}
+
+/**
+ * Cancel/Retry capability gate (approved decision D1). Both remain false
+ * until the AI-CRE backend exposes cancel/retry endpoints - at that point
+ * this becomes a capability-flag change, not a UI rewrite.
+ */
+const JOB_CAPABILITIES: EnterpriseJobCapabilities = { canCancel: false, canRetry: false };
 
 export default function AIOrchestration() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [properties, setProperties] = useState<Property[]>([]);
   const [executions, setExecutions] = useState<WorkflowExecution[]>([]);
+  const [isLoadingExecutions, setIsLoadingExecutions] = useState(true);
 
   // Selection state
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(''); // string code e.g. PRJ001
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string>(''); // db id string
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>('');
 
-  // Workflow Config
+  // Workflow config (unchanged business fields)
   const [workflowCode, setWorkflowCode] = useState('ZONING_ANALYSIS');
   const [priority, setPriority] = useState('Normal');
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduleTime, setScheduleTime] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingExecutions, setIsLoadingExecutions] = useState(true);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
 
-  // Initial load
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
+
+  // Enterprise Job monitor state - the job currently shown in EnterpriseJobPanel
+  const [activeExecutionId, setActiveExecutionId] = useState<number | null>(null);
+  const [activeExecutionNumber, setActiveExecutionNumber] = useState<string | undefined>(undefined);
+  const [activeWorkflowCode, setActiveWorkflowCode] = useState<string | undefined>(undefined);
+  const [clientPhase, setClientPhase] = useState<EnterpriseJobClientPhase>('Idle');
+  const [activeErrorMessage, setActiveErrorMessage] = useState<string | null>(null);
+  const [timelineEntries, setTimelineEntries] = useState<EnterpriseJobTimelineEntry[]>([]);
+  const [isTimelineLoading, setIsTimelineLoading] = useState(false);
+
+  const loadExecutions = async (): Promise<WorkflowExecution[]> => {
+    setIsLoadingExecutions(true);
+    try {
+      const res = await workflowService.listExecutions({ limit: 50 });
+      const items = res.items || [];
+      setExecutions(items);
+      return items;
+    } catch (err) {
+      console.error('Failed to list executions:', err);
+      return [];
+    } finally {
+      setIsLoadingExecutions(false);
+    }
+  };
+
+  const refreshTimeline = async (executionId: number) => {
+    setIsTimelineLoading(true);
+    try {
+      const res = await workflowService.getExecutionEvents(executionId);
+      const mapped: EnterpriseJobTimelineEntry[] = (res.items || []).map((evt: WorkflowEvent) => ({
+        id: evt.event_id,
+        eventType: evt.event_type,
+        status: evt.status,
+        message: evt.message,
+        timestamp: evt.created_at,
+      }));
+      setTimelineEntries(mapped);
+    } catch (err) {
+      console.error('Failed to load job timeline:', err);
+    } finally {
+      setIsTimelineLoading(false);
+    }
+  };
+
+  const handleJobStatusChange = (_newStatus: string) => {
+    setClientPhase('Polling');
+    if (activeExecutionId !== null) {
+      void refreshTimeline(activeExecutionId);
+    }
+  };
+
+  const handleJobTerminal = async (finalStatus: string) => {
+    setClientPhase('ProcessingResults');
+
+    if (activeExecutionId !== null) {
+      try {
+        const exec = await workflowService.getExecution(activeExecutionId);
+        setActiveErrorMessage(exec.error_message || null);
+      } catch (err) {
+        console.error('Failed to refresh execution detail after terminal status:', err);
+      }
+      await refreshTimeline(activeExecutionId);
+    }
+
+    // Refresh only what this page owns - the history table. Refreshing
+    // Workflow Results / Generated Assets on other pages requires the
+    // EnterpriseJobContext subscriber pattern, not yet built (see header
+    // comment).
+    await loadExecutions();
+
+    setClientPhase('Done');
+
+    if (finalStatus.trim().toLowerCase() === 'completed') {
+      setFormSuccess(
+        'Analysis completed. Results and generated assets are ready to review in Workflow Results and Generated Assets.'
+      );
+    }
+  };
+
+  const {
+    status: pollStatus,
+    isPolling,
+    isPaused,
+    timedOut,
+    error: pollError,
+    start: startPolling,
+  } = useEnterpriseJobPolling({
+    onStatusChange: handleJobStatusChange,
+    onTerminal: handleJobTerminal,
+  });
+
+  // Initial load: projects + execution history, then resume monitoring any
+  // job that was left in a non-terminal state (e.g. the page was refreshed
+  // mid-job) - per the approved refresh-survival behavior.
   useEffect(() => {
-    async function loadProjects() {
+    async function bootstrap() {
       try {
         const res = await projectService.list({ limit: 300 });
         setProjects(res.items || []);
@@ -52,12 +198,23 @@ export default function AIOrchestration() {
       } catch (err) {
         console.error('Failed to load projects:', err);
       }
+
+      const items = await loadExecutions();
+      const inFlight = items.find((exec) => !isTerminalWorkflowStatus(exec.status));
+      if (inFlight) {
+        setActiveExecutionId(inFlight.execution_id);
+        setActiveExecutionNumber(inFlight.execution_number);
+        setActiveWorkflowCode(inFlight.workflow_code);
+        setClientPhase('Polling');
+        startPolling(inFlight.execution_id);
+        void refreshTimeline(inFlight.execution_id);
+      }
     }
-    loadProjects();
-    loadExecutions();
+    void bootstrap();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Dynamically load properties when Project changes
+  // Dynamically load properties when Project changes (unchanged)
   useEffect(() => {
     async function loadProperties() {
       if (!selectedProjectId) {
@@ -68,11 +225,7 @@ export default function AIOrchestration() {
       try {
         const props = await propertyService.listByProject(selectedProjectId);
         setProperties(props);
-        if (props.length > 0) {
-          setSelectedPropertyId(String(props[0].id));
-        } else {
-          setSelectedPropertyId('');
-        }
+        setSelectedPropertyId(props.length > 0 ? String(props[0].id) : '');
       } catch (err) {
         console.error('Failed to load properties for project:', err);
       }
@@ -80,119 +233,102 @@ export default function AIOrchestration() {
     loadProperties();
   }, [selectedProjectId]);
 
-  const loadExecutions = async () => {
-    setIsLoadingExecutions(true);
-    try {
-      const res = await workflowService.listExecutions({ limit: 50 });
-      setExecutions(res.items || []);
-    } catch (err) {
-      console.error('Failed to list executions:', err);
-    } finally {
-      setIsLoadingExecutions(false);
-    }
-  };
-
-  const handleLaunchWorkflow = async (e: React.FormEvent) => {
+  const handleGenerateAnalysis = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg('');
-    setSuccessMsg('');
+    setFormError('');
+    setFormSuccess('');
 
     if (!selectedProjectId) {
-      setErrorMsg('A project must be selected to proceed.');
+      setFormError('A project must be selected to proceed.');
       return;
     }
     if (!selectedPropertyId) {
-      setErrorMsg('A property parcel must be selected to proceed.');
+      setFormError('A property parcel must be selected to proceed.');
       return;
     }
 
-    // Find full objects to obtain the integer DB IDs
-    const projObj = projects.find(p => p.project_id === selectedProjectId);
-    const propObj = properties.find(p => p.id === Number(selectedPropertyId));
-
+    const projObj = projects.find((p) => p.project_id === selectedProjectId);
+    const propObj = properties.find((p) => p.id === Number(selectedPropertyId));
     if (!projObj || !propObj) {
-      setErrorMsg('Mismatched database context.');
+      setFormError('Mismatched database context.');
       return;
     }
 
+    setClientPhase('Preparing');
     setIsSubmitting(true);
     try {
       const metadata_json: Record<string, any> = {
         submitted_via: 'WIMLOGIC CRE AI-Client',
-        custom_instructions: customPrompt || undefined
+        custom_instructions: customPrompt || undefined,
       };
-
       if (isScheduled && scheduleTime) {
         metadata_json.is_scheduled = true;
         metadata_json.schedule_timestamp = scheduleTime;
       }
 
-      const payload = {
-        project_id: projObj.id, // Must submit integer database ID
-        property_id: propObj.id, // Must submit integer database ID
+      setClientPhase('Submitting');
+      const res = await workflowService.submit({
+        project_id: projObj.id,
+        property_id: propObj.id,
         workflow_code: workflowCode,
-        priority: priority,
-        metadata_json: metadata_json
-      };
+        priority,
+        metadata_json,
+      });
 
-      const res = await workflowService.submit(payload);
-      
-      setSuccessMsg(`Workflow successfully queued! Execution Number: ${res.execution_number}`);
+      setActiveExecutionId(res.execution_id);
+      setActiveExecutionNumber(res.execution_number);
+      setActiveWorkflowCode(res.workflow_code);
+      setActiveErrorMessage(null);
+      setTimelineEntries([]);
+      setClientPhase('Polling');
+      startPolling(res.execution_id);
+      void refreshTimeline(res.execution_id);
+
+      setFormSuccess(`Job submitted to DEV-TOOLS. Execution Number: ${res.execution_number}`);
       setCustomPrompt('');
       setIsScheduled(false);
       setScheduleTime('');
-      
-      // Refresh execution list
+
       await loadExecutions();
     } catch (err: any) {
-      console.error('Error submitting workflow:', err);
-      setErrorMsg(err.message || 'Error executing WIMLOGIC orchestration submit handshake.');
+      console.error('Error submitting job to DEV-TOOLS:', err);
+      setClientPhase('Idle');
+      setFormError(err?.message || 'Error submitting job to the WIMLOGIC DEV-TOOLS orchestrator.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSyncStatus = async (id: number) => {
-    try {
-      await workflowService.checkStatus(id);
-      loadExecutions();
-    } catch (err) {
-      console.error('Failed to sync status:', err);
-    }
-  };
-
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className={styles.page}>
       {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-sans font-bold tracking-tight text-slate-900 flex items-center gap-2">
-          <Cpu className="w-5 h-5 text-indigo-600" />
-          AI Orchestration
-        </h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Queue cloud-native real estate analysis pipelines. WIMLOGIC sends jobs directly to devtools for automated processing and assets delivery.
-        </p>
+      <div className={styles.headerArea}>
+        <Cpu className={styles.headerIcon} />
+        <div>
+          <h1 className={styles.pageTitle}>AI Orchestration</h1>
+          <p className={styles.pageSubtitle}>
+            Generate Analysis by submitting property profiles to DEV-TOOLS for automated
+            architectural, zoning, and estimation pipelines - with live enterprise job monitoring
+            and full audit history.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Form: Submit Job */}
-        <div className="lg:col-span-1 bg-white border border-slate-100 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-          <form onSubmit={handleLaunchWorkflow} className="space-y-4">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-500" />
-              Configure Pipeline
-            </h2>
+      <div className={styles.grid}>
+        {/* Left: Submission form */}
+        <EnterpriseCard id="ai-orchestration-form-card" className={styles.formCard}>
+          <form onSubmit={handleGenerateAnalysis} className={styles.form}>
+            <div className={styles.formSectionHeader}>
+              <Sparkles className={styles.formSectionIcon} />
+              Configure Analysis
+            </div>
 
-            {/* Project dropdown (Strict hierarchy) */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Project Folder Context *
-              </label>
+            <FormField label="Project Folder Context" required>
               <select
                 required
                 value={selectedProjectId}
                 onChange={(e) => setSelectedProjectId(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white font-bold text-slate-700"
+                className="enterprise-form-input"
               >
                 <option value="">-- Select Project --</option>
                 {projects.map((p) => (
@@ -201,19 +337,15 @@ export default function AIOrchestration() {
                   </option>
                 ))}
               </select>
-            </div>
+            </FormField>
 
-            {/* Dynamic Property dropdown (Strict hierarchy) */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Target Property Parcel *
-              </label>
+            <FormField label="Target Property Parcel" required>
               <select
                 required
                 disabled={!selectedProjectId}
                 value={selectedPropertyId}
                 onChange={(e) => setSelectedPropertyId(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white text-slate-700 disabled:bg-slate-50"
+                className="enterprise-form-input"
               >
                 <option value="">-- Choose Property --</option>
                 {properties.map((p) => (
@@ -222,204 +354,164 @@ export default function AIOrchestration() {
                   </option>
                 ))}
               </select>
-            </div>
+            </FormField>
 
-            {/* Workflow Code Selector */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Automation Pipeline *
-              </label>
+            <FormField label="Automation Pipeline" required>
               <select
                 required
                 value={workflowCode}
                 onChange={(e) => setWorkflowCode(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white text-slate-700"
+                className="enterprise-form-input"
               >
-                <option value="ZONING_ANALYSIS">Zoning Feasibility Model (SB-9/SB-10)</option>
-                <option value="RENOVATION_ESTIMATE">Commercial Renovation Pro-Forma</option>
-                <option value="CONCEPTUAL_DESIGN">CAD massing / Architectural Concept Study</option>
-                <option value="PROPERTY_SCAN">Full Digital LiDAR Scanning Simulation</option>
-                <option value="AUDIT_REPORT">Assessor Tax & APN Audit Synthesis</option>
+                {WORKFLOW_CODE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
-            </div>
+            </FormField>
 
-            {/* Priority Selector */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Execution Priority
-              </label>
-              <div className="grid grid-cols-3 gap-2">
+            <FormField label="Execution Priority">
+              <div className={styles.priorityGroup}>
                 {['Low', 'Normal', 'High'].map((p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setPriority(p)}
-                    className={`py-1.5 rounded-lg border text-xs font-semibold tracking-wide transition-all focus:outline-none ${
-                      priority === p 
-                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' 
-                        : 'border-slate-200 hover:bg-slate-50 text-slate-600 bg-white'
-                    }`}
+                    className={`enterprise-btn ${priority === p ? 'enterprise-btn-primary' : 'enterprise-btn-secondary'}`}
                   >
                     {p}
                   </button>
                 ))}
               </div>
-            </div>
+            </FormField>
 
-            {/* Scheduling Config */}
-            <div className="pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  Schedule Job Execution
-                </span>
-                <input
-                  type="checkbox"
-                  checked={isScheduled}
-                  onChange={(e) => setIsScheduled(e.target.checked)}
-                  className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-pointer"
-                />
-              </div>
-
-              {isScheduled && (
-                <div className="mt-3 animate-fade-in">
-                  <input
-                    type="datetime-local"
-                    required
-                    value={scheduleTime}
-                    onChange={(e) => setScheduleTime(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Custom AI Guidelines */}
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                Custom Orchestration Notes (Optional)
+            <div className={styles.scheduleRow}>
+              <label className={styles.scheduleLabel}>
+                <Clock className={styles.scheduleIcon} />
+                Schedule Job Execution
               </label>
+              <input
+                type="checkbox"
+                checked={isScheduled}
+                onChange={(e) => setIsScheduled(e.target.checked)}
+                className="enterprise-form-checkbox"
+              />
+            </div>
+            {isScheduled && (
+              <input
+                type="datetime-local"
+                required
+                value={scheduleTime}
+                onChange={(e) => setScheduleTime(e.target.value)}
+                className="enterprise-form-input"
+              />
+            )}
+
+            <FormField label="Custom Orchestration Notes (Optional)">
               <textarea
                 rows={2}
                 placeholder="Specific zoning regulations to override or custom directives..."
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-slate-50"
+                className="enterprise-form-input"
               />
-            </div>
+            </FormField>
 
-            {errorMsg && (
-              <div className="bg-rose-50 border-l-2 border-rose-500 text-rose-800 text-[11px] p-3 rounded font-semibold">
-                {errorMsg}
-              </div>
-            )}
-
-            {successMsg && (
-              <div className="bg-emerald-50 border-l-2 border-emerald-500 text-emerald-800 text-[11px] p-3 rounded font-semibold">
-                {successMsg}
-              </div>
+            {formError && <div className={`${styles.notice} ${styles.noticeError}`}>{formError}</div>}
+            {formSuccess && (
+              <div className={`${styles.notice} ${styles.noticeSuccess}`}>{formSuccess}</div>
             )}
 
             <button
               type="submit"
               disabled={isSubmitting || properties.length === 0}
-              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 text-white rounded-lg text-xs font-semibold tracking-wider uppercase transition-all shadow-md shadow-indigo-600/15 flex items-center justify-center gap-1.5 focus:outline-none"
+              className={`enterprise-btn enterprise-btn-primary enterprise-btn-lg ${styles.submitBtn} ${isSubmitting ? 'enterprise-btn-loading' : ''}`}
             >
-              {isSubmitting ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  SUBMITTING JOB...
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 fill-white" />
-                  {isScheduled ? 'SCHEDULE PIPELINE' : 'LAUNCH PIPELINE'}
-                </>
-              )}
+              <Play className={styles.submitIcon} />
+              {isScheduled ? 'Schedule Analysis' : 'Generate Analysis'}
             </button>
           </form>
-        </div>
+        </EnterpriseCard>
 
-        {/* Right 2 columns: Queue & History Monitor */}
-        <div className="lg:col-span-2 bg-white border border-slate-100 rounded-xl p-5 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
-              <h2 className="font-sans font-bold text-slate-800 text-sm tracking-wide uppercase flex items-center gap-1.5">
-                <Activity className="w-4 h-4 text-indigo-600" />
-                Execution Queue & History
-              </h2>
+        {/* Right: Enterprise Job monitor + history */}
+        <div className={styles.rightColumn}>
+          <EnterpriseJobPanel
+            id="ai-orchestration-job-panel"
+            executionId={activeExecutionId}
+            executionNumber={activeExecutionNumber}
+            jobLabel={workflowLabel(activeWorkflowCode)}
+            status={pollStatus}
+            clientPhase={clientPhase}
+            isPolling={isPolling}
+            isPaused={isPaused}
+            timedOut={timedOut}
+            pollError={pollError}
+            errorMessage={activeErrorMessage}
+            timelineEntries={timelineEntries}
+            isTimelineLoading={isTimelineLoading}
+            capabilities={JOB_CAPABILITIES}
+          />
+
+          <EnterpriseCard
+            id="ai-orchestration-history-card"
+            title="Execution Queue & History"
+            headerAction={
               <button
-                onClick={loadExecutions}
-                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg transition-all focus:outline-none"
+                onClick={() => void loadExecutions()}
+                className={styles.refreshBtn}
                 title="Refresh Queue Status"
               >
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className={styles.refreshIcon} />
               </button>
-            </div>
-
+            }
+          >
             {isLoadingExecutions ? (
-              <div className="py-24 flex justify-center items-center text-slate-400 text-xs font-mono uppercase tracking-widest">
-                Syncing execution status...
-              </div>
+              <LoadingState type="rows" rowsCount={4} />
             ) : executions.length === 0 ? (
-              <div className="py-24 text-center text-slate-400 flex flex-col items-center justify-center space-y-3">
-                <Cpu className="w-10 h-10 text-slate-200" />
-                <span className="text-xs font-mono uppercase tracking-wider">No job executions logged</span>
-                <p className="text-xs text-slate-400 max-w-sm">
-                  Active pipelines submitted to backend orchestrators will be displayed here in real-time.
-                </p>
-              </div>
+              <EmptyState
+                icon={Activity}
+                title="No Job Executions Logged"
+                description="Enterprise jobs submitted to DEV-TOOLS will be displayed here in real-time."
+              />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
                   <thead>
-                    <tr className="bg-slate-50/70 border-b border-slate-100">
-                      <th className="px-4 py-2.5 text-[9px] font-bold uppercase font-mono tracking-wider text-slate-400">Execution No.</th>
-                      <th className="px-4 py-2.5 text-[9px] font-bold uppercase font-mono tracking-wider text-slate-400">Pipeline</th>
-                      <th className="px-4 py-2.5 text-[9px] font-bold uppercase font-mono tracking-wider text-slate-400">Priority</th>
-                      <th className="px-4 py-2.5 text-[9px] font-bold uppercase font-mono tracking-wider text-slate-400">Status</th>
-                      <th className="px-4 py-2.5 text-[9px] font-bold uppercase font-mono tracking-wider text-slate-400">Submitted At</th>
-                      <th className="px-4 py-2.5 text-[9px] font-bold uppercase font-mono tracking-wider text-slate-400 text-right">Action</th>
+                    <tr>
+                      <th>Execution No.</th>
+                      <th>Pipeline</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                      <th>Submitted At</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody>
                     {executions.map((exec) => (
-                      <tr key={exec.execution_id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-4 py-3.5 font-mono text-xs font-bold text-slate-800">
+                      <tr key={exec.execution_id}>
+                        <td className={styles.execNumber}>
                           {exec.execution_number}
+                          {exec.execution_id === activeExecutionId && (
+                            <span className={styles.monitoringTag}>Monitoring</span>
+                          )}
                         </td>
-                        <td className="px-4 py-3.5">
-                          <span className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-mono font-bold text-slate-600">
-                            {exec.workflow_code}
-                          </span>
+                        <td>
+                          <span className={styles.codePill}>{exec.workflow_code}</span>
                         </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-600">
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${
-                            exec.priority === 'High' ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-600'
-                          }`}>
+                        <td>
+                          <span
+                            className={`${styles.priorityPill} ${
+                              exec.priority === 'High' ? styles.priorityHigh : styles.priorityNormal
+                            }`}
+                          >
                             {exec.priority}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase ${
-                            exec.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
-                            exec.status === 'Failed' ? 'bg-rose-100 text-rose-800' :
-                            'bg-amber-100 text-amber-800 animate-pulse'
-                          }`}>
-                            {exec.status}
-                          </span>
+                        <td>
+                          <StatusBadge status={exec.status} type="workflow" />
                         </td>
-                        <td className="px-4 py-3.5 text-[10px] font-mono text-slate-400">
+                        <td className={styles.timestampCell}>
                           {new Date(exec.submitted_at || exec.created_at).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3.5 text-right">
-                          <button
-                            onClick={() => handleSyncStatus(exec.execution_id)}
-                            className="p-1 text-indigo-600 hover:bg-indigo-50 rounded transition-colors focus:outline-none"
-                            title="Sync Status"
-                          >
-                            <RefreshCw className="w-3.5 h-3.5" />
-                          </button>
                         </td>
                       </tr>
                     ))}
@@ -427,7 +519,7 @@ export default function AIOrchestration() {
                 </table>
               </div>
             )}
-          </div>
+          </EnterpriseCard>
         </div>
       </div>
     </div>
