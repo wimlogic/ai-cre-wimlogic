@@ -88,7 +88,10 @@ class DeleteResponse(BaseModel):
 
 @router.post("/", response_model=PropertyImageResponse, status_code=201)
 def create_property_image(obj_in: PropertyImageCreate, db: Session = Depends(get_db)):
-    return property_image_service.create_image(db, image_in=obj_in)
+    try:
+        return property_image_service.create_image(db, image_in=obj_in)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/{id}", response_model=PropertyImageResponse)
 def get_property_image(id: int, db: Session = Depends(get_db)):
@@ -125,7 +128,34 @@ def update_property_image(id: int, obj_in: PropertyImageUpdate, db: Session = De
     db_obj = property_image_service.get_image(db, id)
     if not db_obj:
         raise HTTPException(status_code=404, detail="Property image not found")
-    return property_image_service.update_image(db, id=id, image_in=obj_in)
+    try:
+        return property_image_service.update_image(db, id=id, image_in=obj_in)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/{id}/set-primary", response_model=PropertyImageResponse)
+def set_primary_property_image(id: int, db: Session = Depends(get_db)):
+    """
+    Explicit "set as primary" action (V1.1D addition). Added specifically
+    for Design Studio API clarity: setting an image primary is a distinct,
+    single-purpose action a user takes (e.g. a "Set Primary" button in the
+    Images workspace), not a general field edit - a dedicated POST reads
+    more clearly than constructing a PUT body with only {"is_primary": 1}.
+
+    This endpoint calls property_image_service.set_primary_image(), which
+    routes through the EXACT SAME _set_primary_transaction() that
+    update_image() uses when a PUT requests is_primary=1 - there is only
+    one implementation of the one-primary-image-per-property rule in the
+    codebase, and this endpoint does not duplicate it. A soft-deleted
+    image is refused with a ValueError, mapped to HTTP 400 here.
+    """
+    db_obj = property_image_service.get_image(db, id)
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Property image not found")
+    try:
+        return property_image_service.set_primary_image(db, id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/{id}", response_model=DeleteResponse)
 def delete_property_image(id: int, soft: bool = Query(True), db: Session = Depends(get_db)):

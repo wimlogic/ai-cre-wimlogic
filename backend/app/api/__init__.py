@@ -19,6 +19,8 @@ from app.api.workflow_execution import router as workflow_execution_router
 from app.api.workflow_result import router as workflow_result_router
 from app.api.zoning_note import router as zoning_note_router
 from app.api.ai_orchestration import router as ai_orchestration_router
+from app.api.design_studio_tool import router as design_studio_tool_router
+from app.api.design_studio_job import router as design_studio_job_router
 
 api_router = APIRouter()
 
@@ -42,3 +44,7 @@ api_router.include_router(workflow_execution_router, prefix="/workflow-execution
 api_router.include_router(workflow_result_router, prefix="/workflow-results", tags=["Workflow Results"])
 api_router.include_router(zoning_note_router, prefix="/zoning-notes", tags=["Zoning Notes"])
 api_router.include_router(ai_orchestration_router, prefix="/ai-orchestration", tags=["AI Orchestration"])
+
+# Design Studio (V1.1C/D) - approved namespace: /api/v1/design-studio/*
+api_router.include_router(design_studio_tool_router, prefix="/design-studio/tools", tags=["Design Studio - Tools"])
+api_router.include_router(design_studio_job_router, prefix="/design-studio/jobs", tags=["Design Studio - Jobs"])

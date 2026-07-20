@@ -67,7 +67,7 @@ export default function Settings() {
             <div className="grid grid-cols-3 gap-2.5 text-xs">
               <span className="text-slate-400 font-medium">Application Name</span>
               <span className="col-span-2 font-sans font-semibold text-slate-800">
-                {AppConfig.appName || 'AI-CRE WIMLOGIC'}
+                {AppConfig.appName || 'AI HOME WIMLOGIC'}
               </span>
             </div>
 

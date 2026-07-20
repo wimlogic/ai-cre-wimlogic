@@ -54,6 +54,24 @@ export interface UseEnterpriseJobPollingOptions {
   onStatusChange?: (status: string) => void;
   /** Called exactly once, when a poll returns a terminal backend status. */
   onTerminal?: (finalStatus: string) => void;
+  /**
+   * Optional pluggable status fetcher (Home Studio Frontend Checkpoint 1).
+   * Defaults to `workflowService.checkStatus` - the exact function this
+   * hook has always called - so every existing consumer (AI Orchestration)
+   * gets the same existing polling behavior with no code change on their
+   * part; `workflowService.checkStatus`'s richer return shape
+   * ({ execution_id: number; status: string }) is structurally
+   * assignable to the minimum shape this hook actually reads
+   * ({ status: string }), so no wrapper is needed for the default. A
+   * future Design Studio consumer can pass a fetcher built from
+   * designJobService.get(jobId) instead - a DesignJob has `status` but no
+   * `execution_id`, which is exactly why this contract only requires what
+   * the hook itself reads. The identifier type matches
+   * workflowService.checkStatus's own signature (`executionId: number`),
+   * not assumed - verified against the actual current hook and service
+   * before this change.
+   */
+  fetchStatus?: (id: number) => Promise<{ status: string }>;
   /** Escalation intervals [initial, mid, max] in ms. Defaults to [5000, 10000, 20000]. */
   intervalsMs?: readonly [number, number, number];
   /** Elapsed-time thresholds [toMid, toMax] in ms at which the interval escalates. */
@@ -87,6 +105,7 @@ export default function useEnterpriseJobPolling(
   const {
     onStatusChange,
     onTerminal,
+    fetchStatus = workflowService.checkStatus,
     intervalsMs = DEFAULT_INTERVALS_MS,
     escalationThresholdsMs = ESCALATION_THRESHOLDS_MS,
     timeoutMs = DEFAULT_TIMEOUT_MS,
@@ -111,8 +130,10 @@ export default function useEnterpriseJobPolling(
   // even though the polling loop below is only ever set up via `start`.
   const onStatusChangeRef = useRef(onStatusChange);
   const onTerminalRef = useRef(onTerminal);
+  const fetchStatusRef = useRef(fetchStatus);
   onStatusChangeRef.current = onStatusChange;
   onTerminalRef.current = onTerminal;
+  fetchStatusRef.current = fetchStatus;
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -175,7 +196,7 @@ export default function useEnterpriseJobPolling(
     }
 
     try {
-      const response = await workflowService.checkStatus(executionId);
+      const response = await fetchStatusRef.current(executionId);
       consecutiveFailuresRef.current = 0;
       setError(null);
       setStatus(response.status);

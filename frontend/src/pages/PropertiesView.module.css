@@ -471,3 +471,12 @@
   color: var(--color-neutral-800);
   background-color: var(--color-neutral-50);
 }
+
+.reportsSectionTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-neutral-500);
+  margin: 0 0 0.75rem;
+}

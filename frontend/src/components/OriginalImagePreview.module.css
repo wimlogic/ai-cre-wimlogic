@@ -1,0 +1,121 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.imageArea {
+  position: relative;
+  width: 100%;
+  /* Bounded by the image's own typical aspect ratio instead of stretching
+     to fill whatever vertical space the flex parent happens to have -
+     that unbounded fill was the source of the large empty black bars
+     above/below landscape-oriented property photos (Checkpoint 3A). A
+     portrait-oriented photo still letterboxes gracefully via
+     object-fit: contain on the <img> below; 4:3 is a conservative,
+     common real-estate-photo ratio that keeps most landscape shots
+     nearly gap-free without needing per-image JS aspect detection. */
+  aspect-ratio: 4 / 3;
+  max-height: 32rem;
+  background-color: var(--color-neutral-100);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: var(--color-neutral-900);
+}
+
+.primaryBadge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  background-color: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--color-neutral-800);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+
+.navBtn:hover {
+  background-color: #ffffff;
+}
+
+.navBtnLeft {
+  left: 0.75rem;
+}
+
+.navBtnRight {
+  right: 0.75rem;
+}
+
+.fullscreenBtn {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-sm);
+  background-color: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+
+.fullscreenBtn:hover {
+  background-color: rgba(15, 23, 42, 0.9);
+}
+
+.metaRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.fileName {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+}
+
+.roleChip {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-700);
+  border-radius: var(--radius-sm);
+  text-transform: capitalize;
+}

@@ -3,7 +3,6 @@ import { propertyImageService } from '../services/propertyImageService';
 import { projectService } from '../services/projectService';
 import { propertyService } from '../services/propertyService';
 import type { PropertyImage, Project, Property } from '../types/index';
-import { AppConfig } from '../config/app';
 import {
   Upload,
   Trash2,
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import EnterpriseCard from '../components/EnterpriseCard';
+import EnterpriseSelect from '../components/EnterpriseSelect';
 import EmptyState from '../components/EmptyState';
 import LoadingState from '../components/LoadingState';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -26,6 +26,8 @@ import StatusBadge from '../components/StatusBadge';
 import FormField from '../components/FormField';
 import useToast from '../hooks/useToast';
 import { formatDate } from '../utils/formatters';
+import { resolveImageSrc, resolveImageFileName } from '../utils/imageUrl';
+import { IMAGE_ROLE_OPTIONS } from '../utils/imageContext';
 import styles from './PropertyImages.module.css';
 
 /**
@@ -40,50 +42,37 @@ const IMAGE_CATEGORIES: { value: string; label: string }[] = [
   { value: 'uploaded', label: 'Uploaded' },
 ];
 
+/**
+ * Status controlled-vocabulary. AUDIT NOTE: cre_property_images.status is
+ * also a plain nullable varchar(50) with zero backend enforcement - no
+ * CHECK constraint, no Pydantic Literal, no CRUD/service validation.
+ * "deleted" is deliberately excluded: soft-delete is handled entirely
+ * through the dedicated DELETE /property-images/{id}?soft=true endpoint
+ * (property_image_service.delete_image(), which sets is_deleted=1 and
+ * forces is_primary=0 - it never touches this status field at all), so
+ * exposing "Deleted" here would invent a second, backend-disconnected
+ * deletion path.
+ */
+const IMAGE_STATUS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'uploaded', label: 'Uploaded' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'archived', label: 'Archived' },
+];
+
 const GALLERY_PAGE_SIZE = 5;
 
 function categoryLabel(value?: string): string {
   return IMAGE_CATEGORIES.find((c) => c.value === value)?.label || value || 'Uncategorized';
 }
 
-function displayFileName(img: PropertyImage): string {
-  if (img.original_file_name) return img.original_file_name;
-  if (img.image_url) {
-    try {
-      const parts = img.image_url.split('/');
-      return parts[parts.length - 1] || `image-${img.id}`;
-    } catch {
-      return `image-${img.id}`;
-    }
-  }
-  return `image-${img.id}`;
-}
-
-function resolveSrc(img: PropertyImage): string {
-  // Imported images (Street View, satellite, external URLs) already have a
-  // full absolute image_url - render directly.
-  if (img.image_url) return img.image_url;
-
-  // Uploaded images only have cached_path, a relative POSIX-style path with
-  // no scheme or host - resolve it against the configured upload base URL.
-  if (img.cached_path) {
-    const base = AppConfig.uploadBaseUrl.replace(/\/$/, '');
-    const path = img.cached_path.replace(/^\//, '');
-    return `${base}/${path}`;
-  }
-
-  return '';
-}
-
 /**
- * There is no `is_primary` column in cre_property_images. Rather than
- * inventing one, "primary" is encoded into the existing free-text
- * `image_role` field (a real, already-editable column) as the literal
- * value "primary". This is a UI convention on top of real storage, not a
- * fabricated backend capability.
+ * Uses the real is_primary column/endpoint (Checkpoint 5), not the stale
+ * image_role === 'primary' text convention this used to rely on -
+ * corrected per the Image Role/Status controlled-dropdown pass.
  */
 function isPrimaryImage(img: PropertyImage): boolean {
-  return (img.image_role || '').trim().toLowerCase() === 'primary';
+  return img.is_primary === 1;
 }
 
 interface UploadQueueItem {
@@ -219,17 +208,58 @@ export default function PropertyImages() {
     if (!detailImage) return;
     setIsSavingDetail(true);
     try {
-      const updated = await propertyImageService.update(detailImage.id, {
-        notes: detailDraft.notes,
-        status: detailDraft.status,
-        image_role: detailDraft.image_role,
-      });
-      setImages((prev) => prev.map((img) => (img.id === updated.id ? updated : img)));
+      const wantsPrimary = detailDraft.image_role === 'primary';
+      const isCurrentlyPrimary = detailImage.is_primary === 1;
+
+      let updated: PropertyImage;
+
+      if (wantsPrimary && !isCurrentlyPrimary) {
+        // Selecting "Primary" must use the real primary-image endpoint -
+        // it enforces the one-primary-per-property invariant and clears
+        // whichever OTHER image currently holds it. A plain text write
+        // to image_role alone would never do that.
+        await propertyImageService.setPrimary(detailImage.id);
+        updated = await propertyImageService.update(detailImage.id, {
+          notes: detailDraft.notes,
+          status: detailDraft.status,
+          image_role: detailDraft.image_role,
+        });
+      } else if (!wantsPrimary && isCurrentlyPrimary) {
+        // Moving THIS image away from Primary. Confirmed via source
+        // audit that the backend's generic update path supports
+        // explicitly clearing is_primary (falls through to a plain
+        // single-row update when is_primary=0 is supplied) without
+        // requiring another image to take over first - the Property may
+        // temporarily have no primary image, same as the existing
+        // soft-delete behavior already does. No frontend-only state is
+        // invented here; this is the backend's own supported operation.
+        updated = await propertyImageService.update(detailImage.id, {
+          notes: detailDraft.notes,
+          status: detailDraft.status,
+          image_role: detailDraft.image_role,
+          is_primary: 0,
+        });
+      } else {
+        updated = await propertyImageService.update(detailImage.id, {
+          notes: detailDraft.notes,
+          status: detailDraft.status,
+          image_role: detailDraft.image_role,
+        });
+      }
+
+      // A primary change (either branch above) can affect a SECOND row
+      // too - reload the full list so every card reflects the backend's
+      // actual current state, not just this one row.
+      if (wantsPrimary !== isCurrentlyPrimary) {
+        await loadImages();
+      } else {
+        setImages((prev) => prev.map((img) => (img.id === updated.id ? updated : img)));
+      }
       setDetailImage(updated);
       success('Image details updated.');
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Property Images] Failed to update image:', err);
-      toastError('Failed to save image details.');
+      toastError(err?.message || 'Failed to save image details.');
     } finally {
       setIsSavingDetail(false);
     }
@@ -237,8 +267,14 @@ export default function PropertyImages() {
 
   const handleMakePrimary = async (img: PropertyImage) => {
     try {
-      const updated = await propertyImageService.update(img.id, { image_role: 'primary' });
-      setImages((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+      await propertyImageService.setPrimary(img.id);
+      // A primary change affects a SECOND row too (the prior primary
+      // image's is_primary flips to 0 on the backend) - a full reload is
+      // the correct way to reflect that, not a local single-row patch.
+      await loadImages();
+      if (detailImage?.id === img.id) {
+        setDetailImage((prev) => (prev ? { ...prev, is_primary: 1 } : prev));
+      }
       success('Marked as primary image.');
     } catch (err) {
       console.error('[Property Images] Failed to set primary image:', err);
@@ -339,14 +375,9 @@ export default function PropertyImages() {
       {/* Header */}
       <div className={styles.headerArea}>
         <div className={styles.titleArea}>
-          <div className={styles.breadcrumbs}>
-            <span>WIMLOGIC</span>
-            <span>/</span>
-            <span className={styles.breadcrumbActive}>Property Images</span>
-          </div>
           <h1 className={styles.pageTitle}>Property Images</h1>
           <p className={styles.pageSubtitle}>
-            Manage image assets and prepare properties for AI-assisted workflows.
+            Manage image assets and prepare properties for AI-assisted design.
           </p>
         </div>
 
@@ -458,8 +489,8 @@ export default function PropertyImages() {
               {visibleImages.map((img) => (
                 <div key={img.id} className={`${styles.galleryCard} enterprise-card`}>
                   <div className={styles.galleryThumbWrap}>
-                    {resolveSrc(img) ? (
-                      <img src={resolveSrc(img)} alt={displayFileName(img)} className={styles.galleryThumb} />
+                    {resolveImageSrc(img) ? (
+                      <img src={resolveImageSrc(img)} alt={resolveImageFileName(img)} className={styles.galleryThumb} />
                     ) : (
                       <div className={styles.galleryThumb} />
                     )}
@@ -473,7 +504,7 @@ export default function PropertyImages() {
                   </div>
                   <div className={styles.galleryCardBody}>
                     <div className={styles.galleryCardTitleRow}>
-                      <span className={styles.galleryFileName}>{displayFileName(img)}</span>
+                      <span className={styles.galleryFileName}>{resolveImageFileName(img)}</span>
                       <StatusBadge status={img.status} type="property" />
                     </div>
                     <div className={styles.galleryActions}>
@@ -637,7 +668,7 @@ export default function PropertyImages() {
         <div className={styles.detailOverlay} onClick={closeDetail} id="property-images-detail-overlay">
           <div className={styles.detailPanel} onClick={(e) => e.stopPropagation()}>
             <div className={styles.detailHeader}>
-              <span className={styles.detailHeaderTitle}>{displayFileName(detailImage)}</span>
+              <span className={styles.detailHeaderTitle}>{resolveImageFileName(detailImage)}</span>
               <button type="button" className={styles.detailCloseBtn} onClick={closeDetail}>
                 <X className="w-4 h-4" />
               </button>
@@ -645,10 +676,10 @@ export default function PropertyImages() {
 
             <div className={styles.detailScroll}>
               <div className={styles.detailPreview}>
-                {resolveSrc(detailImage) ? (
+                {resolveImageSrc(detailImage) ? (
                   <img
-                    src={resolveSrc(detailImage)}
-                    alt={displayFileName(detailImage)}
+                    src={resolveImageSrc(detailImage)}
+                    alt={resolveImageFileName(detailImage)}
                     className={styles.detailPreviewImg}
                   />
                 ) : null}
@@ -688,22 +719,24 @@ export default function PropertyImages() {
 
               <div>
                 <div className={styles.detailSectionTitle}>Business Notes</div>
-                <FormField label="Image Role" id="detail-image-role-field" helpText="Set to 'primary' to mark this as the property's primary image.">
-                  <input
-                    type="text"
-                    className="enterprise-form-input"
+                <FormField label="Image Role" id="detail-image-role-field" helpText="Selecting Primary makes this the property's one Primary Image; any other image currently primary will be cleared.">
+                  <EnterpriseSelect
+                    id="detail-image-role-select"
                     value={detailDraft.image_role}
-                    onChange={(e) => setDetailDraft((prev) => ({ ...prev, image_role: e.target.value }))}
-                    placeholder="e.g. primary"
+                    options={IMAGE_ROLE_OPTIONS}
+                    placeholder="Select a role"
+                    onChange={(value) => setDetailDraft((prev) => ({ ...prev, image_role: value }))}
+                    disabled={isSavingDetail}
                   />
                 </FormField>
                 <FormField label="Status" id="detail-status-field">
-                  <input
-                    type="text"
-                    className="enterprise-form-input"
+                  <EnterpriseSelect
+                    id="detail-status-select"
                     value={detailDraft.status}
-                    onChange={(e) => setDetailDraft((prev) => ({ ...prev, status: e.target.value }))}
-                    placeholder="e.g. Active"
+                    options={IMAGE_STATUS_OPTIONS}
+                    placeholder="Select a status"
+                    onChange={(value) => setDetailDraft((prev) => ({ ...prev, status: value }))}
+                    disabled={isSavingDetail}
                   />
                 </FormField>
                 <FormField label="Notes" id="detail-notes-field">
@@ -732,7 +765,12 @@ export default function PropertyImages() {
                 type="button"
                 className="enterprise-btn enterprise-btn-primary"
                 onClick={handleSaveDetail}
-                disabled={isSavingDetail}
+                disabled={isSavingDetail || !detailDraft.image_role || !detailDraft.status}
+                title={
+                  !detailDraft.image_role || !detailDraft.status
+                    ? 'Select an Image Role and a Status before saving'
+                    : undefined
+                }
               >
                 {isSavingDetail ? 'Saving...' : 'Save Changes'}
               </button>

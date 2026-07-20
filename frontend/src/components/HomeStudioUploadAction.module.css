@@ -1,0 +1,62 @@
+.queue {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+}
+
+.queueItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.queueName {
+  flex: 0 0 auto;
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-neutral-700);
+}
+
+.progressTrack {
+  flex: 1 1 auto;
+  height: 0.375rem;
+  background-color: var(--color-neutral-100);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: var(--color-brand-500);
+  transition: width var(--transition-normal);
+}
+
+.progressFillDone {
+  background-color: var(--color-success-500);
+}
+
+.progressFillError {
+  background-color: var(--color-danger-500);
+}
+
+.queueMeta {
+  flex: 0 0 auto;
+  color: var(--color-neutral-500);
+  min-width: 3rem;
+}
+
+.dismissBtn {
+  background: none;
+  border: none;
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  padding: 0.125rem;
+}
+
+.dismissBtn:hover {
+  color: var(--color-neutral-700);
+}

@@ -1,0 +1,121 @@
+.loading {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--color-neutral-400);
+  font-size: 0.875rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.emptyText {
+  color: var(--color-neutral-500);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.currentAnalysisCard {
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background-color: #ffffff;
+}
+
+.currentAnalysisCard[data-tone='success'] { border-left: 3px solid var(--color-success-500, #10b981); }
+.currentAnalysisCard[data-tone='warning'] { border-left: 3px solid var(--color-warning-500, #f59e0b); }
+.currentAnalysisCard[data-tone='error'] { border-left: 3px solid var(--color-danger-500, #ef4444); }
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cardIcon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.currentAnalysisCard[data-tone='success'] .cardIcon { color: var(--color-success-500, #10b981); }
+.currentAnalysisCard[data-tone='warning'] .cardIcon { color: var(--color-warning-500, #f59e0b); }
+.currentAnalysisCard[data-tone='error'] .cardIcon { color: var(--color-danger-500, #ef4444); }
+
+.cardStatus {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--color-neutral-800);
+}
+
+.cardTime {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+}
+
+.syncErrorText {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-warning-700, #b45309);
+}
+
+.errorText {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-danger-600, #dc2626);
+}
+
+.cardActions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.viewReportButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary-600, #4f46e5);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.retrySyncButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-warning-600, #d97706);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.retrySyncButton:disabled {
+  opacity: 0.5;
+}
+
+.runButton {
+  align-self: flex-start;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary-600, #4f46e5);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.runButton:hover {
+  background-color: var(--color-primary-700, #4338ca);
+}
+
+.runButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

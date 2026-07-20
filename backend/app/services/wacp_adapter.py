@@ -258,7 +258,8 @@ def _invoke(action: str, call: Callable[[], WacpResponse]) -> Dict[str, Any]:
 def submit_payload(
     data: Dict[str, Any],
     *,
-    workflow_code: str,
+    business_intent: Optional[str] = None,
+    workflow_code: Optional[str] = None,
     project_code: str,
     priority: str = "NORMAL",
     correlation_id: Optional[str] = None,
@@ -268,10 +269,21 @@ def submit_payload(
     Submits a new Enterprise Job. `data` is the WACP envelope's `data`
     block, as built by payload_builder.build_enterprise_payload(). Every
     other envelope field is either supplied here explicitly by the caller
-    (`workflow_code`, `project_code`, `priority`, `correlation_id`,
-    `callback_url`) or filled in automatically by the SDK from
-    configuration (`application_id`, `company_id` default, `request_id`,
-    `timestamp`) - this function never constructs any of that itself.
+    (`business_intent`, `workflow_code`, `project_code`, `priority`,
+    `correlation_id`, `callback_url`) or filled in automatically by the
+    SDK from configuration (`application_id`, `company_id` default,
+    `request_id`, `timestamp`) - this function never constructs any of
+    that itself.
+
+    `business_intent` (WACP v1.1, Build Week WIM Module V1) is the
+    canonical routing field - a plain string DEV-TOOLS' WIM Module V1
+    matches (after normalization) against a `workflow_code` actually
+    registered and assigned to this Client Application. `workflow_code`
+    remains supported as the legacy routing mechanism for callers not yet
+    migrated. At least one of the two must be provided - the SDK itself
+    raises WacpEnvelopeError (WACP-101) before any network call if both
+    are omitted, exactly as it already does for other missing-required-
+    field cases.
 
     `callback_url` defaults to None: AI-CRE does not yet register a
     callback endpoint with signature verification (10_WACP_PROTOCOL.md
@@ -283,10 +295,11 @@ def submit_payload(
     """
     client = _get_client()
     return _invoke(
-        f"submitting job (workflow_code={workflow_code})",
+        f"submitting job (business_intent={business_intent}, workflow_code={workflow_code})",
         lambda: client.submit(
-            workflow_code=workflow_code,
             data=data,
+            business_intent=business_intent,
+            workflow_code=workflow_code,
             project_code=project_code,
             priority=_to_priority(priority),
             correlation_id=correlation_id,

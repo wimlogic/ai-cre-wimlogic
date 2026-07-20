@@ -4,6 +4,11 @@ import { projectService } from '../services/projectService';
 import { propertyImageService } from '../services/propertyImageService';
 import { workflowService } from '../services/workflowService';
 import { Property, Project } from '../types/index';
+import { usePropertyAnalysisState } from '../hooks/usePropertyAnalysisState';
+import PropertyRunAnalysisPanel from '../components/PropertyRunAnalysisPanel';
+import PropertyExecutionHistory from '../components/PropertyExecutionHistory';
+import PropertyReportHistory from '../components/PropertyReportHistory';
+import AnalysisReportView from '../components/AnalysisReportView';
 import {
   Building2,
   Plus,
@@ -20,6 +25,7 @@ import {
   GitBranch,
   Users,
   FileText,
+  FileCheck,
   LayoutGrid,
   MapPin,
   Layers,
@@ -52,6 +58,7 @@ type TabKey =
   | 'images'
   | 'workflow'
   | 'ai'
+  | 'reports'
   | 'notes';
 
 const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -63,7 +70,8 @@ const TABS: { key: TabKey; label: string; icon: React.ComponentType<{ className?
   { key: 'ownership', label: 'Ownership', icon: Users },
   { key: 'images', label: 'Images', icon: ImageIcon },
   { key: 'workflow', label: 'Workflow', icon: GitBranch },
-  { key: 'ai', label: 'AI Analysis', icon: Sparkles },
+  { key: 'ai', label: 'Diagnostics', icon: Sparkles },
+  { key: 'reports', label: 'Reports', icon: FileCheck },
   { key: 'notes', label: 'Notes', icon: FileText },
 ];
 
@@ -123,6 +131,35 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
     raw_api_json: '',
     api_source_url: ''
   });
+
+  // Reports tab (Phase 2B) - resolvedProject carries the numeric
+  // Project.id PropertyRunAnalysisPanel needs for submission
+  // (WorkflowSubmitPayload requires the numeric id, not the business
+  // project_id code this page otherwise works with), plus the project's
+  // display name for AnalysisReportView's header - resolved via the
+  // same listAssociations pattern already used elsewhere on this page.
+  const [resolvedProject, setResolvedProject] = useState<Project | null>(null);
+  const [selectedReportResultId, setSelectedReportResultId] = useState<number | null>(null);
+  const analysisState = usePropertyAnalysisState(formData.id ?? null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function resolveProject() {
+      setResolvedProject(null);
+      if (!formData.id) return;
+      try {
+        const assocRes = await propertyService.listAssociations({ property_id: formData.id, limit: 1 });
+        const association = assocRes.items?.[0];
+        if (!association) return;
+        const project = await projectService.getByProjectId(association.project_id);
+        if (!cancelled) setResolvedProject(project);
+      } catch (err) {
+        console.error('[PropertiesView] Failed to resolve project for Reports tab:', err);
+      }
+    }
+    resolveProject();
+    return () => { cancelled = true; };
+  }, [formData.id]);
 
   const loadProjects = async () => {
     try {
@@ -534,8 +571,6 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
           <div className={styles.headerArea}>
             <div className={styles.titleArea}>
               <div className={styles.breadcrumbs}>
-                <span>AI-CRE WIMLOGIC</span>
-                <ChevronRight className="w-3 h-3 text-slate-300" />
                 <span className="cursor-pointer hover:text-slate-600" onClick={() => setActiveProperty(null)}>Properties</span>
                 <ChevronRight className="w-3 h-3 text-slate-300" />
                 <span className={styles.breadcrumbActive}>{formData.address || 'PROP NEW PARCEL'}</span>
@@ -1039,15 +1074,15 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                 )}
 
                 {activeTab === 'workflow' && (
-                  <EnterpriseCard title="Workflow" subtitle="AI workflow executions are run and monitored from AI Orchestration.">
+                  <EnterpriseCard title="AI Processing" subtitle="AI processing activity for this property is monitored from AI Orchestration.">
                     <div className={styles.linkOutPanel}>
                       <GitBranch className="w-8 h-8" style={{ color: 'var(--color-neutral-300)' }} />
                       <p className={styles.linkOutText}>
                         {workflowCount === null
-                          ? 'Save this property to become eligible for AI workflows.'
+                          ? 'Save this property to become eligible for AI processing.'
                           : workflowCount > 0
-                            ? `${workflowCount} workflow execution${workflowCount === 1 ? '' : 's'} on record for this property.`
-                            : 'No workflow executions have been run for this property yet.'}
+                            ? `${workflowCount} AI Processing job${workflowCount === 1 ? '' : 's'} on record for this property.`
+                            : 'No AI Processing has been run for this property yet.'}
                       </p>
                       <button
                         type="button"
@@ -1062,7 +1097,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                 )}
 
                 {activeTab === 'ai' && (
-                  <EnterpriseCard title="AI Analysis" subtitle="Raw API payload context used by downstream AI workflows.">
+                  <EnterpriseCard title="AI Analysis" subtitle="Raw API payload context used for AI processing.">
                     <div className="space-y-4">
                       <FormField label="Municipal API Source Endpoint">
                         <input
@@ -1074,7 +1109,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                         />
                       </FormField>
 
-                      <FormField label="Raw Database/API JSON Context" helpText="This structured payload is what DEV-TOOLS WIMLOGIC receives as AI analysis context.">
+                      <FormField label="Raw Database/API JSON Context" helpText="Advanced diagnostic information used to prepare AI processing context.">
                         <textarea
                           rows={6}
                           value={formData.raw_api_json || ''}
@@ -1098,6 +1133,84 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                         </button>
                       </div>
                     </div>
+                  </EnterpriseCard>
+                )}
+
+                {activeTab === 'reports' && formData.id && (
+                  <EnterpriseCard title="Reports" subtitle="Run and review property analysis reports.">
+                    {selectedReportResultId !== null ? (
+                      <AnalysisReportView
+                        resultId={selectedReportResultId}
+                        propertyAddress={formData.address}
+                        projectName={resolvedProject?.project_name}
+                        onBack={() => setSelectedReportResultId(null)}
+                      />
+                    ) : (
+                      <div className="space-y-8">
+                        <div>
+                          <h3 className={styles.reportsSectionTitle}>Current Analysis</h3>
+                          {resolvedProject ? (
+                            <PropertyRunAnalysisPanel
+                              propertyId={formData.id}
+                              projectId={resolvedProject.id}
+                              currentExecution={analysisState.currentExecution}
+                              executionIdsWithReports={analysisState.executionIdsWithReports}
+                              isLoading={analysisState.isLoading}
+                              onReload={analysisState.reload}
+                              onViewReport={(execution) => {
+                                const matchingReport = analysisState.reports.find(
+                                  (r) => r.workflow_execution_id === execution.execution_id
+                                );
+                                if (matchingReport?.workflow_result_id) {
+                                  setSelectedReportResultId(matchingReport.workflow_result_id);
+                                }
+                              }}
+                            />
+                          ) : (
+                            <p className="enterprise-form-help">
+                              This property is not yet associated with a Project - Run New Analysis requires
+                              a Project association.
+                            </p>
+                          )}
+                        </div>
+
+                        <div>
+                          <h3 className={styles.reportsSectionTitle}>Execution History</h3>
+                          <PropertyExecutionHistory
+                            executions={analysisState.executionHistory}
+                            executionIdsWithReports={analysisState.executionIdsWithReports}
+                            isLoading={analysisState.isLoading}
+                            onViewProgress={() => setActiveTab('reports')}
+                            onViewError={() => {}}
+                            onRetrySync={async (execution) => {
+                              await workflowService.checkStatus(execution.execution_id);
+                              await analysisState.reload();
+                            }}
+                            onViewReport={(execution) => {
+                              const matchingReport = analysisState.reports.find(
+                                (r) => r.workflow_execution_id === execution.execution_id
+                              );
+                              if (matchingReport?.workflow_result_id) {
+                                setSelectedReportResultId(matchingReport.workflow_result_id);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        <div>
+                          <h3 className={styles.reportsSectionTitle}>Reports</h3>
+                          <PropertyReportHistory
+                            reports={analysisState.reports}
+                            isLoading={analysisState.isLoading}
+                            onOpenReport={(report) => {
+                              if (report.workflow_result_id) {
+                                setSelectedReportResultId(report.workflow_result_id);
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </EnterpriseCard>
                 )}
 

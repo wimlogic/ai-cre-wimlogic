@@ -77,9 +77,136 @@ export interface PropertyImage {
   file_type?: string;
   image_role?: string;
   notes?: string;
+  ai_prompt?: string | null;
+  tags?: string[] | null;
+  constraints?: string | null;
+  priority?: number | null;
+  is_primary: number;
   status?: string;
   is_deleted: number;
   created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// Design Studio types (Home Studio Frontend Checkpoint 1)
+//
+// Field-for-field verified against the actual ai_cre_schema.sql table
+// definitions (cre_design_tools, cre_design_tool_options,
+// cre_design_tool_image_requirements, cre_design_jobs,
+// cre_design_job_images, cre_design_job_executions) - not assumed from
+// convention. workflow_code is kept on DesignTool/DesignJob because the
+// backend record has it, but Home Studio's UI must never render it -
+// that constraint lives in the UI layer, not the type.
+// ---------------------------------------------------------------------------
+
+export interface DesignTool {
+  id: number;
+  tool_code: string;
+  tool_name: string;
+  design_type: string;
+  workflow_code: string; // internal only - never rendered in Home Studio
+  card_image_path?: string | null;
+  icon_code?: string | null;
+  business_description?: string | null;
+  business_purpose?: string | null;
+  business_instructions?: string | null;
+  input_config_json?: Record<string, unknown> | null;
+  output_expectations_json?: Record<string, unknown> | null;
+  status: string; // active | inactive | archived
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DesignToolOption {
+  id: number;
+  tool_id: number;
+  option_code: string;
+  option_label: string;
+  /**
+   * Intentionally a plain string, not a closed union - the backend
+   * defines option_type as str precisely so future business option
+   * types can be introduced without an API schema change. Future UI
+   * rendering may explicitly support the six current known values
+   * (select, multiselect, boolean, number, text, slider) and show a
+   * controlled unsupported-type state for anything else, but the type
+   * itself must not constrain the API response.
+   */
+  option_type: string;
+  allowed_values_json?: any[] | null;
+  default_value?: string | null;
+  is_required: number;
+  display_order: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DesignToolImageRequirement {
+  id: number;
+  tool_id: number;
+  /**
+   * Business-defined, extensible value (not a closed enum) - the backend
+   * treats input_role as free business vocabulary a Tool can define, not
+   * a fixed set the frontend should constrain.
+   */
+  input_role: string;
+  allowed_image_roles_json?: string[] | null;
+  min_count: number;
+  max_count?: number | null;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Known Design Job lifecycle values (cre_design_jobs.status CHECK constraint). */
+export type DesignJobStatus = 'draft' | 'submitted' | 'processing' | 'completed' | 'failed' | 'cancelled';
+
+export interface DesignJob {
+  id: number;
+  job_number: string;
+  project_id: string;
+  property_id: number;
+  tool_id: number;
+  tool_code: string;
+  design_type: string;
+  workflow_code: string; // internal only - never rendered in Home Studio
+  tool_options_json?: Record<string, any> | null;
+  effective_context_json?: Record<string, any> | null;
+  submitted_payload_json?: Record<string, any> | null;
+  status: DesignJobStatus;
+  requested_by?: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DesignJobImage {
+  id: number;
+  design_job_id: number;
+  property_image_id: number;
+  /** Same extensible business vocabulary as DesignToolImageRequirement.input_role. */
+  input_role: string;
+  image_knowledge_snapshot_json?: Record<string, any> | null;
+  display_order: number;
+  created_at: string;
+}
+
+export interface DesignJobExecution {
+  id: number;
+  design_job_id: number;
+  workflow_execution_id: number;
+  attempt_number: number;
+  is_current: number;
+  created_at: string;
+}
+
+/** Matches the backend's DesignJobSubmitResponse / DesignJobRetryResponse shape. */
+export interface DesignJobAttemptResponse {
+  design_job_id: number;
+  attempt_number: number;
+  workflow_execution_id: number;
+  devtools_execution_id?: string | null;
+  status: string; // verbatim cre_workflow_executions.status
 }
 
 export interface WorkflowExecution {
@@ -98,6 +225,7 @@ export interface WorkflowExecution {
   completed_at?: string;
   retry_count: number;
   error_message?: string;
+  result_sync_error?: string;
   metadata_json?: Record<string, any>;
   submitted_at: string;
   created_at: string;

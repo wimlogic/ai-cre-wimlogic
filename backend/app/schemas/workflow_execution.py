@@ -17,6 +17,7 @@ class WorkflowExecutionBase(BaseModel):
     completed_at: Optional[datetime] = None
     retry_count: int = 0
     error_message: Optional[str] = None
+    result_sync_error: Optional[str] = None
     metadata_json: Optional[Dict[str, Any]] = None
 
 class WorkflowExecutionCreate(WorkflowExecutionBase):
@@ -37,6 +38,7 @@ class WorkflowExecutionUpdate(BaseModel):
     completed_at: Optional[datetime] = None
     retry_count: Optional[int] = None
     error_message: Optional[str] = None
+    result_sync_error: Optional[str] = None
     metadata_json: Optional[Dict[str, Any]] = None
 
 class WorkflowExecutionRead(WorkflowExecutionBase):

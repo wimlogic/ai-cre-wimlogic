@@ -3,6 +3,7 @@ import { projectService } from '../services/projectService';
 import { propertyService } from '../services/propertyService';
 import { workflowService } from '../services/workflowService';
 import { generatedAssetService } from '../services/generatedAssetService';
+import { Property, Project } from '../types/index';
 import { 
   Building2, 
   FolderGit2, 
@@ -10,26 +11,32 @@ import {
   FileCheck, 
   ArrowRight, 
   Plus, 
-  Cpu, 
   Sparkles 
 } from 'lucide-react';
 import EnterpriseCard from '../components/EnterpriseCard';
 import StatusBadge from '../components/StatusBadge';
 import LoadingState from '../components/LoadingState';
+import RecentPropertiesCard from '../components/RecentPropertiesCard';
 
 interface DashboardProps {
   onNavigate: (view: string) => void;
   onSelectProject: (id: string) => void;
+  onSelectProperty: (id: number | null) => void;
 }
 
-export default function Dashboard({ onNavigate, onSelectProject }: DashboardProps) {
+export default function Dashboard({ onNavigate, onSelectProperty }: DashboardProps) {
   const [stats, setStats] = useState({
     projectsCount: 0,
     propertiesCount: 0,
     activeWorkflows: 0,
     assetsCount: 0,
   });
-  const [recentProjects, setRecentProjects] = useState<any[]>([]);
+  const [recentProperties, setRecentProperties] = useState<Property[]>([]);
+  // Maps Project business code (cre_projects.project_id) -> Project Name.
+  // Built ONCE here from a single Projects fetch, then handed down to
+  // RecentPropertiesCard so it never needs to issue its own per-Property
+  // Project lookup request (avoiding N+1) - Checkpoint 2B correction.
+  const [projectLookup, setProjectLookup] = useState<Record<string, string>>({});
   const [runningExecutions, setRunningExecutions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,8 +45,8 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
       setIsLoading(true);
       try {
         const [projRes, propRes, execRes, assetRes] = await Promise.all([
-          projectService.list({ limit: 5 }),
-          propertyService.list({ limit: 1 }),
+          projectService.list({ limit: 200 }),
+          propertyService.list({ limit: 20 }),
           workflowService.listExecutions({ limit: 100 }),
           generatedAssetService.list({ limit: 1 })
         ]);
@@ -55,7 +62,19 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
           assetsCount: assetRes.count,
         });
 
-        setRecentProjects(projRes.items.slice(0, 3));
+        const lookup: Record<string, string> = {};
+        (projRes.items || []).forEach((proj: Project) => {
+          lookup[proj.project_id] = proj.project_name;
+        });
+        setProjectLookup(lookup);
+
+        // Most recently updated properties first - client-side sort only,
+        // propertyService.list() has no order_by parameter today.
+        const sortedProperties = [...(propRes.items || [])].sort(
+          (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+        setRecentProperties(sortedProperties.slice(0, 3));
+
         setRunningExecutions(
           execRes.items
             .filter((ex) => ex.status === 'Running' || ex.status === 'Pending' || ex.status === 'Submitted')
@@ -82,18 +101,18 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
             </span>
           </div>
           <h1 className="font-sans font-bold text-2xl md:text-3xl tracking-tight leading-tight mb-2 text-slate-100">
-            WIMLOGIC CRE AI Orchestration Hub
+            AI HOME WIMLOGIC
           </h1>
           <p className="text-sm text-slate-300 leading-relaxed max-w-2xl">
-            Streamline your commercial real estate workflow. Submit physical property profiles to our devtools cloud, queue intelligence jobs, and analyze automated architectural and zoning models with complete audit trails.
+            Design, analyze, renovate, and manage your home improvement projects with AI. Create stunning design concepts, estimate renovation costs, prepare contractor work orders, and track every project from inspiration to completion—all powered by WIMLOGIC AI.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
-              onClick={() => onNavigate('AI Orchestration')}
+              onClick={() => onNavigate('Home Studio')}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold tracking-wide transition-all shadow-md shadow-indigo-600/10 flex items-center gap-2 focus:outline-none cursor-pointer"
             >
-              <Cpu className="w-4 h-4" />
-              Generate Analysis
+              <Sparkles className="w-4 h-4" />
+              Design Studio
             </button>
             <button
               onClick={() => onNavigate('Projects')}
@@ -114,7 +133,7 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
               <FolderGit2 className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Total Projects</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Projects</p>
               <h3 className="text-2xl font-bold text-slate-800 mt-0.5">{stats.projectsCount}</h3>
             </div>
           </div>
@@ -126,7 +145,7 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
               <Building2 className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Managed Properties</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Properties</p>
               <h3 className="text-2xl font-bold text-slate-800 mt-0.5">{stats.propertiesCount}</h3>
             </div>
           </div>
@@ -138,7 +157,7 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
               <Activity className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Running Jobs</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">AI Jobs</p>
               <h3 className="text-2xl font-bold text-slate-800 mt-0.5">{stats.activeWorkflows}</h3>
             </div>
           </div>
@@ -150,7 +169,7 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
               <FileCheck className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">Generated Assets</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">AI Designs</p>
               <h3 className="text-2xl font-bold text-slate-800 mt-0.5">{stats.assetsCount}</h3>
             </div>
           </div>
@@ -159,63 +178,21 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
 
       {/* Main Panel Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Projects list */}
+        {/* Recent Properties - answers "which properties am I working on today" */}
         <div className="lg:col-span-2">
-          <EnterpriseCard
-            title="Recent Projects"
-            headerAction={
-              <button
-                onClick={() => onNavigate('Projects')}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1.5 focus:outline-none"
-              >
-                View All <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            }
-          >
-            {isLoading ? (
-              <LoadingState type="rows" rowsCount={3} />
-            ) : recentProjects.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 text-xs font-mono">NO PROJECTS CREATED YET</div>
-            ) : (
-              <div className="space-y-4">
-                {recentProjects.map((proj) => (
-                  <div
-                    key={proj.id}
-                    className="group border border-slate-100 hover:border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition-all flex justify-between items-center"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-mono font-bold text-slate-500 uppercase">
-                          {proj.project_id}
-                        </span>
-                        <h4 className="font-sans font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
-                          {proj.project_name}
-                        </h4>
-                      </div>
-                      <p className="text-xs text-slate-400 line-clamp-1 max-w-md leading-relaxed">
-                        {proj.description || 'No description provided.'}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        onSelectProject(proj.project_id);
-                        onNavigate('Properties');
-                      }}
-                      className="p-1.5 bg-slate-50 group-hover:bg-indigo-600 group-hover:text-white rounded-lg text-slate-400 transition-all focus:outline-none cursor-pointer animate-fade-in"
-                    >
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </EnterpriseCard>
+          <RecentPropertiesCard
+            properties={recentProperties}
+            onNavigate={onNavigate}
+            onSelectProperty={onSelectProperty}
+            projectLookup={projectLookup}
+            isLoading={isLoading}
+          />
         </div>
 
         {/* Workflow monitor queue */}
         <div>
           <EnterpriseCard
-            title="Active Job Queue"
+            title="Active AI Jobs"
             headerAction={
               <button
                 onClick={() => onNavigate('Workflow Results')}
@@ -244,9 +221,6 @@ export default function Dashboard({ onNavigate, onSelectProject }: DashboardProp
                         {exec.execution_number}
                       </span>
                       <StatusBadge status={exec.status} type="workflow" />
-                    </div>
-                    <div className="text-xs text-slate-600 font-sans">
-                      Pipeline: <span className="font-mono font-bold text-indigo-600">{exec.workflow_code}</span>
                     </div>
                     <div className="text-[10px] text-slate-400 font-mono">
                       Started: {new Date(exec.submitted_at || exec.created_at).toLocaleTimeString()}

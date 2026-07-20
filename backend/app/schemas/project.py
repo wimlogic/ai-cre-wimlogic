@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Any
+from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
 class ProjectBase(BaseModel):
@@ -14,6 +15,14 @@ class ProjectBase(BaseModel):
     ending_address: Optional[str] = None
     side: Optional[str] = None
     scan_mode: Optional[str] = None
+    # Knowledge Inheritance Engine Phase 1.2A
+    goals: Optional[str] = None
+    hoa_rules: Optional[str] = None
+    climate: Optional[str] = None
+    budget_low: Optional[Decimal] = None
+    budget_high: Optional[Decimal] = None
+    preferred_styles: Optional[List[str]] = None
+    design_preferences: Optional[str] = None
 
 class ProjectCreate(ProjectBase):
     pass
@@ -30,6 +39,13 @@ class ProjectUpdate(BaseModel):
     ending_address: Optional[str] = None
     side: Optional[str] = None
     scan_mode: Optional[str] = None
+    goals: Optional[str] = None
+    hoa_rules: Optional[str] = None
+    climate: Optional[str] = None
+    budget_low: Optional[Decimal] = None
+    budget_high: Optional[Decimal] = None
+    preferred_styles: Optional[List[str]] = None
+    design_preferences: Optional[str] = None
 
 class ProjectRead(ProjectBase):
     id: int

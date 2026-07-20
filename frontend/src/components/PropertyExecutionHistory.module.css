@@ -1,0 +1,77 @@
+.loading {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--color-neutral-400);
+  font-size: 0.875rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--radius-md);
+  background-color: #ffffff;
+}
+
+.toneIcon {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.row[data-tone='progress'] .toneIcon { color: var(--color-info-500, #3b82f6); }
+.row[data-tone='success'] .toneIcon { color: var(--color-success-500, #10b981); }
+.row[data-tone='warning'] .toneIcon { color: var(--color-warning-500, #f59e0b); }
+.row[data-tone='error'] .toneIcon { color: var(--color-danger-500, #ef4444); }
+
+.spin {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.rowMain {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.status {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-neutral-800);
+}
+
+.date {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+}
+
+.actionButton {
+  flex-shrink: 0;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-sm);
+  background-color: #ffffff;
+  color: var(--color-neutral-700);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actionButton:hover {
+  background-color: var(--color-neutral-50);
+}

@@ -18,8 +18,18 @@ class PropertyImageBase(BaseModel):
     file_type: Optional[str] = None
     image_role: Optional[str] = None
     notes: Optional[str] = None
+    ai_prompt: Optional[str] = None
+    # Collection of Image Tags, e.g. ["front-facade", "retail", "signage",
+    # "stucco"] - not a key/value object.
+    tags: Optional[List[str]] = None
+    constraints: Optional[str] = None
+    priority: Optional[int] = None
+    is_primary: int = 0
     status: Optional[str] = None
     is_deleted: int = 0
+    camera_direction: Optional[str] = None
+    existing_furniture: Optional[List[str]] = None
+    existing_lighting: Optional[str] = None
 
 class PropertyImageCreate(PropertyImageBase):
     pass
@@ -40,8 +50,16 @@ class PropertyImageUpdate(BaseModel):
     file_type: Optional[str] = None
     image_role: Optional[str] = None
     notes: Optional[str] = None
+    ai_prompt: Optional[str] = None
+    tags: Optional[List[str]] = None
+    constraints: Optional[str] = None
+    priority: Optional[int] = None
+    is_primary: Optional[int] = None
     status: Optional[str] = None
     is_deleted: Optional[int] = None
+    camera_direction: Optional[str] = None
+    existing_furniture: Optional[List[str]] = None
+    existing_lighting: Optional[str] = None
 
 class PropertyImageRead(PropertyImageBase):
     id: int

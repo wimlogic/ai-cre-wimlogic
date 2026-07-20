@@ -32,12 +32,18 @@ class WorkflowExecutionService:
             db, skip=skip, limit=limit, project_id=project_id, property_id=property_id, status=status, search=search
         )
 
-    def create_execution(self, db: Session, execution_in: WorkflowExecutionCreate) -> WorkflowExecution:
-        """Create a new workflow execution entry."""
+    def create_execution(self, db: Session, execution_in: WorkflowExecutionCreate, commit: bool = True) -> WorkflowExecution:
+        """
+        commit=True (default, unchanged): existing legacy behavior -
+        commits immediately, as before this change.
+        commit=False: participates in a service-owned transaction (Design
+        Studio Phase 1 local attempt registration, Checkpoint 8) - only
+        flushes; the calling service owns commit/rollback.
+        """
         existing = crud_workflow_execution.get_by_execution_number(db, execution_in.execution_number)
         if existing:
             raise ValueError(f"Workflow execution with number '{execution_in.execution_number}' already exists")
-        return crud_workflow_execution.create(db, obj_in=execution_in)
+        return crud_workflow_execution.create(db, obj_in=execution_in, commit=commit)
 
     def update_execution(
         self, db: Session, execution_id: int, execution_in: WorkflowExecutionUpdate
@@ -63,9 +69,18 @@ class WorkflowExecutionService:
         return crud_workflow_event.get_multi(db, execution_id=execution_id, skip=skip, limit=limit)
 
     def add_event(
-        self, db: Session, execution_id: int, event_type: str, status: str, message: Optional[str] = None
+        self, db: Session, execution_id: int, event_type: str, status: str, message: Optional[str] = None, commit: bool = True
     ) -> WorkflowEvent:
-        """Add a new execution event log and automatically synchronize the parent execution status if changed."""
+        """
+        Add a new execution event log and automatically synchronize the
+        parent execution status if changed.
+
+        commit=True (default, unchanged): existing legacy behavior.
+        commit=False: participates in a service-owned transaction (Design
+        Studio Phase 1 local attempt registration, Checkpoint 8) - both
+        the event insert and the execution status-sync update only flush;
+        the calling service owns commit/rollback.
+        """
         event_in = WorkflowEventCreate(
             execution_id=execution_id,
             event_type=event_type,
@@ -73,13 +88,13 @@ class WorkflowExecutionService:
             message=message
         )
         # Create event log
-        event_obj = crud_workflow_event.create(db, obj_in=event_in)
+        event_obj = crud_workflow_event.create(db, obj_in=event_in, commit=commit)
         
         # Update execution state
         execution_obj = crud_workflow_execution.get(db, execution_id)
         if execution_obj and execution_obj.status != status:
             update_in = WorkflowExecutionUpdate(status=status)
-            crud_workflow_execution.update(db, db_obj=execution_obj, obj_in=update_in)
+            crud_workflow_execution.update(db, db_obj=execution_obj, obj_in=update_in, commit=commit)
             
         return event_obj
 

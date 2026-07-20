@@ -3,7 +3,7 @@ import styles from './StatusBadge.module.css';
 
 export interface StatusBadgeProps {
   status: string | undefined | null;
-  type: 'project' | 'property' | 'workflow';
+  type: 'project' | 'property' | 'workflow' | 'designJob';
   id?: string;
 }
 

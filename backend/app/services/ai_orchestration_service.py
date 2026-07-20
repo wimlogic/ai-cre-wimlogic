@@ -105,31 +105,35 @@ def _map_remote_status(raw_wacp_status: Optional[str]) -> Optional[str]:
 
 
 # ---------------------------------------------------------------------------
-# AI-CRE business pipeline code -> WACP workflow_code
+# AI-CRE business pipeline code -> DEV-TOOLS business_intent (WACP v1.1)
 #
 # These are two separate namespaces. workflow_code as used throughout
 # AI-CRE's own UI, execution history table, and local WorkflowExecution
 # records (e.g. "ZONING_ANALYSIS") is AI-CRE's own business pipeline
-# identifier - it predates WACP entirely and is independent of whatever
-# workflow_code DEV-TOOLS assigns when a workflow is registered in its own
-# catalog (e.g. "WF_PROPERTY_ANALYSIS"). Only the WACP-facing submission
-# (wacp_adapter.submit_payload's workflow_code argument) needs the mapped
-# value - the local execution record keeps AI-CRE's own pipeline code
-# unchanged, exactly as before, so existing UI/history/business logic that
-# reads WorkflowExecution.workflow_code is unaffected.
+# identifier - it predates WACP entirely and has never been the same
+# thing as any DEV-TOOLS-side identifier. Historically this table mapped
+# a pipeline code to a specific WACP workflow_code (a legacy, now-stale
+# routing mechanism); WACP v1.1 / DEV-TOOLS Build Week WIM Module V1
+# introduced `business_intent` as the canonical routing field instead -
+# a stable string WIM Module V1 matches against whichever workflow_code
+# is actually registered and assigned to this Client Application, so
+# AI-CRE never needs to know or send that internal DEV-TOOLS code at all.
+# The local execution record keeps AI-CRE's own pipeline code unchanged,
+# exactly as before, so existing UI/history/business logic that reads
+# WorkflowExecution.workflow_code is unaffected.
 #
 # Only pipelines DEV-TOOLS has actually registered and granted AICRE an
 # active client_application_workflows binding for appear here. Submitting
 # an unmapped pipeline fails clearly and locally (see
-# _map_to_wacp_workflow_code below) rather than guessing at a WACP
-# workflow_code that would just fail on DEV-TOOLS' side anyway.
-_LOCAL_PIPELINE_TO_WACP_WORKFLOW_CODE: Dict[str, str] = {
-    "ZONING_ANALYSIS": "WF_PROPERTY_ANALYSIS",
+# _map_to_business_intent below) rather than sending an unregistered
+# business_intent that would just fail on DEV-TOOLS' side anyway.
+_LOCAL_PIPELINE_TO_BUSINESS_INTENT: Dict[str, str] = {
+    "ZONING_ANALYSIS": "PROPERTY_ANALYSIS",
 }
 
 
-def _map_to_wacp_workflow_code(local_workflow_code: str) -> str:
-    """Maps an AI-CRE business pipeline code to the WACP workflow_code
+def _map_to_business_intent(local_workflow_code: str) -> str:
+    """Maps an AI-CRE business pipeline code to the business_intent value
     registered with DEV-TOOLS for it.
 
     Raises ValueError (caught by the router's existing
@@ -138,86 +142,77 @@ def _map_to_wacp_workflow_code(local_workflow_code: str) -> str:
     configured to accept. This intentionally fails before any WACP call is
     attempted and before the local execution record is even created -
     there is no reason to submit, or persist a Pending row for, a pipeline
-    already known to have no corresponding DEV-TOOLS workflow.
+    already known to have no corresponding DEV-TOOLS business intent
+    assignment.
     """
-    mapped = _LOCAL_PIPELINE_TO_WACP_WORKFLOW_CODE.get(local_workflow_code)
+    mapped = _LOCAL_PIPELINE_TO_BUSINESS_INTENT.get(local_workflow_code)
     if not mapped:
         raise ValueError(
-            f"Pipeline '{local_workflow_code}' has no WACP workflow_code mapping configured yet."
+            f"Pipeline '{local_workflow_code}' has no business_intent mapping configured yet."
         )
     return mapped
 
 
 class AIOrchestrationService:
-    def submit_workflow(
+    def create_pending_execution(
         self,
         db: Session,
         *,
-        project_id: int,
+        project_obj,
         property_id: int,
-        workflow_code: str,
-        scenario_id: Optional[int] = None,
-        priority: str = "Normal",
-        metadata_json: Optional[Dict[str, Any]] = None,
+        scenario_id: Optional[int],
+        local_workflow_code: str,
+        priority: str,
+        metadata_json: Optional[Dict[str, Any]],
+        commit: bool = True,
     ) -> WorkflowExecution:
         """
-        Coordinates submission of a new AI request via WACP:
+        Creates the local execution record in a "Pending" state, BEFORE any
+        outbound WACP call - extracted verbatim from submit_workflow()'s
+        own prior inline logic (Phase 1A-BE), so a request is always
+        tracked locally even if the outbound call never happens or fails.
+        submit_workflow() below calls this immediately followed by
+        dispatch_via_wacp() with nothing in between, for zero behavior
+        change to the existing legacy caller.
 
-            Validate (via payload_builder) -> Build data block -> Submit
-            through the WACP adapter -> Store execution -> Return response.
+        commit=True (default, unchanged): existing legacy behavior -
+        both the execution row and its "Pending" event commit immediately,
+        exactly as before this change.
+        commit=False: participates in a service-owned transaction - Design
+        Studio's Phase 1 local attempt registration
+        (design_job_execution_service.py, Checkpoint 8) calls this with
+        commit=False so the execution row and its event join that
+        service's own single Phase 1 commit, alongside the
+        DesignJobExecution bookkeeping and Design Job status update - the
+        Design Job row lock stays held across all of it, and the whole
+        thing commits or rolls back as one unit.
 
-        Unchanged public signature - the existing frontend call
-        (POST /ai-orchestration/submit) requires no changes.
+        This is also the Phase 1 (local, no-WACP) half of the two-phase
+        attempt design app.services.design_job_execution_service.py
+        (Checkpoint 8) uses for Design Studio: that service calls this
+        method directly (never build_enterprise_payload, never the
+        internal-pipeline-code translation table below - Design Studio
+        Tool.workflow_code is already the exact DEV-TOOLS-registered
+        code), then does its OWN Design Job Execution bookkeeping in the
+        SAME transaction, THEN calls dispatch_via_wacp() separately, only
+        after that transaction has committed - deliberately never holding
+        the Design Job row lock across the network call.
         """
-        # 1. Resolve the Project so its business project code (e.g.
-        # "PRJ001") is available for the WACP envelope's `project_code`
-        # field (10_WACP_PROTOCOL.md §7.2 requires the business code, never
-        # a database primary key). payload_builder also validates the
-        # project/property exist as part of building the data block below;
-        # this lookup is a separate, lightweight read solely to obtain the
-        # business code, not a duplicate validation pass.
-        project_obj = crud_project.get(db, project_id)
-        if not project_obj:
-            raise ValueError(f"Project with ID '{project_id}' does not exist")
-
-        # 1b. Resolve AI-CRE's business pipeline code to the WACP
-        # workflow_code DEV-TOOLS actually expects. Resolved early,
-        # deliberately before any execution record is created - see
-        # _map_to_wacp_workflow_code's docstring.
-        wacp_workflow_code = _map_to_wacp_workflow_code(workflow_code)
-
-        # 2. Build the WACP envelope's `data` block. This also validates
-        # that the referenced property exists (payload_builder.PayloadBuilderError
-        # is a ValueError subclass, so the router's existing
-        # `except ValueError` -> HTTP 400 handling covers it unchanged).
-        data = payload_builder.build_enterprise_payload(
-            db,
-            project_id=project_id,
-            property_id=property_id,
-            metadata_json=metadata_json,
-        )
-
-        # 3. Create the local execution record in a "Pending" state before
-        # attempting to contact the WACP server, so a request is always
-        # tracked locally even if the outbound call fails.
-        # devtools_execution_id starts null - AI-CRE never generates its
-        # own ID for a remote job; it is set below only once the WACP
-        # server returns the real one.
         execution_number = f"EXE-WIM-{uuid.uuid4().hex[:12].upper()}"
 
         execution_in = WorkflowExecutionCreate(
             execution_number=execution_number,
-            project_id=project_id,
+            project_id=project_obj.id,
             property_id=property_id,
             scenario_id=scenario_id,
-            workflow_code=workflow_code,
+            workflow_code=local_workflow_code,
             workflow_version="1.0.0",
             devtools_execution_id=None,
             status="Pending",
             priority=priority,
             metadata_json=metadata_json or {},
         )
-        execution_obj = workflow_execution_service.create_execution(db, execution_in=execution_in)
+        execution_obj = workflow_execution_service.create_execution(db, execution_in=execution_in, commit=commit)
 
         workflow_execution_service.add_event(
             db,
@@ -225,25 +220,56 @@ class AIOrchestrationService:
             event_type="SYSTEM",
             status="Pending",
             message=f"Created workflow execution state {execution_number}. Dispatching via WACP.",
+            commit=commit,
         )
+        return execution_obj
 
-        # 4. Submit through the WACP adapter. `execution_number` doubles as
-        # the WACP `correlation_id` - it is already a unique, human-readable
-        # identifier AI-CRE generates for every execution, so it needs no
-        # separate generation step and lets an operator trace one execution
-        # across both AI-CRE's own logs and the WACP server's.
+    def dispatch_via_wacp(
+        self,
+        db: Session,
+        *,
+        execution_obj: WorkflowExecution,
+        project_obj,
+        data: Dict[str, Any],
+        priority: str,
+        business_intent: Optional[str] = None,
+        wacp_workflow_code: Optional[str] = None,
+    ) -> WorkflowExecution:
+        """
+        Submits an ALREADY-CREATED Pending execution through WACP -
+        extracted verbatim from submit_workflow()'s own prior inline
+        logic. `data` is the exact WACP envelope data block to send: for
+        submit_workflow() below, that's payload_builder's assembled
+        Enterprise Payload; for Design Studio (Checkpoint 8), that's the
+        Design Job's own frozen submitted_payload_json, passed through
+        completely unmodified - this method has no awareness of, and
+        performs no reconstruction of, either payload shape; it only ever
+        forwards `data` to the WACP adapter as-is.
+
+        `business_intent` / `wacp_workflow_code` (WACP v1.1): at least one
+        must be provided by the caller (the WACP SDK itself enforces
+        this, raising WacpEnvelopeError before any network call if both
+        are None). submit_workflow() below passes `business_intent` -
+        the canonical, WACP v1.1 routing field. Design Studio's caller
+        (design_job_execution_service.py) continues to pass
+        `wacp_workflow_code=job.workflow_code` unchanged - this method
+        makes no assumption about which pipeline uses which field, it
+        only forwards whatever it's given.
+
+        On wacp_adapter.DevToolsClientError, the existing local execution
+        row is NOT deleted or rolled back - only a Failed event is logged
+        (existing behavior) - and the exception re-raises to the caller.
+        """
         try:
             response = wacp_adapter.submit_payload(
                 data,
+                business_intent=business_intent,
                 workflow_code=wacp_workflow_code,
                 project_code=project_obj.project_id,
                 priority=priority,
-                correlation_id=execution_number,
+                correlation_id=execution_obj.execution_number,
             )
 
-            # Existing API usage tracking, unchanged business behavior -
-            # now reflects a real outbound WACP call instead of a
-            # simulated one.
             api_log_in = ApiUsageLogCreate(
                 provider="DEVTOOLS",
                 api_name="SubmitPayload",
@@ -253,8 +279,6 @@ class AIOrchestrationService:
             )
             crud_api_usage_log.create(db, obj_in=api_log_in)
 
-            # Store the real WACP job ID from the normalized adapter
-            # response - see wacp_adapter._normalize().
             remote_job_id = response.get("job_id")
             if remote_job_id:
                 update_in = WorkflowExecutionUpdate(devtools_execution_id=str(remote_job_id))
@@ -287,6 +311,64 @@ class AIOrchestrationService:
 
         db.refresh(execution_obj)
         return execution_obj
+
+    def submit_workflow(
+        self,
+        db: Session,
+        *,
+        project_id: int,
+        property_id: int,
+        workflow_code: str,
+        scenario_id: Optional[int] = None,
+        priority: str = "Normal",
+        metadata_json: Optional[Dict[str, Any]] = None,
+    ) -> WorkflowExecution:
+        """
+        Coordinates submission of a new AI request via WACP:
+
+            Validate (via payload_builder) -> Build data block -> Submit
+            through the WACP adapter -> Store execution -> Return response.
+
+        Unchanged public signature AND unchanged behavior - the existing
+        frontend call (POST /ai-orchestration/submit) requires no changes.
+        The body below is the exact same sequence as before this
+        refactor, just factored into create_pending_execution() and
+        dispatch_via_wacp() above, called back-to-back with nothing in
+        between - this exists so Checkpoint 8's Design Studio execution
+        path can reuse those two pieces directly without duplicating
+        this orchestration logic, not to change this method's behavior.
+        """
+        project_obj = crud_project.get(db, project_id)
+        if not project_obj:
+            raise ValueError(f"Project with ID '{project_id}' does not exist")
+
+        business_intent = _map_to_business_intent(workflow_code)
+
+        data = payload_builder.build_enterprise_payload(
+            db,
+            project_id=project_id,
+            property_id=property_id,
+            metadata_json=metadata_json,
+        )
+
+        execution_obj = self.create_pending_execution(
+            db,
+            project_obj=project_obj,
+            property_id=property_id,
+            scenario_id=scenario_id,
+            local_workflow_code=workflow_code,
+            priority=priority,
+            metadata_json=metadata_json,
+        )
+
+        return self.dispatch_via_wacp(
+            db,
+            execution_obj=execution_obj,
+            project_obj=project_obj,
+            business_intent=business_intent,
+            data=data,
+            priority=priority,
+        )
 
     def check_workflow_status(self, db: Session, *, execution_id: int) -> str:
         """
@@ -381,10 +463,43 @@ class AIOrchestrationService:
         # {job_id, status, raw_response} shape. `local_status` (not the raw
         # WACP status) is passed through, since result_sync's own field
         # mapping was built against AI-CRE's local status vocabulary.
-        results_response = wacp_adapter.get_job_results(execution_obj.devtools_execution_id)
-        synced_execution = result_sync.sync_job_result(
-            db, execution=execution_obj, status=local_status, payload=results_response["raw_response"]
-        )
+        #
+        # Fetch/sync failures are isolated from the remote completion
+        # fact: DEV-TOOLS has already completed this job regardless of
+        # whether AI-CRE successfully retrieves or maps that output. On
+        # failure, execution.status is deliberately left NON-terminal
+        # (never forced to "Completed" or "Failed") and
+        # result_sync_error records what went wrong - the NEXT poll of
+        # this same execution_id naturally retries this exact fetch+sync
+        # step (nothing here re-submits or re-runs the remote workflow).
+        # A successful sync clears result_sync_error back to None.
+        try:
+            results_response = wacp_adapter.get_job_results(execution_obj.devtools_execution_id)
+            synced_execution = result_sync.sync_job_result(
+                db, execution=execution_obj, status=local_status, payload=results_response["raw_response"]
+            )
+        except Exception as exc:
+            logger.error(
+                "Result synchronization failed for execution_id=%s after remote completion "
+                "(status=%s): %s", execution_id, local_status, exc,
+            )
+            workflow_execution_service.update_execution(
+                db, execution_id=execution_obj.execution_id,
+                execution_in=WorkflowExecutionUpdate(result_sync_error=str(exc)),
+            )
+            workflow_execution_service.add_event(
+                db, execution_id=execution_obj.execution_id, event_type="SYSTEM", status=execution_obj.status,
+                message=f"DEV-TOOLS reported '{local_status}' but result synchronization failed: {exc}",
+            )
+            db.refresh(execution_obj)
+            return execution_obj.status
+
+        if synced_execution.result_sync_error is not None:
+            workflow_execution_service.update_execution(
+                db, execution_id=synced_execution.execution_id,
+                execution_in=WorkflowExecutionUpdate(result_sync_error=None),
+            )
+            db.refresh(synced_execution)
         return synced_execution.status
 
     def receive_workflow_callback(

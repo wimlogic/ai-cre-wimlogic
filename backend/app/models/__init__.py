@@ -18,6 +18,18 @@ from app.models.estimate import Estimate
 from app.models.zoning_note import ZoningNote
 from app.models.api_usage_log import ApiUsageLog
 
+# Design Studio (V1.1C/D)
+from app.models.design_tool import DesignTool
+from app.models.design_tool_option import DesignToolOption
+from app.models.design_tool_image_requirement import DesignToolImageRequirement
+from app.models.design_tool_knowledge_rule import DesignToolKnowledgeRule
+from app.models.design_job import DesignJob
+from app.models.design_job_execution import DesignJobExecution
+from app.models.design_job_image import DesignJobImage
+from app.models.design_image_version import DesignImageVersion
+from app.models.design_image_lineage import DesignImageLineage
+from app.models.approved_design_baseline import ApprovedDesignBaseline
+
 __all__ = [
     "Base",
     "Project",
@@ -37,5 +49,16 @@ __all__ = [
     "GeneratedAsset",
     "Estimate",
     "ZoningNote",
-    "ApiUsageLog"
+    "ApiUsageLog",
+    # Design Studio (V1.1C/D)
+    "DesignTool",
+    "DesignToolOption",
+    "DesignToolImageRequirement",
+    "DesignToolKnowledgeRule",
+    "DesignJob",
+    "DesignJobExecution",
+    "DesignJobImage",
+    "DesignImageVersion",
+    "DesignImageLineage",
+    "ApprovedDesignBaseline",
 ]

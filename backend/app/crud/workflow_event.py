@@ -36,11 +36,21 @@ class CRUDWorkflowEvent:
         
         return list(results), total_count
 
-    def create(self, db: Session, *, obj_in: WorkflowEventCreate) -> WorkflowEvent:
+    def create(self, db: Session, *, obj_in: WorkflowEventCreate, commit: bool = True) -> WorkflowEvent:
+        """
+        commit=True (default, unchanged): standalone use - commits and
+        refreshes, exactly as before this change.
+        commit=False: participates in a service-owned transaction (Design
+        Studio Phase 1 local attempt registration, Checkpoint 8) - only
+        flushes, does not commit or roll back.
+        """
         db_obj = WorkflowEvent(**obj_in.model_dump())
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        if commit:
+            db.commit()
+            db.refresh(db_obj)
+        else:
+            db.flush()
         return db_obj
 
     def update(self, db: Session, *, db_obj: WorkflowEvent, obj_in: WorkflowEventUpdate) -> WorkflowEvent:

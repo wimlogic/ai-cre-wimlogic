@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, BigInteger, String, Text, Numeric, DateTime, func
+from sqlalchemy import Column, Integer, BigInteger, String, Text, Numeric, DateTime, JSON, func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -37,6 +37,13 @@ class Property(Base):
     confidence_score = Column(String(50), nullable=True)
     raw_api_json = Column(Text, nullable=True)  # longtext
     api_source_url = Column(String(500), nullable=True)
+    # Knowledge Inheritance Engine Phase 1.2A - additive, nullable, same
+    # registry-gated inclusion rule as Project's new fields above.
+    bedrooms = Column(Integer, nullable=True)
+    bathrooms = Column(Numeric(3, 1), nullable=True)
+    construction_type = Column(String(150), nullable=True)
+    existing_materials = Column(JSON, nullable=True)
+    existing_colors = Column(JSON, nullable=True)
 
     # Relationships
     projects_association = relationship("ProjectProperty", back_populates="property", cascade="all, delete-orphan")
@@ -49,4 +56,14 @@ class Property(Base):
     estimates = relationship("Estimate", back_populates="property", cascade="all, delete-orphan")
     zoning_notes = relationship("ZoningNote", back_populates="property", cascade="all, delete-orphan")
     scans_association = relationship("ScanProperty", back_populates="property", cascade="all, delete-orphan")
+
+    # Design Studio (V1.1C/D) - DB FKs from these tables' property_id back to
+    # cre_properties.id have no ON DELETE clause (RESTRICT), unlike this
+    # model's other relationships above which use cascade="all, delete-orphan"
+    # to match their own CASCADE FKs. These three must NOT use that cascade,
+    # or the ORM would silently delete immutable Design Studio business
+    # history that the database itself is deliberately structured to protect.
+    design_jobs = relationship("DesignJob", back_populates="property")
+    design_image_versions = relationship("DesignImageVersion", back_populates="property")
+    approved_design_baselines = relationship("ApprovedDesignBaseline", back_populates="property")
 

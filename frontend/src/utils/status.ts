@@ -66,6 +66,25 @@ export const WORKFLOW_STATUS_MAP: Record<string, StatusConfig> = {
 };
 
 /**
+ * Design Job status map (Home Studio Frontend Checkpoint 1).
+ *
+ * These keys are cre_design_jobs.status's own CHECK-constrained
+ * vocabulary (draft, submitted, processing, completed, failed,
+ * cancelled) - a distinct lifecycle from WORKFLOW_STATUS_MAP above,
+ * which describes a single runtime cre_workflow_executions attempt.
+ * A Design Job's status reflects the JOB (which may span multiple
+ * execution attempts via Retry), not any one attempt's runtime state.
+ */
+export const DESIGN_JOB_STATUS_MAP: Record<string, StatusConfig> = {
+  draft: { label: 'Draft', variant: 'neutral' },
+  submitted: { label: 'Submitted', variant: 'info' },
+  processing: { label: 'Processing', variant: 'primary' },
+  completed: { label: 'Completed', variant: 'success' },
+  failed: { label: 'Failed', variant: 'error' },
+  cancelled: { label: 'Cancelled', variant: 'neutral' },
+};
+
+/**
  * Backend workflow execution statuses that represent a terminal state - no
  * further transitions occur and polling should stop. Kept alongside the
  * status map since both describe the same backend vocabulary; consumers
@@ -88,7 +107,7 @@ export function isTerminalWorkflowStatus(rawStatus: string | undefined | null): 
  */
 export function getStatusConfig(
   rawStatus: string | undefined | null,
-  type: 'project' | 'property' | 'workflow'
+  type: 'project' | 'property' | 'workflow' | 'designJob'
 ): StatusConfig {
   if (!rawStatus) return DEFAULT_STATUS_CONFIG;
   const normalized = rawStatus.trim().toLowerCase();
@@ -98,7 +117,9 @@ export function getStatusConfig(
       ? PROJECT_STATUS_MAP
       : type === 'property'
         ? PROPERTY_STATUS_MAP
-        : WORKFLOW_STATUS_MAP;
+        : type === 'designJob'
+          ? DESIGN_JOB_STATUS_MAP
+          : WORKFLOW_STATUS_MAP;
 
   return (
     map[normalized] || {

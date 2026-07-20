@@ -102,8 +102,9 @@ class WacpClient:
     def submit(
         self,
         *,
-        workflow_code: str,
         data: dict[str, Any],
+        business_intent: Optional[str] = None,
+        workflow_code: Optional[str] = None,
         company_id: Optional[str] = None,
         project_code: Optional[str] = None,
         workflow_version: Optional[str] = None,
@@ -116,8 +117,9 @@ class WacpClient:
         JobSubmission.submit()."""
 
         return self._submission.submit(
-            workflow_code=workflow_code,
             data=data,
+            business_intent=business_intent,
+            workflow_code=workflow_code,
             company_id=company_id,
             project_code=project_code,
             workflow_version=workflow_version,

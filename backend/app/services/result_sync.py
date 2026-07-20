@@ -69,6 +69,194 @@ class ResultSyncError(Exception):
     """Raised when a DEV-TOOLS result payload cannot be synchronized."""
 
 
+# ---------------------------------------------------------------------------
+# Natural-language Property Analysis report support
+#
+# DEV-TOOLS' PROPERTY_ANALYSIS workflow now returns:
+#   executive_summary, key_findings, business_health, priority_actions,
+#   recommendations, conclusion
+# This is a genuinely different shape from the older
+# result_data["property_analysis"] = {estimate_low, estimate_high,
+# zoning_notes, risk_notes, recommendation, score} contract this module
+# originally mapped - both are supported (§ backward compatibility),
+# never one silently replacing the other's data.
+# ---------------------------------------------------------------------------
+
+_NL_REPORT_FIELDS = (
+    "executive_summary",
+    "key_findings",
+    "business_health",
+    "priority_actions",
+    "recommendations",
+    "conclusion",
+)
+
+# List-shaped fields render as bullets/numbered actions; the rest are
+# paragraph prose. This distinction drives BOTH how `content` is encoded
+# here (JSON array string vs raw text) and how the frontend renders it -
+# the two must stay in agreement, which is why this tuple is the single
+# source of truth for "which fields are lists" rather than being
+# re-decided independently on each side.
+_NL_REPORT_LIST_FIELDS = ("key_findings", "priority_actions", "recommendations")
+
+_NL_REPORT_TITLES = {
+    "executive_summary": "Executive Summary",
+    "key_findings": "Key Findings",
+    "business_health": "Business Health",
+    "priority_actions": "Priority Actions",
+    "recommendations": "Recommendations",
+    "conclusion": "Conclusion",
+}
+
+# Fixed, natural reading order for the report - this drives
+# ResultSection.display_order directly, rather than the order these keys
+# happen to appear in the DEV-TOOLS JSON payload (dict key order in a
+# parsed JSON object is not a contract DEV-TOOLS has made any promise
+# about, and must not be relied upon for display ordering either).
+_NL_REPORT_DISPLAY_ORDER = {field: i for i, field in enumerate(_NL_REPORT_FIELDS)}
+
+
+def _select_final_output(result_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Identifies the Final Property Analysis business result from a
+    DEV-TOOLS /results response, per the WACP contract now verified
+    directly by the DEV-TOOLS Platform Team (superseding this function's
+    earlier, speculative "outputs/steps/step_results with is_final/
+    sequence markers" design, which was built before that verification
+    and did not match reality - the real Output records carry no such
+    markers at all).
+
+    The verified real shape: `result_data["outputs"]` is a list of
+    `{"output_type", "title", "content"}` records, where `content` is a
+    JSON-ENCODED STRING, not a nested dict. For PROPERTY_ANALYSIS there
+    are currently two `output_type == "json"` entries - a Property
+    Validation output and the Final Property Analysis - and the correct
+    one is identified by its OWN content, never by array position: the
+    parsed object containing `"executive_summary"` is the Final Property
+    Analysis. Any other "json" output (e.g. Property Validation) is
+    skipped here - see _extract_non_final_json_outputs() below, which
+    persists it separately rather than discarding it outright.
+
+    Falls back to two older shapes for backward compatibility with any
+    already-persisted execution whose payload predates this verified
+    contract - the legacy top-level "property_analysis" key, and a bare
+    flat dict already carrying the natural-language fields directly.
+    Neither of these is the real DEV-TOOLS contract; both remain only so
+    a historical payload reprocessed through this path doesn't break.
+
+    Returns the selected dict, or `result_data` unchanged if nothing
+    recognized was found - callers detect "nothing usable" by checking
+    the returned dict's own contents (see _sync_completed_job).
+    """
+    outputs = result_data.get("outputs")
+    if isinstance(outputs, list):
+        for output in outputs:
+            if not isinstance(output, dict) or output.get("output_type") != "json":
+                continue
+            content = output.get("content")
+            if not isinstance(content, str):
+                continue
+            try:
+                parsed = json.loads(content)
+            except (json.JSONDecodeError, TypeError) as exc:
+                logger.warning(
+                    "Skipping unparseable 'json' output (title=%r) while selecting the Final "
+                    "Property Analysis: %s", output.get("title"), exc,
+                )
+                continue
+            if isinstance(parsed, dict) and "executive_summary" in parsed:
+                return parsed
+        # An "outputs" list was present but no entry's parsed content
+        # contained "executive_summary" - fall through to the legacy
+        # checks below rather than assuming malformed outright.
+
+    if "property_analysis" in result_data:
+        return result_data
+
+    if any(key in result_data for key in _NL_REPORT_FIELDS):
+        return result_data
+
+    return result_data
+
+
+def _extract_non_final_json_outputs(result_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Returns every OTHER `output_type == "json"` entry from
+    `result_data["outputs"]` besides the Final Property Analysis (e.g.
+    the Property Validation output) - stored separately as their own
+    ResultSection rows (§ "Validation output ignored (or stored
+    separately if already supported)" - it IS already supported, via the
+    existing generic ResultSection shape, so this stores rather than
+    discards). Identifies the Final Property Analysis the same way
+    _select_final_output() does (presence of "executive_summary"), so
+    the two functions can never disagree about which output is which.
+    Each entry's `content` is parsed if it's valid JSON; otherwise the
+    raw string is kept as-is rather than dropping the output entirely.
+    """
+    outputs = result_data.get("outputs")
+    if not isinstance(outputs, list):
+        return []
+
+    extras: List[Dict[str, Any]] = []
+    for output in outputs:
+        if not isinstance(output, dict) or output.get("output_type") != "json":
+            continue
+        content = output.get("content")
+        if not isinstance(content, str):
+            continue
+        try:
+            parsed = json.loads(content)
+        except (json.JSONDecodeError, TypeError):
+            parsed = None
+        if isinstance(parsed, dict) and "executive_summary" in parsed:
+            continue  # this is the Final Property Analysis, already handled elsewhere - skip
+        extras.append({
+            "title": output.get("title") or "Additional Output",
+            "content": json.dumps(parsed) if parsed is not None else content,
+        })
+    return extras
+
+
+def _build_natural_language_report_sections(output: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Maps a selected output dict's natural-language report fields into the
+    exact shape workflow_result_service.create_section() / ResultSectionCreate
+    expects - one dict per field ACTUALLY PRESENT in `output` (a missing
+    field produces no entry at all, never a placeholder/empty section, per
+    the approved "hide missing sections" behavior).
+
+    List-shaped fields (_NL_REPORT_LIST_FIELDS) are JSON-encoded into
+    `content` as a JSON array string, so the frontend can render them as
+    bullets/numbered actions; paragraph fields are stored as plain text.
+    `display_order` is the fixed natural reading order (_NL_REPORT_
+    DISPLAY_ORDER), not whatever order the fields happened to appear in
+    the source JSON.
+    """
+    sections = []
+    for field in _NL_REPORT_FIELDS:
+        if field not in output or output[field] is None:
+            continue
+
+        value = output[field]
+        if field in _NL_REPORT_LIST_FIELDS:
+            if not isinstance(value, list):
+                # A list-shaped field arrived as something else (e.g. a
+                # single string) - normalize into a one-item list rather
+                # than silently coercing it into prose or dropping it.
+                value = [value]
+            content = json.dumps(value)
+        else:
+            content = value if isinstance(value, str) else json.dumps(value)
+
+        sections.append({
+            "section_type": field,
+            "title": _NL_REPORT_TITLES[field],
+            "content": content,
+            "display_order": _NL_REPORT_DISPLAY_ORDER[field],
+        })
+    return sections
+
+
 def _sync_concept_designs(
     db: Session, *, execution: WorkflowExecution, project_id_str: str, concept_designs_data: List[Dict[str, Any]]
 ) -> None:
@@ -140,7 +328,15 @@ def _sync_completed_job(
     extension.
     """
     result_version = payload.get("version", "1.0.0")
-    result_data = payload.get("results", {})
+    # Verified DEV-TOOLS contract (confirmed directly by the DEV-TOOLS
+    # Platform Team): "outputs" sits at `payload`'s OWN top level -
+    # `payload` already IS `response.result` directly (see
+    # wacp_adapter._normalize()), not a further-nested "results" wrapper.
+    # The legacy pre-verification assumption (business fields living
+    # under payload["results"]) is preserved ONLY as a fallback for any
+    # already-persisted historical payload that predates this contract -
+    # never used when "outputs" is actually present.
+    result_data = payload if "outputs" in payload else payload.get("results", {})
 
     # 1. Create Raw Workflow Result
     result_in = WorkflowResultCreate(
@@ -152,7 +348,16 @@ def _sync_completed_job(
     )
     result_obj = workflow_result_service.create_result(db, result_in=result_in)
 
-    # 2. Parse payload and register structured Result Sections
+    # 2. Parse payload and register structured Result Sections.
+    #
+    # The generic sections_data loop below is unchanged, pre-existing
+    # behavior for whatever legacy `result_data["sections"]` list a
+    # payload may still carry. The natural-language Property Analysis
+    # report fields (executive_summary, key_findings, business_health,
+    # priority_actions, recommendations, conclusion) are a SEPARATE,
+    # additive concern handled just below it - both can coexist on the
+    # same WorkflowResult without conflict, since ResultSection rows are
+    # simply additive per result_id.
     sections_data: List[Dict[str, Any]] = result_data.get("sections", [])
     for sec in sections_data:
         sec_in = ResultSectionCreate(
@@ -161,33 +366,121 @@ def _sync_completed_job(
             title=sec.get("title", "Analysis Details"),
             content=sec.get("content", ""),
             confidence_score=sec.get("confidence_score"),
-            metadata_json=sec.get("metadata", {}),
         )
         workflow_result_service.create_section(db, section_in=sec_in)
 
-    # 3. Extract and populate high-level Business Property Analysis Report
+    # 2b. Natural-language Property Analysis report (verified DEV-TOOLS
+    # PROPERTY_ANALYSIS output contract: result_data["outputs"] is a list
+    # of {"output_type","title","content"} records; content is a JSON
+    # string). Deterministically identify the Final Property Analysis
+    # first (§ _select_final_output - by content, never array position),
+    # then create one ResultSection per report field ACTUALLY PRESENT -
+    # a missing field is simply skipped, never rendered as an empty
+    # section.
+    final_output = _select_final_output(result_data)
+
+    nl_report_sections = _build_natural_language_report_sections(final_output)
+    if nl_report_sections:
+        for sec_dict in nl_report_sections:
+            workflow_result_service.create_section(
+                db, section_in=ResultSectionCreate(result_id=result_obj.result_id, **sec_dict)
+            )
+    elif "property_analysis" not in final_output and not sections_data:
+        # Malformed/unrecognized output: neither the new natural-language
+        # fields, the legacy property_analysis key, nor a sections list
+        # were found anywhere. Never silently discarded - the full raw
+        # payload is still preserved in report_json/response_json
+        # regardless (steps 1 and 3), and a single clearly-labeled
+        # fallback section makes that visible in the UI too, rather than
+        # presenting an empty report with no indication anything is wrong.
+        logger.warning(
+            "No recognized report shape (natural-language fields, legacy property_analysis, or "
+            "sections) found for execution_id=%s. Persisting raw payload only.",
+            execution.execution_id,
+        )
+        workflow_result_service.create_section(
+            db,
+            section_in=ResultSectionCreate(
+                result_id=result_obj.result_id,
+                section_type="unrecognized_output",
+                title="Unrecognized Output Format",
+                content=json.dumps(result_data),
+                display_order=0,
+            ),
+        )
+
+    # 2c. Any OTHER "json" output alongside the Final Property Analysis
+    # (currently: the Property Validation output) - stored separately
+    # rather than discarded, reusing the same generic ResultSection
+    # shape, per "Validation output ignored (or stored separately if
+    # already supported)".
+    for extra in _extract_non_final_json_outputs(result_data):
+        workflow_result_service.create_section(
+            db,
+            section_in=ResultSectionCreate(
+                result_id=result_obj.result_id,
+                section_type="supplementary_output",
+                title=extra["title"],
+                content=extra["content"],
+                display_order=len(_NL_REPORT_FIELDS),
+            ),
+        )
+
+    # 3. Extract and populate high-level Business Property Analysis Report.
+    #
+    # Two supported shapes, never one silently overwriting the other's
+    # data: the new natural-language report (report_json gets the full
+    # selected output; the narrow legacy numeric/text columns are left
+    # unset since they don't apply to this shape) and the legacy
+    # `property_analysis` shape (unchanged from the original mapping).
     project_obj = crud_project.get(db, execution.project_id)
     project_id_str = project_obj.project_id if project_obj else "unknown"
 
-    report_data = result_data.get("property_analysis", {})
-    report_in = PropertyAnalysisReportCreate(
-        project_id=project_id_str,
-        property_id=execution.property_id,
-        scenario_id=execution.scenario_id,
-        estimate_low=report_data.get("estimate_low"),
-        estimate_high=report_data.get("estimate_high"),
-        zoning_notes=report_data.get("zoning_notes"),
-        risk_notes=report_data.get("risk_notes"),
-        recommendation=report_data.get("recommendation"),
-        score=report_data.get("score"),
-        report_json=report_data,
-        workflow_execution_id=execution.execution_id,
-        workflow_result_id=result_obj.result_id,
-        analysis_version=result_version,
-        confidence_score=payload.get("confidence_score"),
-        workflow_status="Completed",
-        completed_at=datetime.datetime.now(),
-    )
+    if any(k in final_output for k in _NL_REPORT_FIELDS):
+        # New shape. `recommendation` is set from `conclusion` as the
+        # closest single-field legacy equivalent (a short top-line
+        # takeaway) for any older code still reading that one column -
+        # the full detail lives in report_json and the ResultSection rows
+        # above, not squeezed into the narrow legacy fields.
+        report_in = PropertyAnalysisReportCreate(
+            project_id=project_id_str,
+            property_id=execution.property_id,
+            scenario_id=execution.scenario_id,
+            estimate_low=None,
+            estimate_high=None,
+            zoning_notes=None,
+            risk_notes=None,
+            recommendation=final_output.get("conclusion"),
+            score=None,
+            report_json=final_output,
+            workflow_execution_id=execution.execution_id,
+            workflow_result_id=result_obj.result_id,
+            analysis_version=result_version,
+            confidence_score=payload.get("confidence_score"),
+            workflow_status="Completed",
+            completed_at=datetime.datetime.now(),
+        )
+    else:
+        # Legacy shape - unchanged from the original mapping.
+        report_data = result_data.get("property_analysis", {})
+        report_in = PropertyAnalysisReportCreate(
+            project_id=project_id_str,
+            property_id=execution.property_id,
+            scenario_id=execution.scenario_id,
+            estimate_low=report_data.get("estimate_low"),
+            estimate_high=report_data.get("estimate_high"),
+            zoning_notes=report_data.get("zoning_notes"),
+            risk_notes=report_data.get("risk_notes"),
+            recommendation=report_data.get("recommendation"),
+            score=report_data.get("score"),
+            report_json=report_data,
+            workflow_execution_id=execution.execution_id,
+            workflow_result_id=result_obj.result_id,
+            analysis_version=result_version,
+            confidence_score=payload.get("confidence_score"),
+            workflow_status="Completed",
+            completed_at=datetime.datetime.now(),
+        )
     workflow_result_service.create_report(db, report_in=report_in)
 
     # 4. Populate associated Assets generated by the workflow (e.g. PDF briefs).

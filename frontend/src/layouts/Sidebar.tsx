@@ -11,6 +11,7 @@ import {
   ChevronRight,
   X,
   User,
+  Sparkles,
 } from 'lucide-react';
 import { AppConfig } from '../config/app';
 import styles from './Sidebar.module.css';
@@ -125,6 +126,10 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Overview',
     items: [{ id: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard }],
+  },
+  {
+    label: 'Home Studio',
+    items: [{ id: 'Home Studio', label: 'Home Studio', icon: Sparkles }],
   },
   {
     label: 'Workspace',

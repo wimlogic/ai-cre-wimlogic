@@ -17,6 +17,18 @@ from app.crud.estimate import estimate
 from app.crud.zoning_note import zoning_note
 from app.crud.api_usage_log import api_usage_log
 
+# Design Studio (V1.1C/D)
+from app.crud.design_tool import design_tool
+from app.crud.design_tool_option import design_tool_option
+from app.crud.design_tool_image_requirement import design_tool_image_requirement
+from app.crud.design_tool_knowledge_rule import design_tool_knowledge_rule
+from app.crud.design_job import design_job
+from app.crud.design_job_execution import design_job_execution
+from app.crud.design_job_image import design_job_image
+from app.crud.design_image_version import design_image_version
+from app.crud.design_image_lineage import design_image_lineage
+from app.crud.approved_design_baseline import approved_design_baseline
+
 __all__ = [
     "project",
     "property",
@@ -36,4 +48,15 @@ __all__ = [
     "estimate",
     "zoning_note",
     "api_usage_log",
+    # Design Studio (V1.1C/D)
+    "design_tool",
+    "design_tool_option",
+    "design_tool_image_requirement",
+    "design_tool_knowledge_rule",
+    "design_job",
+    "design_job_execution",
+    "design_job_image",
+    "design_image_version",
+    "design_image_lineage",
+    "approved_design_baseline",
 ]

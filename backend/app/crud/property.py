@@ -8,6 +8,20 @@ class CRUDProperty:
     def get(self, db: Session, id: int) -> Optional[Property]:
         return db.get(Property, id)
 
+    def lock_for_update(self, db: Session, id: int) -> Optional[Property]:
+        """
+        Locks the Property row with SELECT ... FOR UPDATE, establishing the
+        Property as the serialization boundary for any operation that can
+        result in a Property Image becoming primary (create, update,
+        set-primary). Pure DB access only - does not commit, does not roll
+        back, and contains no primary-image business logic; the calling
+        service owns the surrounding transaction and must call this before
+        clearing other primaries for the same effective target property.
+        Returns None if the Property does not exist.
+        """
+        statement = select(Property).where(Property.id == id).with_for_update()
+        return db.execute(statement).scalars().first()
+
     def get_by_uid(self, db: Session, property_uid: str) -> Optional[Property]:
         statement = select(Property).where(Property.property_uid == property_uid)
         return db.execute(statement).scalars().first()

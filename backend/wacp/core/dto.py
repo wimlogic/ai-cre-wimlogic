@@ -35,8 +35,9 @@ class WacpEnvelope:
     application_id: str
     company_id: str
     project_code: str
-    workflow_code: str
     data: dict[str, Any]
+    business_intent: Optional[str] = None
+    workflow_code: Optional[str] = None
     workflow_version: Optional[str] = None
     priority: Priority = Priority.NORMAL
     correlation_id: Optional[str] = None

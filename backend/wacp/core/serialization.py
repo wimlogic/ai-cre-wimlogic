@@ -31,7 +31,6 @@ _REQUIRED_ENVELOPE_FIELDS = (
     "application_id",
     "company_id",
     "project_code",
-    "workflow_code",
 )
 
 
@@ -52,10 +51,13 @@ def envelope_to_dict(envelope: WacpEnvelope) -> dict[str, Any]:
         "application_id": envelope.application_id,
         "company_id": envelope.company_id,
         "project_code": envelope.project_code,
-        "workflow_code": envelope.workflow_code,
         "priority": Priority(envelope.priority).value,
         "extensions": envelope.extensions,
     }
+    if envelope.business_intent is not None:
+        wacp_block["business_intent"] = envelope.business_intent
+    if envelope.workflow_code is not None:
+        wacp_block["workflow_code"] = envelope.workflow_code
     if envelope.workflow_version is not None:
         wacp_block["workflow_version"] = envelope.workflow_version
     if envelope.correlation_id is not None:
@@ -114,8 +116,9 @@ def dict_to_envelope(payload: dict[str, Any]) -> WacpEnvelope:
         application_id=wacp_block["application_id"],
         company_id=wacp_block["company_id"],
         project_code=wacp_block["project_code"],
-        workflow_code=wacp_block["workflow_code"],
         data=data_block,
+        business_intent=wacp_block.get("business_intent"),
+        workflow_code=wacp_block.get("workflow_code"),
         workflow_version=wacp_block.get("workflow_version"),
         priority=priority,
         correlation_id=wacp_block.get("correlation_id"),

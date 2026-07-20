@@ -284,7 +284,7 @@ export default function AIOrchestration() {
       startPolling(res.execution_id);
       void refreshTimeline(res.execution_id);
 
-      setFormSuccess(`Job submitted to DEV-TOOLS. Execution Number: ${res.execution_number}`);
+      setFormSuccess(`AI Design Job submitted successfully. Reference: ${res.execution_number}`);
       setCustomPrompt('');
       setIsScheduled(false);
       setScheduleTime('');
@@ -293,7 +293,7 @@ export default function AIOrchestration() {
     } catch (err: any) {
       console.error('Error submitting job to DEV-TOOLS:', err);
       setClientPhase('Idle');
-      setFormError(err?.message || 'Error submitting job to the WIMLOGIC DEV-TOOLS orchestrator.');
+      setFormError(err?.message || 'Error submitting the AI Design Job. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -307,8 +307,8 @@ export default function AIOrchestration() {
         <div>
           <h1 className={styles.pageTitle}>AI Orchestration</h1>
           <p className={styles.pageSubtitle}>
-            Generate Analysis by submitting property profiles to DEV-TOOLS for automated
-            architectural, zoning, and estimation pipelines - with live enterprise job monitoring
+            Generate Analysis by submitting property profiles for automated
+            architectural, zoning, and estimation processing - with live job monitoring
             and full audit history.
           </p>
         </div>
@@ -472,7 +472,7 @@ export default function AIOrchestration() {
               <EmptyState
                 icon={Activity}
                 title="No Job Executions Logged"
-                description="Enterprise jobs submitted to DEV-TOOLS will be displayed here in real-time."
+                description="AI Design Jobs submitted for processing will be displayed here in real-time."
               />
             ) : (
               <div className={styles.tableWrap}>

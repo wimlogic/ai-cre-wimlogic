@@ -107,7 +107,7 @@ export default function Header({ currentView, onOpenMobile, id }: HeaderProps) {
             <span className={styles.breadcrumbSeparator}>/</span>
             <span className={styles.breadcrumbActive}>{currentView}</span>
           </div>
-          <span className={styles.pageSubtitle}>AI-CRE ORCHESTRATION CLIENT</span>
+          <span className={styles.pageSubtitle}>Powered by WIMLOGIC</span>
         </div>
 
         {/* Active view name on mobile */}

@@ -32,6 +32,11 @@ class PropertyBase(BaseModel):
     confidence_score: Optional[str] = None
     raw_api_json: Optional[str] = None
     api_source_url: Optional[str] = None
+    bedrooms: Optional[int] = None
+    bathrooms: Optional[float] = None
+    construction_type: Optional[str] = None
+    existing_materials: Optional[List[str]] = None
+    existing_colors: Optional[List[str]] = None
 
 class PropertyCreate(PropertyBase):
     pass
@@ -66,6 +71,11 @@ class PropertyUpdate(BaseModel):
     confidence_score: Optional[str] = None
     raw_api_json: Optional[str] = None
     api_source_url: Optional[str] = None
+    bedrooms: Optional[int] = None
+    bathrooms: Optional[float] = None
+    construction_type: Optional[str] = None
+    existing_materials: Optional[List[str]] = None
+    existing_colors: Optional[List[str]] = None
 
 class PropertyRead(PropertyBase):
     id: int

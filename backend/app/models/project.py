@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, func
+from sqlalchemy import Column, Integer, String, Text, DateTime, Numeric, JSON, func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -19,6 +19,17 @@ class Project(Base):
     ending_address = Column(String(255), nullable=True)
     side = Column(String(50), nullable=True)
     scan_mode = Column(String(50), nullable=True)
+    # Knowledge Inheritance Engine Phase 1.2A - additive, nullable.
+    # Populated only ever read into effective_context via an explicit
+    # FIELD_RULE_REGISTRY-backed Knowledge Rule (knowledge_context_builder.py) -
+    # never automatically, regardless of any existing blanket scope rule.
+    goals = Column(Text, nullable=True)
+    hoa_rules = Column(Text, nullable=True)
+    climate = Column(Text, nullable=True)
+    budget_low = Column(Numeric(14, 2), nullable=True)
+    budget_high = Column(Numeric(14, 2), nullable=True)
+    preferred_styles = Column(JSON, nullable=True)
+    design_preferences = Column(Text, nullable=True)
 
     # Relationships
     properties_association = relationship("ProjectProperty", back_populates="project", cascade="all, delete-orphan")

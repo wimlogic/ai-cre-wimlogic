@@ -1,0 +1,143 @@
+.workspaceContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  height: 100%;
+}
+
+/* Compact header: title + one-line subtitle only, no breadcrumb */
+.headerArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.pageTitle {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+.pageSubtitle {
+  font-size: 0.8125rem;
+  color: var(--color-neutral-600);
+  margin: 0;
+}
+
+/* Command bar: single row on desktop, wraps on narrow screens */
+.commandBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--radius-md);
+}
+
+.commandBar > :first-child {
+  min-width: 14rem;
+}
+
+.errorBanner {
+  padding: 0.625rem 1rem;
+  background-color: var(--color-danger-50);
+  color: var(--color-danger-700);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+}
+
+/* Main workspace: two-column grid, 75% image/filmstrip, 25% inspector.
+   Grid's default row stretch (no align-items override) is what gives
+   both columns approximately equal overall height for free - the
+   shorter column's box simply stretches to match the taller one,
+   without needing any JS height-matching (Checkpoint 3A). */
+.mainRow {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 1.5rem;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.previewColumn {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inspectorColumn {
+  border: 1px solid var(--color-neutral-100);
+  border-radius: var(--radius-md);
+  background-color: #ffffff;
+  overflow-y: auto;
+}
+
+.filmstripHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.filmstripHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filmstripHeaderRight {
+  min-width: 6rem;
+  min-height: 1.5rem;
+}
+
+.filmstripTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-neutral-500);
+}
+
+.filmstripCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-600);
+  border-radius: 999px;
+}
+
+.filmstripArea {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .mainRow {
+    grid-template-columns: 1fr;
+  }
+
+  .inspectorColumn {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .commandBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .commandBar > :first-child {
+    min-width: 0;
+  }
+}

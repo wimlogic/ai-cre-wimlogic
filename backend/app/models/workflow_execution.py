@@ -21,6 +21,14 @@ class WorkflowExecution(Base):
     completed_at = Column(DateTime, nullable=True)
     retry_count = Column(Integer, default=0, nullable=False)
     error_message = Column(Text, nullable=True)
+    # Distinct from error_message (which records a genuine REMOTE workflow
+    # failure - _sync_failed_job()). This records a LOCAL failure to fetch
+    # or map DEV-TOOLS' output AFTER the remote workflow already completed
+    # successfully - the remote job is not re-run to recover from this;
+    # re-polling (GET /ai-orchestration/status/{execution_id}) retries
+    # only the fetch+sync step. Cleared back to NULL the moment a sync
+    # attempt succeeds.
+    result_sync_error = Column(Text, nullable=True)
     metadata_json = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)

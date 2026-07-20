@@ -1,0 +1,142 @@
+.track {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0.125rem 0.5rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.thumbWrap {
+  flex: 0 0 auto;
+  width: 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  scroll-snap-align: start;
+}
+
+.thumbWrapPreview .thumbButton {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 1px;
+}
+
+.thumbButton {
+  position: relative;
+  width: 100%;
+  height: 6rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+
+.thumbButton:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+}
+
+.thumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: var(--color-neutral-100);
+}
+
+.primaryMarker {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: rgba(15, 23, 42, 0.75);
+  color: #fbbf24;
+  border-radius: 50%;
+}
+
+.contextDot {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.375rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+}
+
+.contextDot_complete {
+  background-color: var(--color-success-500);
+}
+
+.contextDot_partial {
+  background-color: var(--color-warning-500);
+}
+
+.contextDot_none {
+  background-color: var(--color-neutral-300);
+}
+
+.thumbFooter {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.375rem;
+  background-color: rgba(15, 23, 42, 0.55);
+}
+
+.roleLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: capitalize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.priorityLabel {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.selectRow {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  color: var(--color-neutral-600);
+  cursor: pointer;
+}
+
+.setPrimaryBtn {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--color-brand-600);
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.setPrimaryBtn:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.setPrimaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

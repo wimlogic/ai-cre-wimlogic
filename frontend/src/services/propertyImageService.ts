@@ -94,6 +94,17 @@ export const propertyImageService = {
   },
 
   /**
+   * Explicit "set as primary" action (Checkpoint 5). Uses the real
+   * is_primary column and the backend's own one-primary-per-property
+   * enforcement - this replaces the stale image_role === 'primary'
+   * workaround that predates that backend work and does not get the
+   * same guarantee.
+   */
+  async setPrimary(id: number): Promise<PropertyImage> {
+    return apiClient.post<PropertyImage>(`/property-images/${id}/set-primary`, {});
+  },
+
+  /**
    * Upload a real image file. See the ASSUMPTION notice above this object -
    * this hits an endpoint that has not been confirmed against a live backend.
    */

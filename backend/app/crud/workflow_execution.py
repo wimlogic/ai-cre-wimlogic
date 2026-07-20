@@ -42,20 +42,34 @@ class CRUDWorkflowExecution:
         
         return list(results), total_count
 
-    def create(self, db: Session, *, obj_in: WorkflowExecutionCreate) -> WorkflowExecution:
+    def create(self, db: Session, *, obj_in: WorkflowExecutionCreate, commit: bool = True) -> WorkflowExecution:
+        """
+        commit=True (default, unchanged): standalone use - commits and
+        refreshes, exactly as before this change.
+        commit=False: participates in a service-owned transaction (Design
+        Studio Phase 1 local attempt registration, Checkpoint 8) - only
+        flushes (so db_obj.execution_id is populated), does not commit or
+        roll back. The calling service owns commit/rollback.
+        """
         db_obj = WorkflowExecution(**obj_in.model_dump())
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        if commit:
+            db.commit()
+            db.refresh(db_obj)
+        else:
+            db.flush()
         return db_obj
 
-    def update(self, db: Session, *, db_obj: WorkflowExecution, obj_in: WorkflowExecutionUpdate) -> WorkflowExecution:
+    def update(self, db: Session, *, db_obj: WorkflowExecution, obj_in: WorkflowExecutionUpdate, commit: bool = True) -> WorkflowExecution:
         update_data = obj_in.model_dump(exclude_unset=True)
         for field, value in update_data.items():
             setattr(db_obj, field, value)
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        if commit:
+            db.commit()
+            db.refresh(db_obj)
+        else:
+            db.flush()
         return db_obj
 
     def remove(self, db: Session, *, execution_id: int) -> Optional[WorkflowExecution]:

@@ -53,6 +53,39 @@ from app.schemas.api_usage_log import (
     ApiUsageLogBase, ApiUsageLogCreate, ApiUsageLogUpdate, ApiUsageLogRead, ApiUsageLogResponse, ApiUsageLogListResponse
 )
 
+# Design Studio (V1.1C/D)
+from app.schemas.design_tool import (
+    DesignToolBase, DesignToolCreate, DesignToolUpdate, DesignToolRead, DesignToolResponse, DesignToolListResponse
+)
+from app.schemas.design_tool_option import (
+    DesignToolOptionBase, DesignToolOptionCreate, DesignToolOptionUpdate, DesignToolOptionRead
+)
+from app.schemas.design_tool_image_requirement import (
+    DesignToolImageRequirementBase, DesignToolImageRequirementCreate, DesignToolImageRequirementUpdate, DesignToolImageRequirementRead
+)
+from app.schemas.design_tool_knowledge_rule import (
+    DesignToolKnowledgeRuleBase, DesignToolKnowledgeRuleCreate, DesignToolKnowledgeRuleUpdate, DesignToolKnowledgeRuleRead
+)
+from app.schemas.design_job import (
+    DesignJobCreate, DesignJobConfigureImageItem, DesignJobConfigureImagesRequest, DesignJobConfigureOptionsRequest,
+    DesignJobRead, DesignJobResponse, DesignJobListResponse, DesignJobSubmitResponse, DesignJobRetryResponse
+)
+from app.schemas.design_job_image import (
+    DesignJobImageCreate, DesignJobImageRead
+)
+from app.schemas.design_job_execution import (
+    DesignJobExecutionRead, DesignJobExecutionListResponse
+)
+from app.schemas.design_image_version import (
+    DesignImageVersionRead, DesignImageVersionResponse, DesignImageVersionListResponse
+)
+from app.schemas.design_image_lineage import (
+    DesignImageLineageRead
+)
+from app.schemas.approved_design_baseline import (
+    ApprovedDesignBaselineRead, ApprovedDesignBaselineResponse, ApprovedDesignBaselineListResponse, ApprovedDesignBaselineApproveRequest
+)
+
 __all__ = [
     "ProjectBase", "ProjectCreate", "ProjectUpdate", "ProjectRead", "ProjectResponse", "ProjectListResponse",
     "PropertyBase", "PropertyCreate", "PropertyUpdate", "PropertyRead", "PropertyResponse", "PropertyListResponse",
@@ -72,4 +105,16 @@ __all__ = [
     "EstimateBase", "EstimateCreate", "EstimateUpdate", "EstimateRead", "EstimateResponse", "EstimateListResponse",
     "ZoningNoteBase", "ZoningNoteCreate", "ZoningNoteUpdate", "ZoningNoteRead", "ZoningNoteResponse", "ZoningNoteListResponse",
     "ApiUsageLogBase", "ApiUsageLogCreate", "ApiUsageLogUpdate", "ApiUsageLogRead", "ApiUsageLogResponse", "ApiUsageLogListResponse",
+    # Design Studio (V1.1C/D)
+    "DesignToolBase", "DesignToolCreate", "DesignToolUpdate", "DesignToolRead", "DesignToolResponse", "DesignToolListResponse",
+    "DesignToolOptionBase", "DesignToolOptionCreate", "DesignToolOptionUpdate", "DesignToolOptionRead",
+    "DesignToolImageRequirementBase", "DesignToolImageRequirementCreate", "DesignToolImageRequirementUpdate", "DesignToolImageRequirementRead",
+    "DesignToolKnowledgeRuleBase", "DesignToolKnowledgeRuleCreate", "DesignToolKnowledgeRuleUpdate", "DesignToolKnowledgeRuleRead",
+    "DesignJobCreate", "DesignJobConfigureImageItem", "DesignJobConfigureImagesRequest", "DesignJobConfigureOptionsRequest",
+    "DesignJobRead", "DesignJobResponse", "DesignJobListResponse", "DesignJobSubmitResponse", "DesignJobRetryResponse",
+    "DesignJobImageCreate", "DesignJobImageRead",
+    "DesignJobExecutionRead", "DesignJobExecutionListResponse",
+    "DesignImageVersionRead", "DesignImageVersionResponse", "DesignImageVersionListResponse",
+    "DesignImageLineageRead",
+    "ApprovedDesignBaselineRead", "ApprovedDesignBaselineResponse", "ApprovedDesignBaselineListResponse", "ApprovedDesignBaselineApproveRequest",
 ]

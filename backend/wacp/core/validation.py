@@ -69,8 +69,18 @@ def validate_envelope(
         raise WacpEnvelopeError(WACP_101, "company_id must not be empty.")
     if not envelope.project_code:
         raise WacpEnvelopeError(WACP_101, "project_code must not be empty.")
-    if not envelope.workflow_code:
-        raise WacpEnvelopeError(WACP_101, "workflow_code must not be empty.")
+    has_business_intent = (
+        isinstance(envelope.business_intent, str)
+        and bool(envelope.business_intent.strip())
+    )
+    has_workflow_code = (
+        isinstance(envelope.workflow_code, str)
+        and bool(envelope.workflow_code.strip())
+    )
+    if not has_business_intent and not has_workflow_code:
+        raise WacpEnvelopeError(
+            WACP_101, "business_intent or workflow_code must be provided."
+        )
 
     if not is_valid_request_id(envelope.request_id):
         raise WacpEnvelopeError(
