@@ -30,6 +30,20 @@ class WorkflowExecution(Base):
     # attempt succeeds.
     result_sync_error = Column(Text, nullable=True)
     metadata_json = Column(JSON, nullable=True)
+    # WACP 1.1 / WIM Module V2 (backend/wacp/WACP_PROTOCOL_1_1.md):
+    # AIHOME's own audit record of the ordered follow-on Business Intents
+    # requested alongside this execution's primary business_intent (e.g.
+    # ["IMAGE_DESIGN", "RENOVATION_PLANNER"]). Deliberately distinct from
+    # DEV-TOOLS' own intent_execution_plan (that column lives entirely on
+    # the DEV-TOOLS side and records WIM's *resolution* decision - which
+    # intents actually resolved to a workflow versus SKIPPED - which
+    # AIHOME never receives or stores). This column instead records what
+    # AIHOME *requested*, for its own audit/retry purposes, matching the
+    # same "distinct lifecycle facts get distinct columns" reasoning
+    # WIM_MODULE_V2_RELEASE.md gives for its own four JSON columns.
+    # NULL for every WACP 1.0 single-intent submission (the vast
+    # majority, unaffected by this addition).
+    additional_business_intents = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 

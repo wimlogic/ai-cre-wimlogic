@@ -1,0 +1,73 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  height: 100%;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-neutral-700);
+}
+
+.selectionSummary {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.summaryChip {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-700);
+  border-radius: var(--radius-sm);
+}
+
+.hintText {
+  font-size: 0.6875rem;
+  color: var(--color-neutral-400);
+  margin: 0;
+}
+
+.instructionInput {
+  resize: vertical;
+  min-height: 8rem;
+  font-family: inherit;
+}
+
+.optionCheckboxRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-neutral-700);
+  margin-bottom: 0.5rem;
+}
+
+.optionField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.625rem;
+}
+
+.optionLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-neutral-600);
+}
+
+.optionWarning {
+  font-size: 0.6875rem;
+  color: #b91c1c;
+  margin: 0;
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import EnterpriseJobPanel from './EnterpriseJobPanel';
+import BusinessIntentCheckboxes, { ALL_BUSINESS_INTENTS } from './BusinessIntentCheckboxes';
 import useEnterpriseJobPolling from '../hooks/useEnterpriseJobPolling';
 import { isTerminalWorkflowStatus } from '../utils/status';
 import { resolveExecutionRowState } from '../utils/executionRowState';
@@ -56,6 +57,16 @@ export default function PropertyRunAnalysisPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRetryingSync, setIsRetryingSync] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [selectedAdditionalIntents, setSelectedAdditionalIntents] = useState<Set<string>>(new Set(['PROPERTY_ANALYSIS']));
+
+  const toggleAdditionalIntent = (intent: string) => {
+    setSelectedAdditionalIntents((prev) => {
+      const next = new Set(prev);
+      if (next.has(intent)) next.delete(intent);
+      else next.add(intent);
+      return next;
+    });
+  };
 
   const {
     status: pollStatus,
@@ -82,14 +93,34 @@ export default function PropertyRunAnalysisPanel({
   }, [currentExecution?.execution_id]);
 
   const handleRunAnalysis = async () => {
+    // The Business Intent checkbox UI already disables the trigger
+    // button when nothing is selected; this is the same guard applied
+    // defensively here too, so this function can never be called with
+    // an empty selection regardless of how it's invoked.
+    const selectedInOrder = ALL_BUSINESS_INTENTS.filter((intent) => selectedAdditionalIntents.has(intent));
+    if (selectedInOrder.length === 0) {
+      setSubmitError('Select at least one Business Intent to run an analysis.');
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
     try {
+      // The first selected intent, in the fixed presentation order
+      // (regardless of click order), becomes the primary WACP
+      // business_intent; the rest become additional_business_intents.
+      // workflow_code stays AIHOME's own local pipeline categorization,
+      // unchanged, decoupled from which intent(s) are actually
+      // requested from DEV-TOOLS.
+      const [primaryIntent, ...additionalIntents] = selectedInOrder;
       const exec = await workflowService.submit({
         project_id: projectId,
         property_id: propertyId,
         workflow_code: 'ZONING_ANALYSIS',
+        business_intent: primaryIntent,
+        ...(additionalIntents.length > 0 ? { additional_business_intents: additionalIntents } : {}),
       });
+      setSelectedAdditionalIntents(new Set(['PROPERTY_ANALYSIS']));
       await onReload();
       startPolling(exec.execution_id);
     } catch (err) {
@@ -117,6 +148,14 @@ export default function PropertyRunAnalysisPanel({
     }
   };
 
+  const renderIntentCheckboxes = () => (
+    <BusinessIntentCheckboxes
+      selected={selectedAdditionalIntents}
+      onToggle={toggleAdditionalIntent}
+      disabled={isSubmitting}
+    />
+  );
+
   if (isLoading) {
     return <div className={styles.loading}>Loading current analysis...</div>;
   }
@@ -126,11 +165,12 @@ export default function PropertyRunAnalysisPanel({
     return (
       <div className={styles.panel}>
         <p className={styles.emptyText}>No analysis has been run yet for this property.</p>
+        {renderIntentCheckboxes()}
         <button
           type="button"
           className={styles.runButton}
           onClick={handleRunAnalysis}
-          disabled={isSubmitting}
+          disabled={isSubmitting || selectedAdditionalIntents.size === 0}
           id="run-new-analysis-button"
         >
           {isSubmitting ? 'Starting...' : 'Run New Analysis'}
@@ -216,15 +256,18 @@ export default function PropertyRunAnalysisPanel({
               binding rule - Run New Analysis is intentionally NOT rendered
               in that branch. */}
           {!syncFailed && (
-            <button
-              type="button"
-              className={styles.runButton}
-              onClick={handleRunAnalysis}
-              disabled={isSubmitting}
-              id="run-new-analysis-button"
-            >
-              {isSubmitting ? 'Starting...' : 'Run New Analysis'}
-            </button>
+            <>
+              {renderIntentCheckboxes()}
+              <button
+                type="button"
+                className={styles.runButton}
+                onClick={handleRunAnalysis}
+                disabled={isSubmitting || selectedAdditionalIntents.size === 0}
+                id="run-new-analysis-button"
+              >
+                {isSubmitting ? 'Starting...' : 'Run New Analysis'}
+              </button>
+            </>
           )}
           {submitError && <p className={styles.errorText}>{submitError}</p>}
         </>

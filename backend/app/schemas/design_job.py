@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 class DesignJobCreate(BaseModel):
     """
@@ -16,8 +16,32 @@ class DesignJobCreate(BaseModel):
 
 
 class DesignJobConfigureImageItem(BaseModel):
-    property_image_id: int
+    """
+    AIHOME Design Studio V2 - Image Workspace Evolution. Exactly one of
+    property_image_id / source_image_version_id must be set: an original
+    Property Image, or a prior DesignImageVersion (a permanent Design
+    Asset AIHOME owns, not a transient workflow output) used as a
+    reference for this new, independent Design Job. The user explicitly
+    selects both kinds from the same Image Workspace picker; nothing is
+    automatically carried over from a prior job.
+
+    Uses model_validator(mode="after"), not field_validator - both
+    fields default to None, and Pydantic v2 does not run a plain
+    field_validator when a field keeps its default value, which would
+    silently let "neither set" through undetected (confirmed by testing
+    this exact failure mode before switching approaches).
+    """
+    property_image_id: Optional[int] = None
+    source_image_version_id: Optional[int] = None
     input_role: str = "primary"  # primary, supporting, reference
+
+    @model_validator(mode="after")
+    def _exactly_one_source(self) -> "DesignJobConfigureImageItem":
+        if (self.property_image_id is None) == (self.source_image_version_id is None):
+            raise ValueError(
+                "Exactly one of property_image_id or source_image_version_id must be set, not both and not neither."
+            )
+        return self
 
 
 class DesignJobConfigureImagesRequest(BaseModel):

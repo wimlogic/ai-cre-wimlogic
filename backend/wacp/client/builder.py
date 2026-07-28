@@ -59,6 +59,7 @@ class PayloadBuilder:
         *,
         data: dict[str, Any],
         business_intent: Optional[str] = None,
+        additional_business_intents: Optional[list[str]] = None,
         workflow_code: Optional[str] = None,
         company_id: Optional[str] = None,
         project_code: Optional[str] = None,
@@ -72,6 +73,13 @@ class PayloadBuilder:
         `timestamp` are always generated here, never accepted as
         parameters -- a caller cannot construct a colliding or
         non-time-ordered request_id through this API (§18.1).
+
+        `additional_business_intents` (WACP 1.1) is an optional ordered
+        list of follow-on Business Intents alongside the primary
+        `business_intent`. Only valid when the envelope's protocol
+        version is "1.1" (this builder's `ClientConfig.protocol_version`
+        default, per SDK 0.3.0) - validate_envelope raises WacpEnvelopeError
+        (WACP-101) if supplied against a "1.0"-configured client.
 
         `company_id`/`project_code` fall back to the builder's configured
         defaults when omitted; at least one source (call-site argument or
@@ -106,6 +114,7 @@ class PayloadBuilder:
             project_code=resolved_project_code,
             data=data,
             business_intent=business_intent,
+            additional_business_intents=additional_business_intents,
             workflow_code=workflow_code,
             workflow_version=workflow_version,
             priority=priority,

@@ -28,11 +28,13 @@ def list_property_analysis_reports(
     limit: int = Query(100, ge=1, le=500),
     project_id: Optional[str] = Query(None),
     property_id: Optional[int] = Query(None),
+    workflow_result_id: Optional[int] = Query(None),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
     items, total = crud_property_analysis_report.get_multi(
-        db, skip=skip, limit=limit, project_id=project_id, property_id=property_id, search=search
+        db, skip=skip, limit=limit, project_id=project_id, property_id=property_id,
+        workflow_result_id=workflow_result_id, search=search
     )
     return {"count": total, "items": items}
 

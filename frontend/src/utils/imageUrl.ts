@@ -1,5 +1,5 @@
 import { AppConfig } from '../config/app';
-import { PropertyImage } from '../types/index';
+import { PropertyImage, DesignImageVersion } from '../types/index';
 
 /**
  * utils/imageUrl.ts
@@ -41,4 +41,23 @@ export function resolveImageFileName(img: PropertyImage): string {
     }
   }
   return `image-${img.id}`;
+}
+
+/**
+ * DesignImageVersion counterparts to the two resolvers above.
+ * DesignImageVersion has no image_url/cached_path (those are
+ * PropertyImage-only) - it always has storage_path (relative,
+ * AIHOME-managed) and an optional thumbnail_path, both resolved the
+ * same way cached_path is above.
+ */
+export function resolveDesignImageSrc(version: DesignImageVersion, useThumbnail = false): string {
+  const relativePath = (useThumbnail && version.thumbnail_path) || version.storage_path;
+  if (!relativePath) return '';
+  const base = AppConfig.uploadBaseUrl.replace(/\/$/, '');
+  const path = relativePath.replace(/^\//, '');
+  return `${base}/${path}`;
+}
+
+export function resolveDesignImageFileName(version: DesignImageVersion): string {
+  return version.file_name || `design-v${version.version_number}`;
 }

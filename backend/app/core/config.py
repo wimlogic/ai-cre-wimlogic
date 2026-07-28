@@ -5,6 +5,7 @@ Application configuration.
 """
 
 from urllib.parse import quote_plus
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -17,7 +18,7 @@ class Settings(BaseSettings):
     # ---------------------------------------------------------
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=Path(__file__).resolve().parents[2] / ".env",
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
@@ -138,6 +139,11 @@ class Settings(BaseSettings):
     # wacp.client.ClientConfig.timeout_seconds.
     WACP_TIMEOUT_SECONDS: int = 30
 
+    # Certificate verification is mandatory by default. Local development
+    # against a self-signed endpoint may explicitly set this to false, but
+    # production deployments must retain verification.
+    WACP_VERIFY_SSL: bool = True
+
     # When false, check_workflow_status() behaves exactly like the
     # pre-Phase-4 implementation (local status only, no outbound call).
     # When true, it actively polls the WACP server and, on a terminal
@@ -157,6 +163,19 @@ class Settings(BaseSettings):
     WACP_COMPANY_ID: str = "AI-CRE-DEFAULT"
 
     # ---------------------------------------------------------
+    # TEMPORARY DEBUGGING FEATURE - routing verification
+    # ---------------------------------------------------------
+    # When True, every outbound POST to /wacp/v1/jobs is paused
+    # immediately before transmission so the exact request body can be
+    # inspected in a browser modal before the operator chooses to
+    # continue. See app/services/wacp_debug_intercept.py. Defaults to
+    # False; remove this flag, that module, app/api/wacp_debug.py, and
+    # the frontend WacpDebugModal component together once the routing
+    # issue this exists to diagnose is resolved - nothing else in the
+    # codebase depends on any of it.
+    WACP_DEBUG_INTERCEPT: bool = False
+
+    # ---------------------------------------------------------
     # SQLAlchemy URL
     # ---------------------------------------------------------
 
@@ -173,22 +192,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-
-# ---------------------------------------------------------
-# Startup Debug
-# Remove after backend is fully validated
-# ---------------------------------------------------------
-
-print("=" * 70)
-print("AI-CRE CONFIG LOADED")
-print("=" * 70)
-print(f"DB_HOST     : {settings.DB_HOST}")
-print(f"DB_PORT     : {settings.DB_PORT}")
-print(f"DB_NAME     : {settings.DB_NAME}")
-print(f"DB_USER     : {settings.DB_USER}")
-print(f"PASSWORD LEN: {len(settings.DB_PASSWORD)}")
-print(
-    f"DATABASE_URL: mysql+pymysql://{settings.DB_USER}:********@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-)
-print("=" * 70)

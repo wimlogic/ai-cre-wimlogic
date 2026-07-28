@@ -39,6 +39,14 @@ export interface ExecutionRowState {
 
 const IN_PROGRESS_STATUSES = new Set(['Pending', 'Queued', 'Running']);
 
+// Both are terminal SUCCESS states from DEV-TOOLS' perspective - a job
+// that finished with COMPLETED_WITH_WARNINGS completed just as
+// successfully as plain COMPLETED and must follow the exact same
+// View Report path, never the View Error path below. The tone differs
+// (warning vs success) so a user can still see that the job produced
+// warnings, without it ever reading as a failure.
+const SUCCESSFUL_TERMINAL_STATUSES = new Set(['Completed', 'Completed with Warnings']);
+
 export function resolveExecutionRowState(
   execution: WorkflowExecution,
   executionIdsWithReports: Set<number>
@@ -49,11 +57,12 @@ export function resolveExecutionRowState(
     return { action: 'view_progress', label: 'View Progress', tone: 'progress' };
   }
 
-  if (status === 'Completed') {
+  if (SUCCESSFUL_TERMINAL_STATUSES.has(status)) {
     const hasReport = executionIdsWithReports.has(execution.execution_id);
     const syncFailed = Boolean(execution.result_sync_error);
+    const successTone = status === 'Completed with Warnings' ? 'warning' : 'success';
     if (hasReport && !syncFailed) {
-      return { action: 'view_report', label: 'View Report', tone: 'success' };
+      return { action: 'view_report', label: 'View Report', tone: successTone };
     }
     // Completed remotely but no report row exists yet, or a sync error
     // is recorded - never rendered as if a report exists.

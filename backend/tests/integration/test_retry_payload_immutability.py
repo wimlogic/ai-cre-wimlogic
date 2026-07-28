@@ -80,7 +80,7 @@ def test_rt001_retry_reuses_exact_frozen_payload(db, submitted_job):
 
     captured = {}
 
-    def capture_submit(data, *, business_intent=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
+    def capture_submit(data, *, business_intent=None, additional_business_intents=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
         captured["data"] = data
         return {"job_id": "DEVTOOLS-INITIAL", "status": "QUEUED"}
 
@@ -95,7 +95,7 @@ def test_rt001_retry_reuses_exact_frozen_payload(db, submitted_job):
 
     captured_retry = {}
 
-    def capture_retry(data, *, business_intent=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
+    def capture_retry(data, *, business_intent=None, additional_business_intents=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
         captured_retry["data"] = data
         return {"job_id": "DEVTOOLS-RETRY", "status": "QUEUED"}
 
@@ -140,7 +140,17 @@ def test_rt003_retry_does_not_call_input_builder(db, submitted_job):
         spy_inputs.assert_not_called()
 
 
-def test_rt006_retry_still_supplies_workflow_code_to_wacp(db, submitted_job):
+def test_rt006_retry_still_supplies_business_intent_to_wacp(db, submitted_job):
+    """
+    AIHOME RC2 / WIM Module V2: Design Studio's dispatch call site (shared by
+    both initial execute and retry, since both call the same
+    _register_attempt_and_dispatch()) now submits
+    business_intent="IMAGE_DESIGN_ONLY" instead of the legacy
+    workflow_code=job.workflow_code this test originally asserted -
+    intentional, approved behavior change, not a regression. Retry must
+    supply this consistently with the initial execute, which this test
+    now confirms.
+    """
     with patch.object(wacp_adapter, "submit_payload", return_value={"job_id": "X", "status": "QUEUED"}):
         design_job_execution_service.execute_submitted_job(db, job_id=submitted_job.id)
 
@@ -151,20 +161,23 @@ def test_rt006_retry_still_supplies_workflow_code_to_wacp(db, submitted_job):
 
     captured = {}
 
-    def capture(data, *, business_intent=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
+    def capture(data, *, business_intent=None, additional_business_intents=None, workflow_code=None, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
+        captured["business_intent"] = business_intent
         captured["workflow_code"] = workflow_code
         return {"job_id": "Y", "status": "QUEUED"}
 
     with patch.object(wacp_adapter, "submit_payload", side_effect=capture):
         design_job_execution_service.retry_design_job(db, job_id=submitted_job.id)
 
-    assert captured["workflow_code"] == submitted_job.workflow_code
+    assert captured["business_intent"] == "IMAGE_DESIGN_ONLY"
+    assert captured["workflow_code"] is None
 
 
 def test_wacp002_and_wacp003_workflow_code_available_but_isolated_from_business_context(db, submitted_job):
     captured = {}
 
-    def capture(data, *, business_intent=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
+    def capture(data, *, business_intent=None, additional_business_intents=None, workflow_code=None, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
+        captured["business_intent_param"] = business_intent
         captured["workflow_code_param"] = workflow_code
         captured["data"] = data
         return {"job_id": "X", "status": "QUEUED"}
@@ -172,12 +185,21 @@ def test_wacp002_and_wacp003_workflow_code_available_but_isolated_from_business_
     with patch.object(wacp_adapter, "submit_payload", side_effect=capture):
         design_job_execution_service.execute_submitted_job(db, job_id=submitted_job.id)
 
-    # WACP-002: workflow_code remains available to the adapter/routing path.
-    assert captured["workflow_code_param"] == submitted_job.workflow_code
+    # AIHOME RC2 / WIM Module V2: the WACP-envelope-level routing parameter
+    # is business_intent="IMAGE_DESIGN_ONLY" - workflow_code is no longer
+    # supplied at all for this call site (None, not the job's own
+    # workflow_code), per the approved "submit only business_intent, do
+    # not introduce new workflow_code dependencies" principle.
+    assert captured["business_intent_param"] == "IMAGE_DESIGN_ONLY"
+    assert captured["workflow_code_param"] is None
 
-    # WACP-003: workflow_code must not be embedded inside the approved
-    # Business Context sections, even though it's still present at the
-    # payload root as the transitional compatibility hint.
+    # WACP-003 (unchanged, still fully valid): the job's OWN internal
+    # payload content (submitted_payload_json, built by
+    # design_job_service.py - untouched by this phase's changes) still
+    # keeps its transitional workflow_code compatibility hint isolated
+    # from the approved Business Context sections. This is a payload-
+    # content hygiene guarantee, entirely independent of which WACP
+    # envelope field is used for routing.
     assert "workflow_code" not in captured["data"]["business_intent"]
     assert "workflow_code" not in captured["data"]["request_context"]
     assert "workflow_code" not in captured["data"]["effective_context"]

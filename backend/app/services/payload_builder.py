@@ -41,6 +41,7 @@ from app.core.config import settings
 from app.crud.project import project as crud_project
 from app.crud.property import property as crud_property
 from app.crud.property_image import property_image as crud_property_image
+from app.crud.design_image_version import design_image_version as crud_design_image_version
 from app.crud.design_tool_knowledge_rule import design_tool_knowledge_rule as crud_design_tool_knowledge_rule
 from app.crud.property_analysis_report import property_analysis_report as crud_property_analysis_report
 from app.models.property_analysis_report import PropertyAnalysisReport
@@ -552,11 +553,48 @@ def build_design_job_inputs(db: Session, *, property_id: int, job_images: List[A
     resolvable URL (both image_url and cached_path are empty) - a Design
     Job must never freeze a payload referencing media that has moved to
     another Property, been deleted, or cannot actually be fetched.
+
+    AIHOME Design Studio V2 - Image Workspace Evolution: a job_image may
+    instead reference a source_image_version_id - a prior
+    DesignImageVersion (a permanent Design Asset AIHOME owns, not a
+    transient workflow output) selected as a reference input for this
+    NEW, independent Design Job. Resolved the same way, current-state,
+    ownership-checked at build time - storage_path is resolved into a
+    fetchable URL using the exact same UPLOAD_ROOT/APP_BASE_URL
+    convention _resolve_image_url() already uses for cached_path, since
+    both are AIHOME-managed relative paths under the same upload root.
     """
     ordered = sorted(job_images, key=lambda img: img.display_order)
     entries: List[Dict[str, Any]] = []
 
     for job_image in ordered:
+        if job_image.source_image_version_id is not None:
+            version = crud_design_image_version.get(db, job_image.source_image_version_id)
+            if not version:
+                raise PayloadBuilderError(
+                    f"Selected Design Image Version {job_image.source_image_version_id} no longer exists"
+                )
+            if version.property_id != property_id:
+                raise PayloadBuilderError(
+                    f"Selected Design Image Version {job_image.source_image_version_id} now belongs to "
+                    f"Property {version.property_id}, not this Design Job's Property ({property_id})"
+                )
+            url = _resolve_image_url(None, version.storage_path)
+            if not url:
+                raise PayloadBuilderError(
+                    f"Selected Design Image Version {job_image.source_image_version_id} has no resolvable "
+                    f"storage_path"
+                )
+            entries.append({
+                "source_image_version_id": version.id,
+                "input_role": job_image.input_role,
+                "image_type": "ai_generated",
+                "url": url,
+                "mime_type": version.mime_type,
+                "original_file_name": version.file_name,
+            })
+            continue
+
         prop_image = crud_property_image.get(db, job_image.property_image_id)
         if not prop_image:
             raise PayloadBuilderError(

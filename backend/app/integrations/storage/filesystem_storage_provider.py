@@ -22,6 +22,17 @@ All business image assets are organized per-property under UPLOAD_ROOT:
                 thumbnail/   -- generated thumbnails
                 ai/          -- AI-referenced or AI-returned images (future use)
                 temp/        -- staging area for in-progress imports/uploads
+                images/      -- AIHOME Phase 1: per-Property-Image version history
+                    <property_image_id>/
+                        original/    -- that image's own source file reference
+                        versions/    -- generated design image versions (Modern/
+                                        Luxury/Farmhouse/etc.) for that image
+                        thumbnails/  -- thumbnails for each version above
+
+The "images/" subtree is additive - nothing about the four property-wide
+categories above changes. It backs the already-existing
+cre_design_image_versions/cre_approved_design_baselines schema (AIHOME
+Phase 1), not a new table.
 
 Only paths relative to UPLOAD_ROOT are ever persisted to the database
 (e.g. cre_property_images.cached_path). Absolute paths are resolved on
@@ -144,6 +155,21 @@ class FilesystemStorageProvider:
     CATEGORY_TEMP = "temp"
     CATEGORIES = (CATEGORY_ORIGINAL, CATEGORY_THUMBNAIL, CATEGORY_AI, CATEGORY_TEMP)
 
+    # AIHOME Phase 1 - per-image, per-version categories, additive alongside
+    # the property-wide categories above. Lives under a new "images"
+    # subdirectory so nothing about the existing property-wide layout
+    # changes: <property_dir>/images/<property_image_id>/<category>/.
+    # Fixed structural names, same rationale as CATEGORIES above.
+    IMAGE_VERSION_CATEGORY_ORIGINAL = "original"
+    IMAGE_VERSION_CATEGORY_VERSIONS = "versions"
+    IMAGE_VERSION_CATEGORY_THUMBNAILS = "thumbnails"
+    IMAGE_VERSION_CATEGORIES = (
+        IMAGE_VERSION_CATEGORY_ORIGINAL,
+        IMAGE_VERSION_CATEGORY_VERSIONS,
+        IMAGE_VERSION_CATEGORY_THUMBNAILS,
+    )
+    _IMAGES_SUBDIR = "images"
+
     # Maps normalized (lowercase, no dot) extensions to the Pillow format
     # string required by Image.save(). Extended here if
     # settings.ALLOWED_IMAGE_EXTENSIONS is broadened in the future.
@@ -212,6 +238,46 @@ class FilesystemStorageProvider:
         for category in self.CATEGORIES:
             self._category_dir(property_id, category)
         logger.info("Ensured property directory set for property_id=%s at %s", property_id, self._property_dir(property_id))
+
+    # -- Per-image, per-version directory helpers (AIHOME Phase 1) ----------
+    #
+    # Additive alongside the property-wide categories above - nothing about
+    # ensure_property_directories()/_category_dir()/CATEGORIES changes.
+    # This layout backs cre_design_image_versions (already-existing schema,
+    # not new): <property_dir>/images/<property_image_id>/{original,
+    # versions,thumbnails}/.
+
+    def _image_dir(self, property_id: int, property_image_id: int) -> Path:
+        return self._property_dir(property_id) / self._IMAGES_SUBDIR / str(property_image_id)
+
+    def _validate_image_version_category(self, category: str) -> str:
+        if category not in self.IMAGE_VERSION_CATEGORIES:
+            raise InvalidCategoryError(
+                f"Image version category '{category}' is not permitted. "
+                f"Allowed: {list(self.IMAGE_VERSION_CATEGORIES)}"
+            )
+        return category
+
+    def _image_category_dir(self, property_id: int, property_image_id: int, category: str) -> Path:
+        self._validate_image_version_category(category)
+        category_dir = self._image_dir(property_id, property_image_id) / category
+        self._ensure_directory(category_dir)
+        return category_dir
+
+    def ensure_image_version_directories(self, property_id: int, property_image_id: int) -> None:
+        """
+        Create the full per-image version directory set (original, versions,
+        thumbnails) for one specific Property Image, if it does not already
+        exist. Safe to call repeatedly. Mirrors
+        ensure_property_directories()'s exact contract, scoped one level
+        deeper to a single image rather than the whole property.
+        """
+        for category in self.IMAGE_VERSION_CATEGORIES:
+            self._image_category_dir(property_id, property_image_id, category)
+        logger.info(
+            "Ensured image version directory set for property_id=%s property_image_id=%s at %s",
+            property_id, property_image_id, self._image_dir(property_id, property_image_id),
+        )
 
     # -- Validation ------------------------------------------------------------
 
@@ -407,6 +473,108 @@ class FilesystemStorageProvider:
         relative_path = self._to_relative(target_path)
         logger.info("Moved file '%s' -> '%s'.", source_relative_path, relative_path)
         return relative_path
+
+    # -- Per-image, per-version file operations (AIHOME Phase 1) ------------
+    #
+    # Mirror save_file()/generate_thumbnail() exactly (same atomic-write-then-
+    # rename discipline, same validation calls, same Pillow handling) - the
+    # only difference is the target directory, which is scoped to one
+    # Property Image's own "versions"/"thumbnails" folders rather than the
+    # property-wide "original"/"thumbnail" categories.
+
+    def save_image_version_file(
+        self,
+        *,
+        property_id: int,
+        property_image_id: int,
+        data: bytes,
+        filename: Optional[str] = None,
+        original_filename: Optional[str] = None,
+    ) -> str:
+        """
+        Persist a generated design image version's raw bytes under
+        <UPLOAD_ROOT>/<PROPERTIES_SUBDIR>/<property_id>/images/<property_image_id>/versions/<filename>
+        and return the stored relative path. Same validation, collision-safe
+        naming, and atomic-write discipline as save_file().
+        """
+        self.validate_size(len(data))
+
+        if filename is None:
+            if not original_filename:
+                raise StorageError("Either 'filename' or 'original_filename' must be provided.")
+            filename = self.generate_unique_filename(original_filename)
+        else:
+            self.validate_extension(filename)
+
+        target_dir = self._image_category_dir(property_id, property_image_id, self.IMAGE_VERSION_CATEGORY_VERSIONS)
+        target_path = target_dir / filename
+        temp_path = target_dir / f"{filename}.part"
+
+        try:
+            with open(temp_path, "wb") as f:
+                f.write(data)
+            os.replace(temp_path, target_path)
+        except OSError as exc:
+            logger.error("Failed to write image version file to %s: %s", target_path, exc)
+            self._safe_unlink(temp_path)
+            self._safe_unlink(target_path)
+            raise StorageError(f"Failed to save image version file '{filename}': {exc}") from exc
+
+        relative_path = self._to_relative(target_path)
+        logger.info(
+            "Stored image version file '%s' (%d bytes) for property_id=%s property_image_id=%s "
+            "at relative path '%s'.",
+            filename, len(data), property_id, property_image_id, relative_path,
+        )
+        return relative_path
+
+    def generate_image_version_thumbnail(
+        self,
+        *,
+        property_id: int,
+        property_image_id: int,
+        source_relative_path: str,
+        filename: Optional[str] = None,
+    ) -> str:
+        """
+        Generate a thumbnail for a stored design image version and persist it
+        under
+        <UPLOAD_ROOT>/<PROPERTIES_SUBDIR>/<property_id>/images/<property_image_id>/thumbnails/.
+        Returns the thumbnail's relative path. Same Pillow handling and
+        atomic-write discipline as generate_thumbnail().
+        """
+        source_absolute = self.resolve_absolute_path(relative_path=source_relative_path)
+        if not source_absolute.is_file():
+            raise FileNotFoundInStorageError(f"Source image version not found: '{source_relative_path}'")
+
+        thumb_filename = filename or f"{source_absolute.stem}_thumb{source_absolute.suffix}"
+        pillow_format = self._pillow_format_for(Path(thumb_filename))
+
+        thumb_dir = self._image_category_dir(property_id, property_image_id, self.IMAGE_VERSION_CATEGORY_THUMBNAILS)
+        thumb_path = thumb_dir / thumb_filename
+        temp_path = thumb_dir / f"{thumb_path.stem}.part{thumb_path.suffix}"
+
+        try:
+            with Image.open(source_absolute) as img:
+                img.thumbnail((self._thumbnail_max_dimension, self._thumbnail_max_dimension))
+                if pillow_format == "JPEG" and img.mode in ("RGBA", "P"):
+                    img = img.convert("RGB")
+                img.save(temp_path, format=pillow_format)
+            os.replace(temp_path, thumb_path)
+        except (UnidentifiedImageError, OSError) as exc:
+            logger.error("Image version thumbnail generation failed for %s: %s", source_relative_path, exc)
+            self._safe_unlink(temp_path)
+            self._safe_unlink(thumb_path)
+            raise ThumbnailGenerationError(
+                f"Unable to generate thumbnail for image version '{source_relative_path}': {exc}"
+            ) from exc
+
+        relative_thumb_path = self._to_relative(thumb_path)
+        logger.info(
+            "Generated image version thumbnail '%s' from source '%s'.",
+            relative_thumb_path, source_relative_path,
+        )
+        return relative_thumb_path
 
     def delete(self, *, relative_path: str) -> bool:
         """Delete a stored file. Returns True if removed, False if it did not exist."""

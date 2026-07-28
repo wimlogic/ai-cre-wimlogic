@@ -8,7 +8,7 @@ import { usePropertyAnalysisState } from '../hooks/usePropertyAnalysisState';
 import PropertyRunAnalysisPanel from '../components/PropertyRunAnalysisPanel';
 import PropertyExecutionHistory from '../components/PropertyExecutionHistory';
 import PropertyReportHistory from '../components/PropertyReportHistory';
-import AnalysisReportView from '../components/AnalysisReportView';
+import PropertyIntelligenceReport from '../components/PropertyIntelligenceReport';
 import {
   Building2,
   Plus,
@@ -1139,7 +1139,7 @@ export default function PropertiesView({ selectedProjectId, onSelectProject, onN
                 {activeTab === 'reports' && formData.id && (
                   <EnterpriseCard title="Reports" subtitle="Run and review property analysis reports.">
                     {selectedReportResultId !== null ? (
-                      <AnalysisReportView
+                      <PropertyIntelligenceReport
                         resultId={selectedReportResultId}
                         propertyAddress={formData.address}
                         projectName={resolvedProject?.project_name}

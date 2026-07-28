@@ -20,6 +20,21 @@ export interface CreProject {
   scan_mode?: string;
 }
 
+// Compatibility aliases used by the service layer. The application
+// historically exposed both Cre-prefixed UI models and unprefixed API
+// models; keep both import styles resolving to the same contracts.
+export type {
+  Project,
+  Property,
+  ProjectProperty,
+  WorkflowExecution,
+  WorkflowResult,
+  WorkflowEvent,
+  GeneratedAsset,
+  ListResponse,
+  ResultSection,
+} from './types/index';
+
 export interface CreProperty {
   id: number;
   property_uid: string;

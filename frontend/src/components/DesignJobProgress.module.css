@@ -1,0 +1,85 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 2.5rem 2rem;
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-neutral-800);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-neutral-500);
+  margin: 0 0 0.5rem;
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  align-items: flex-start;
+  margin: 0.5rem 0;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stepIconDone {
+  color: var(--color-success-600, #16a34a);
+}
+
+.stepIconActive {
+  color: var(--color-brand-600);
+}
+
+.stepIconPending {
+  color: var(--color-neutral-300);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.stepLabelActive {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-neutral-800);
+}
+
+.stepLabelPending {
+  font-size: 0.875rem;
+  color: var(--color-neutral-400);
+}
+
+.estimate {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  margin: 0.5rem 0 1rem;
+}
+
+.failedBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}

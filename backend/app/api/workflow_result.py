@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app.db.session import get_db
 from app.services.workflow_result_service import workflow_result_service
+from app.services.result_sync import get_or_build_business_report
 from app.schemas import (
     WorkflowResultCreate, WorkflowResultUpdate, WorkflowResultResponse, WorkflowResultListResponse,
     ResultSectionResponse, ResultSectionListResponse, ResultSectionCreate,
@@ -84,3 +85,20 @@ def create_workflow_result_section(
     # Force result ID match
     obj_in.result_id = id
     return workflow_result_service.create_section(db, section_in=obj_in)
+
+# Business Report sub-resource - loads the normalized Business Report
+# JSON for this result: uses the existing PropertyAnalysisReport if one
+# already exists in the current contract shape, otherwise builds one
+# from the result's own stored response_json and persists it for future
+# requests (best-effort). This is what makes every historical
+# WorkflowResult - regardless of when it was originally synced - render
+# the same enterprise report without any reprocessing or migration.
+@router.get("/{id}/business-report")
+def get_workflow_result_business_report(id: int, db: Session = Depends(get_db)):
+    db_obj = workflow_result_service.get_result(db, id)
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Workflow result not found")
+    report = get_or_build_business_report(db, workflow_result_id=id)
+    if report is None:
+        raise HTTPException(status_code=404, detail="No business report could be built for this workflow result")
+    return report

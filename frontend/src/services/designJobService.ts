@@ -52,9 +52,18 @@ export const designJobService = {
     return apiClient.get<ListResponse<DesignJob>>(endpoint);
   },
 
+  /**
+   * AIHOME Design Studio V2 - Image Workspace Evolution. Each item is
+   * EITHER an original Property Image OR a prior DesignImageVersion (a
+   * permanent Design Asset AIHOME owns) - matches the backend's
+   * DesignJobConfigureImageItem exactly. The caller (DesignJobWorkspace)
+   * is responsible for sending exactly one of the two per item; this
+   * service performs no validation of its own, same as every other
+   * method here.
+   */
   async setImages(
     jobId: number,
-    images: { property_image_id: number; input_role: string }[]
+    images: { property_image_id?: number; source_image_version_id?: number; input_role: string }[]
   ): Promise<DesignJobImage[]> {
     return apiClient.put<DesignJobImage[]>(`/design-studio/jobs/${jobId}/images`, { images });
   },
@@ -63,8 +72,20 @@ export const designJobService = {
     return apiClient.get<DesignJobImage[]>(`/design-studio/jobs/${jobId}/images`);
   },
 
-  async setOptions(jobId: number, toolOptions: Record<string, any>): Promise<DesignJob> {
-    return apiClient.put<DesignJob>(`/design-studio/jobs/${jobId}/options`, { tool_options: toolOptions });
+  /**
+   * jobPrompt maps to the backend's job_prompt - a job-wide instruction,
+   * distinct from tool_options and independently settable (per
+   * DesignJobConfigureOptionsRequest's own docstring: omitting it leaves
+   * the job's current value unchanged, only tool_options is
+   * unconditionally overwritten). This is the "completely new
+   * instruction, never inherited or merged" channel the Design Job
+   * Workspace uses on every submission.
+   */
+  async setOptions(jobId: number, toolOptions: Record<string, any>, jobPrompt?: string): Promise<DesignJob> {
+    return apiClient.put<DesignJob>(`/design-studio/jobs/${jobId}/options`, {
+      tool_options: toolOptions,
+      ...(jobPrompt !== undefined ? { job_prompt: jobPrompt } : {}),
+    });
   },
 
   async submit(jobId: number): Promise<DesignJob> {

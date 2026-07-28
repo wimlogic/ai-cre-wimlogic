@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from app.db.session import get_db
 from app.services.ai_orchestration_service import ai_orchestration_service
 from app.schemas import WorkflowExecutionResponse
@@ -15,6 +15,18 @@ class WorkflowSubmitRequest(BaseModel):
     scenario_id: Optional[int] = None
     priority: Optional[str] = "Normal"
     metadata_json: Optional[Dict[str, Any]] = None
+    # WACP 1.1 / WIM Module V2 - ordered follow-on Business Intents
+    # requested alongside the primary workflow_code, in the same
+    # Enterprise Job. Optional; every existing caller omitting this
+    # field submits exactly the single-intent request it always has.
+    additional_business_intents: Optional[List[str]] = None
+    # Explicit override for the PRIMARY WACP business_intent - bypasses
+    # the workflow_code -> business_intent mapping entirely when
+    # supplied. Lets the Business Intent checkbox UI request a primary
+    # intent other than whatever workflow_code would otherwise imply
+    # (e.g. IMAGE_DESIGN alone, with no PROPERTY_ANALYSIS in the plan).
+    # Optional; every existing caller omitting this field is unaffected.
+    business_intent: Optional[str] = None
 
 class WorkflowStatusResponse(BaseModel):
     execution_id: int
@@ -42,7 +54,9 @@ def submit_workflow(
             workflow_code=request.workflow_code,
             scenario_id=request.scenario_id,
             priority=request.priority,
-            metadata_json=request.metadata_json
+            metadata_json=request.metadata_json,
+            additional_business_intents=request.additional_business_intents,
+            business_intent=request.business_intent,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

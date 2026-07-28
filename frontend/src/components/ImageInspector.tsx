@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Info, Layers, CheckCircle2, Circle } from 'lucide-react';
+import { Info, Layers, CheckCircle2, Circle, AlertTriangle } from 'lucide-react';
 import EnterpriseCard from './EnterpriseCard';
 import EnterpriseSelect from './EnterpriseSelect';
 import EmptyState from './EmptyState';
@@ -7,8 +7,9 @@ import FormField from './FormField';
 import TagEditor from './TagEditor';
 import useToast from '../hooks/useToast';
 import { propertyImageService } from '../services/propertyImageService';
-import { PropertyImage } from '../types/index';
-import { resolveImageFileName } from '../utils/imageUrl';
+import { designImageVersionService } from '../services/designImageVersionService';
+import { PropertyImage, DesignImageVersion } from '../types/index';
+import { resolveImageFileName, resolveDesignImageSrc } from '../utils/imageUrl';
 import { formatDate } from '../utils/formatters';
 import { IMAGE_ROLE_OPTIONS, PRIORITY_OPTIONS, getContextCompletion } from '../utils/imageContext';
 import styles from './ImageInspector.module.css';
@@ -57,6 +58,9 @@ export default function ImageInspector({ image, onSaved, id }: ImageInspectorPro
   const [draftTags, setDraftTags] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [designVersions, setDesignVersions] = useState<DesignImageVersion[]>([]);
+  const [isLoadingDesignVersions, setIsLoadingDesignVersions] = useState(false);
+
   // Reset the draft whenever the user switches to a different photo -
   // otherwise an in-progress edit on Photo A would leak into Photo B.
   useEffect(() => {
@@ -64,6 +68,36 @@ export default function ImageInspector({ image, onSaved, id }: ImageInspectorPro
     setDraftNotes(image?.notes || '');
     setDraftPriority(image?.priority ?? null);
     setDraftTags(image?.tags || []);
+  }, [image?.id]);
+
+  // Design History: every generated version whose lineage traces back
+  // to THIS specific Property Image (design_result_service.
+  // list_versions_for_property_image, via the property_image_id filter
+  // already exposed on this endpoint) - distinct from Home Studio's "AI
+  // Generated" tab, which shows every version for the whole Property
+  // regardless of which source image (if any) it traces to.
+  useEffect(() => {
+    if (!image) {
+      setDesignVersions([]);
+      return;
+    }
+    let cancelled = false;
+    setIsLoadingDesignVersions(true);
+    designImageVersionService
+      .listForPropertyImage(image.id)
+      .then((res) => {
+        if (!cancelled) setDesignVersions(res.items || []);
+      })
+      .catch((err) => {
+        console.error('[ImageInspector] Failed to load Design History:', err);
+        if (!cancelled) setDesignVersions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingDesignVersions(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [image?.id]);
 
   if (!image) {
@@ -216,17 +250,49 @@ export default function ImageInspector({ image, onSaved, id }: ImageInspectorPro
         </div>
         <div className={styles.row} style={{ marginTop: '0.75rem' }}>
           <span className={styles.label}>Latest Design Job</span>
-          {/* TODO(backend): no query exists today to look up Design Jobs
-              by property_image_id (only by property_id, which does not
-              indicate whether THIS specific image was selected in that
-              job). Honestly shown as None for this phase rather than
-              approximated. */}
-          <span className={styles.valueMissing}>None</span>
+          {/* Resolved via the same lineage query Design History below
+              uses (list_versions_for_property_image / property_image_id
+              filter) - this WAS the missing query the TODO referred to;
+              designVersions[0] is the most recent version whose lineage
+              traces back to this specific Property Image. */}
+          {designVersions.length > 0 ? (
+            <span className={styles.value}>
+              Version {designVersions[0].version_number} · {formatDate(designVersions[0].generated_at)}
+            </span>
+          ) : (
+            <span className={styles.valueMissing}>None</span>
+          )}
         </div>
       </EnterpriseCard>
 
       <EnterpriseCard title="Design History" className={styles.sectionCard}>
-        <EmptyState icon={Layers} title="No Design Versions Yet" description="Generated design versions will appear here once a Design Job produces results." />
+        {isLoadingDesignVersions ? (
+          <p className={styles.designHistoryLoading}>Loading...</p>
+        ) : designVersions.length === 0 ? (
+          <EmptyState icon={Layers} title="No Design Versions Yet" description="Generated design versions will appear here once a Design Job produces results." />
+        ) : (
+          <div className={styles.designHistoryGrid}>
+            {designVersions.map((version) => (
+              <div key={version.id} className={styles.designHistoryItem}>
+                <img
+                  src={resolveDesignImageSrc(version, true)}
+                  alt={`Design version ${version.version_number}`}
+                  className={styles.designHistoryThumb}
+                />
+                <div className={styles.designHistoryMeta}>
+                  <span className={styles.designHistoryVersion}>V{version.version_number}</span>
+                  {version.source_provider && <span>{version.source_provider}</span>}
+                  <span>{formatDate(version.generated_at)}</span>
+                  {version.quality_approved === false && (
+                    <span className={styles.designHistoryWarning} title="Quality review: not approved">
+                      <AlertTriangle className="w-3 h-3" />
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </EnterpriseCard>
     </div>
   );

@@ -141,3 +141,47 @@
     min-width: 0;
   }
 }
+
+.viewModeToggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.viewModeTab {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  background-color: #ffffff;
+  color: var(--color-neutral-600);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.viewModeTab:hover {
+  border-color: var(--color-brand-300, var(--color-neutral-300));
+}
+
+.viewModeTabActive {
+  border-color: var(--color-brand-500);
+  background-color: var(--color-brand-50);
+  color: var(--color-brand-700);
+}
+
+.viewModeCount {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 999px;
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-600);
+}
+
+.viewModeTabActive .viewModeCount {
+  background-color: var(--color-brand-100, #e0e7ff);
+  color: var(--color-brand-700);
+}

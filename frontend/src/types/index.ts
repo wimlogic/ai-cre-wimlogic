@@ -379,3 +379,101 @@ export interface EnterpriseJobCompletedEvent {
  * notification pattern (EnterpriseJobContext).
  */
 export type EnterpriseJobCompletedListener = (event: EnterpriseJobCompletedEvent) => void;
+
+/**
+ * AIHOME Phase 1 (Phase D) - Design Image Version / Approved Design
+ * Baseline. Mirrors app/schemas/design_image_version.py and
+ * app/schemas/approved_design_baseline.py exactly - all business rules
+ * (version numbering, lineage, design_scope derivation, supersede
+ * transaction) live entirely in the backend; these types only describe
+ * the read-only shapes the UI displays.
+ */
+export interface DesignImageVersion {
+  id: number;
+  version_uid: string;
+  design_job_id: number;
+  property_id: number;
+  workflow_execution_id: number;
+  version_number: number;
+  file_name: string;
+  storage_path: string;
+  thumbnail_path?: string;
+  mime_type?: string;
+  file_size?: number;
+  width?: number;
+  height?: number;
+  generated_asset_id?: number;
+  status: string; // generated, rejected, approved, superseded
+  generated_at: string;
+  generated_by?: number;
+  // AIHOME Image Result Integration - populated only for versions
+  // imported from a DEV-TOOLS IMAGE_DESIGN result; undefined for every
+  // other existing DesignImageVersion.
+  source_image_id?: string;
+  source_provider?: string;
+  source_model?: string;
+  source_checksum?: string;
+  source_artifact_url?: string;
+  // DEV-TOOLS' own quality_review.approved outcome at import time, per
+  // AIHOME_IMAGE_DESIGN_OUTPUT_SPEC.md - "Workflow completion and
+  // quality approval are separate states." undefined/null means no
+  // quality review information was available; false means DEV-TOOLS
+  // itself flagged this image as not meeting its own quality bar.
+  quality_approved?: boolean | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApprovedDesignBaseline {
+  id: number;
+  baseline_uid: string;
+  project_id: string;
+  property_id: number;
+  design_job_id: number;
+  image_version_id: number;
+  tool_id: number;
+  tool_code: string;
+  design_type: string;
+  design_scope: string;
+  status: string; // active, superseded
+  approved_by?: number;
+  approved_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * AIHOME Result Rendering Framework v2 - the normalized Business Report
+ * JSON contract (report_version "1.0"). Produced entirely backend-side
+ * (app/services/business_report_builder.py) from whatever shape
+ * DEV-TOOLS returns. The frontend never classifies or interprets raw
+ * DEV-TOOLS output itself anymore - it only renders this fixed contract,
+ * dispatching purely on BusinessReportSection.type. Adding a future
+ * workflow (Solar Analysis, Mold Detection, Insurance Analysis, etc.)
+ * requires zero frontend changes, as long as its output contributes to
+ * this same normalized shape.
+ */
+export interface BusinessReportRiskItem {
+  title: string;
+  severity: string | null;
+  detail?: string | null;
+  evidence?: string[] | null;
+}
+
+export interface BusinessReportSection {
+  type: 'property_overview' | 'risks' | 'recommendations' | 'priority_actions' | string;
+  title: string;
+  content?: Record<string, unknown>;
+  items?: (string | BusinessReportRiskItem)[];
+}
+
+export interface BusinessReport {
+  report_type: string;
+  report_version: string;
+  property: Record<string, unknown>;
+  executive_summary: string;
+  sections: BusinessReportSection[];
+  confidence: string;
+  generated_at: string;
+  metadata: Record<string, unknown>;
+}

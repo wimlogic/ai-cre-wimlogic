@@ -44,6 +44,14 @@ app.mount(
 from app.db.database import engine, Base
 from app.db import base as db_base  # noqa: F401
 
+# TEMPORARY DEBUGGING FEATURE - see app/services/wacp_debug_intercept.py
+# for full removal instructions. With WACP_DEBUG_INTERCEPT unset/False
+# (the default), install() is never called and normal job submission is
+# completely unaffected.
+if settings.WACP_DEBUG_INTERCEPT:
+    from app.services import wacp_debug_intercept
+    wacp_debug_intercept.install()
+
 
 @app.get("/")
 def root():

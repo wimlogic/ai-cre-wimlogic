@@ -104,3 +104,50 @@
   justify-content: center;
   margin-top: 0.25rem;
 }
+
+.designHistoryLoading {
+  font-size: 0.8125rem;
+  color: var(--color-neutral-400);
+  margin: 0;
+}
+
+.designHistoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+  gap: 0.625rem;
+}
+
+.designHistoryItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.designHistoryThumb {
+  width: 100%;
+  height: 4.5rem;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-neutral-200);
+  background-color: var(--color-neutral-100);
+}
+
+.designHistoryMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  font-size: 0.625rem;
+  color: var(--color-neutral-500);
+}
+
+.designHistoryVersion {
+  font-weight: 700;
+  color: var(--color-neutral-700);
+}
+
+.designHistoryWarning {
+  color: #92400e;
+  display: inline-flex;
+  align-items: center;
+}

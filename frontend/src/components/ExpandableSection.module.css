@@ -1,0 +1,44 @@
+.section {
+  border-top: 1px solid var(--color-neutral-100);
+  padding-top: 1.25rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+/* Matches .detailSectionTitle exactly (PropertyImages.module.css) - same
+   visual language as every existing section heading in this modal, not
+   a new style. */
+.title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-neutral-400);
+}
+
+.chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--color-neutral-400);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.chevronExpanded {
+  transform: rotate(90deg);
+}
+
+.content {
+  margin-top: 0.875rem;
+}

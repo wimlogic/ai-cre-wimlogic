@@ -1,13 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, Sparkles, Wand2 } from 'lucide-react';
 import { propertyService } from '../services/propertyService';
 import { propertyImageService } from '../services/propertyImageService';
-import { Property, PropertyImage } from '../types/index';
+import { designImageVersionService } from '../services/designImageVersionService';
+import { Property, PropertyImage, DesignImageVersion } from '../types/index';
 import { resolvePrimaryPropertyImage } from '../utils/propertyImage';
 import PropertySelector from '../components/PropertySelector';
 import DesignFilmstrip from '../components/DesignFilmstrip';
+import AiVersionFilmstrip from '../components/AiVersionFilmstrip';
+import DesignJobWorkspace from '../components/DesignJobWorkspace';
+import DesignJobFlowModal from '../components/DesignJobFlowModal';
+import DesignJobProgress from '../components/DesignJobProgress';
+import DesignResultsView from '../components/DesignResultsView';
 import OriginalImagePreview from '../components/OriginalImagePreview';
+import AiVersionPreview from '../components/AiVersionPreview';
 import ImageInspector from '../components/ImageInspector';
+import AiVersionInspector from '../components/AiVersionInspector';
 import HomeStudioUploadAction from '../components/HomeStudioUploadAction';
 import LoadingState from '../components/LoadingState';
 import useToast from '../hooks/useToast';
@@ -81,6 +89,16 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
   // selects a Property directly, so this is derived automatically rather
   // than asked of the user.
   const [resolvedProjectId, setResolvedProjectId] = useState<string | null>(null);
+  // AIHOME Design Studio V2 - Design Job User Experience. Generate ->
+  // Progress -> Results -> (Generate Another Version cycles back to
+  // Workspace, or Continue Browsing closes) - all inside Design Studio,
+  // never navigating to AI Orchestration.
+  const [designFlowPhase, setDesignFlowPhase] = useState<'closed' | 'workspace' | 'progress' | 'results'>('closed');
+  const [workspacePreselectedVersionId, setWorkspacePreselectedVersionId] = useState<number | null>(null);
+  const [activeDesignJobId, setActiveDesignJobId] = useState<number | null>(null);
+  const [activeExecutionId, setActiveExecutionId] = useState<number | null>(null);
+  const [activeToolName, setActiveToolName] = useState<string>('');
+  const [resultsHadWarnings, setResultsHadWarnings] = useState(false);
 
   const [propertyImages, setPropertyImages] = useState<PropertyImage[]>([]);
   const [isLoadingImages, setIsLoadingImages] = useState(false);
@@ -89,6 +107,12 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
   const [previewImageId, setPreviewImageId] = useState<number | null>(null);
   const [selectedImageIds, setSelectedImageIds] = useState<Set<number>>(new Set());
   const [isSettingPrimary, setIsSettingPrimary] = useState(false);
+
+  // ---- AI Generated view (toggle alongside Original Photos) ----
+  const [viewMode, setViewMode] = useState<'original' | 'ai'>('original');
+  const [aiVersions, setAiVersions] = useState<DesignImageVersion[]>([]);
+  const [isLoadingAiVersions, setIsLoadingAiVersions] = useState(false);
+  const [previewAiVersionId, setPreviewAiVersionId] = useState<number | null>(null);
 
   // ---- Load Properties (once) ----
   const loadProperties = useCallback(async () => {
@@ -158,6 +182,21 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
     }
   }, []);
 
+  // ---- Load every AI Generated design version for the selected Property ----
+  const loadAiVersionsForProperty = useCallback(async (propertyId: number) => {
+    setIsLoadingAiVersions(true);
+    try {
+      const res = await designImageVersionService.listForProperty(propertyId);
+      const versions = res.items || [];
+      setAiVersions(versions);
+      setPreviewAiVersionId(versions.length > 0 ? versions[0].id : null);
+    } catch (err) {
+      console.error('[Home Studio] Failed to load AI generated versions:', err);
+    } finally {
+      setIsLoadingAiVersions(false);
+    }
+  }, []);
+
   const handlePropertyChange = (propertyId: number | null) => {
     setSelectedPropertyIdState(propertyId);
     onSelectProperty?.(propertyId);
@@ -166,10 +205,13 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
     setImagesError(null);
     setPropertyImages([]);
     setResolvedProjectId(null);
+    setAiVersions([]);
+    setPreviewAiVersionId(null);
 
     if (propertyId !== null) {
       loadImagesForProperty(propertyId);
       resolveProjectForProperty(propertyId);
+      loadAiVersionsForProperty(propertyId);
     }
   };
 
@@ -184,12 +226,14 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
     if (externalPropertyId != null) {
       loadImagesForProperty(externalPropertyId);
       resolveProjectForProperty(externalPropertyId);
+      loadAiVersionsForProperty(externalPropertyId);
     }
   }, []);
 
   const handleRefresh = () => {
     if (selectedPropertyId !== null) {
       loadImagesForProperty(selectedPropertyId);
+      loadAiVersionsForProperty(selectedPropertyId);
     }
   };
 
@@ -220,6 +264,23 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
       }
       return next;
     });
+  };
+
+  // ---- AI Generated filmstrip interactions ----
+  const handleAiPreview = (versionId: number) => setPreviewAiVersionId(versionId);
+
+  const handleAiPrev = () => {
+    if (aiVersions.length === 0 || previewAiVersionId === null) return;
+    const currentIndex = aiVersions.findIndex((v) => v.id === previewAiVersionId);
+    const prevIndex = (currentIndex - 1 + aiVersions.length) % aiVersions.length;
+    setPreviewAiVersionId(aiVersions[prevIndex].id);
+  };
+
+  const handleAiNext = () => {
+    if (aiVersions.length === 0 || previewAiVersionId === null) return;
+    const currentIndex = aiVersions.findIndex((v) => v.id === previewAiVersionId);
+    const nextIndex = (currentIndex + 1) % aiVersions.length;
+    setPreviewAiVersionId(aiVersions[nextIndex].id);
   };
 
   const handleSetPrimary = async (imageId: number) => {
@@ -254,9 +315,57 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
     setPropertyImages((prev) => sortImages(prev.map((img) => (img.id === updated.id ? updated : img))));
   };
 
+  // ---- Design Job Workspace / Progress / Results flow ----
+  const handleOpenNewDesignJob = () => {
+    setWorkspacePreselectedVersionId(null);
+    setDesignFlowPhase('workspace');
+  };
+
+  const handleUseAsReference = (versionId: number) => {
+    setWorkspacePreselectedVersionId(versionId);
+    setDesignFlowPhase('workspace');
+  };
+
+  // Called when DesignJobWorkspace finishes create -> setImages ->
+  // setOptions -> submit -> execute. Transitions to the business-
+  // friendly Progress screen - never to AI Orchestration.
+  const handleWorkspaceGenerated = (info: { designJobId: number; executionId: number; toolName: string }) => {
+    setActiveDesignJobId(info.designJobId);
+    setActiveExecutionId(info.executionId);
+    setActiveToolName(info.toolName);
+    setDesignFlowPhase('progress');
+  };
+
+  const handleProgressComplete = (hadWarnings: boolean) => {
+    setResultsHadWarnings(hadWarnings);
+    setDesignFlowPhase('results');
+    if (selectedPropertyId !== null) {
+      loadAiVersionsForProperty(selectedPropertyId);
+    }
+  };
+
+  const handleGenerateAnotherVersion = (versionId: number) => {
+    setWorkspacePreselectedVersionId(versionId);
+    setDesignFlowPhase('workspace');
+  };
+
+  const handleCloseDesignFlow = () => {
+    setDesignFlowPhase('closed');
+    setActiveDesignJobId(null);
+    setActiveExecutionId(null);
+    if (selectedPropertyId !== null) {
+      loadAiVersionsForProperty(selectedPropertyId);
+    }
+  };
+
   const previewImage = useMemo(
     () => propertyImages.find((img) => img.id === previewImageId) ?? null,
     [propertyImages, previewImageId]
+  );
+
+  const previewAiVersion = useMemo(
+    () => aiVersions.find((v) => v.id === previewAiVersionId) ?? null,
+    [aiVersions, previewAiVersionId]
   );
 
   return (
@@ -282,6 +391,18 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
           />
         )}
 
+        {selectedPropertyId !== null && (
+          <button
+            type="button"
+            className="enterprise-btn enterprise-btn-primary"
+            onClick={handleOpenNewDesignJob}
+            id="home-studio-new-design-job-btn"
+          >
+            <Wand2 className="w-3.5 h-3.5" />
+            New Design Job
+          </button>
+        )}
+
         <button
           type="button"
           className="enterprise-btn enterprise-btn-ghost"
@@ -296,50 +417,153 @@ export default function HomeStudio({ selectedPropertyId: externalPropertyId, onS
 
       {imagesError && <div className={styles.errorBanner}>{imagesError}</div>}
 
+      {selectedPropertyId !== null && (
+        <div className={styles.viewModeToggle} role="tablist" aria-label="Photo view">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'original'}
+            className={`${styles.viewModeTab} ${viewMode === 'original' ? styles.viewModeTabActive : ''}`}
+            onClick={() => setViewMode('original')}
+            id="home-studio-view-original-btn"
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            Original Photos
+            <span className={styles.viewModeCount}>{propertyImages.length}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={viewMode === 'ai'}
+            className={`${styles.viewModeTab} ${viewMode === 'ai' ? styles.viewModeTabActive : ''}`}
+            onClick={() => setViewMode('ai')}
+            id="home-studio-view-ai-btn"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            AI Generated
+            <span className={styles.viewModeCount}>{aiVersions.length}</span>
+          </button>
+        </div>
+      )}
+
       <div className={styles.mainRow}>
         <div className={styles.previewColumn}>
-          {isLoadingProperties || isLoadingImages ? (
-            <LoadingState message="Loading..." type="skeleton" />
-          ) : (
-            <OriginalImagePreview
-              hasSelectedProperty={selectedPropertyId !== null}
-              hasImages={propertyImages.length > 0}
-              previewImage={previewImage}
-              onPrev={propertyImages.length > 1 ? handlePrev : undefined}
-              onNext={propertyImages.length > 1 ? handleNext : undefined}
-            />
-          )}
+          {viewMode === 'original' ? (
+            <>
+              {isLoadingProperties || isLoadingImages ? (
+                <LoadingState message="Loading..." type="skeleton" />
+              ) : (
+                <OriginalImagePreview
+                  hasSelectedProperty={selectedPropertyId !== null}
+                  hasImages={propertyImages.length > 0}
+                  previewImage={previewImage}
+                  onPrev={propertyImages.length > 1 ? handlePrev : undefined}
+                  onNext={propertyImages.length > 1 ? handleNext : undefined}
+                />
+              )}
 
-          <div className={styles.filmstripArea}>
-            {selectedPropertyId !== null && (
-              <div className={styles.filmstripHeader}>
-                <div className={styles.filmstripHeaderLeft}>
-                  <span className={styles.filmstripTitle}>Property Photos</span>
-                  <span className={styles.filmstripCount}>{propertyImages.length}</span>
-                </div>
-                {/* Reserved for future actions (Upload / Refresh / Compare /
-                    Expand) - spacing only, no functionality yet per Checkpoint 2B. */}
-                <div className={styles.filmstripHeaderRight} />
+              <div className={styles.filmstripArea}>
+                {selectedPropertyId !== null && (
+                  <div className={styles.filmstripHeader}>
+                    <div className={styles.filmstripHeaderLeft}>
+                      <span className={styles.filmstripTitle}>Property Photos</span>
+                      <span className={styles.filmstripCount}>{propertyImages.length}</span>
+                    </div>
+                    {/* Reserved for future actions (Upload / Refresh / Compare /
+                        Expand) - spacing only, no functionality yet per Checkpoint 2B. */}
+                    <div className={styles.filmstripHeaderRight} />
+                  </div>
+                )}
+                {!isLoadingImages && selectedPropertyId !== null && (
+                  <DesignFilmstrip
+                    images={propertyImages}
+                    previewImageId={previewImageId}
+                    selectedImageIds={selectedImageIds}
+                    onPreview={handlePreview}
+                    onToggleSelect={handleToggleSelect}
+                    onSetPrimary={handleSetPrimary}
+                    isSettingPrimary={isSettingPrimary}
+                  />
+                )}
               </div>
-            )}
-            {!isLoadingImages && selectedPropertyId !== null && (
-              <DesignFilmstrip
-                images={propertyImages}
-                previewImageId={previewImageId}
-                selectedImageIds={selectedImageIds}
-                onPreview={handlePreview}
-                onToggleSelect={handleToggleSelect}
-                onSetPrimary={handleSetPrimary}
-                isSettingPrimary={isSettingPrimary}
-              />
-            )}
-          </div>
+            </>
+          ) : (
+            <>
+              {isLoadingProperties || isLoadingAiVersions ? (
+                <LoadingState message="Loading..." type="skeleton" />
+              ) : (
+                <AiVersionPreview
+                  hasSelectedProperty={selectedPropertyId !== null}
+                  hasVersions={aiVersions.length > 0}
+                  previewVersion={previewAiVersion}
+                  onPrev={aiVersions.length > 1 ? handleAiPrev : undefined}
+                  onNext={aiVersions.length > 1 ? handleAiNext : undefined}
+                />
+              )}
+
+              <div className={styles.filmstripArea}>
+                {selectedPropertyId !== null && (
+                  <div className={styles.filmstripHeader}>
+                    <div className={styles.filmstripHeaderLeft}>
+                      <span className={styles.filmstripTitle}>AI Generated</span>
+                      <span className={styles.filmstripCount}>{aiVersions.length}</span>
+                    </div>
+                    <div className={styles.filmstripHeaderRight} />
+                  </div>
+                )}
+                {!isLoadingAiVersions && selectedPropertyId !== null && (
+                  <AiVersionFilmstrip
+                    versions={aiVersions}
+                    previewVersionId={previewAiVersionId}
+                    onPreview={handleAiPreview}
+                    onUseAsReference={handleUseAsReference}
+                  />
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <div className={styles.inspectorColumn} id="home-studio-inspector-panel">
-          <ImageInspector image={previewImage} onSaved={handleImageContextSaved} />
+          {viewMode === 'original' ? (
+            <ImageInspector image={previewImage} onSaved={handleImageContextSaved} />
+          ) : (
+            <AiVersionInspector version={previewAiVersion} onUseAsReference={handleUseAsReference} />
+          )}
         </div>
       </div>
+
+      {selectedPropertyId !== null && (
+        <DesignJobWorkspace
+          isOpen={designFlowPhase === 'workspace'}
+          onClose={() => setDesignFlowPhase('closed')}
+          propertyId={selectedPropertyId}
+          projectId={resolvedProjectId}
+          preselectedVersionId={workspacePreselectedVersionId}
+          onGenerated={handleWorkspaceGenerated}
+        />
+      )}
+
+      <DesignJobFlowModal isOpen={designFlowPhase === 'progress' || designFlowPhase === 'results'} onClose={handleCloseDesignFlow}>
+        {designFlowPhase === 'progress' && activeExecutionId !== null && activeDesignJobId !== null && (
+          <DesignJobProgress
+            designJobId={activeDesignJobId}
+            executionId={activeExecutionId}
+            toolName={activeToolName}
+            onComplete={handleProgressComplete}
+            onCancelView={handleCloseDesignFlow}
+          />
+        )}
+        {designFlowPhase === 'results' && activeDesignJobId !== null && (
+          <DesignResultsView
+            designJobId={activeDesignJobId}
+            hadWarnings={resultsHadWarnings}
+            onGenerateAnotherVersion={handleGenerateAnotherVersion}
+            onUseAsReference={handleUseAsReference}
+            onDone={handleCloseDesignFlow}
+          />
+        )}
+      </DesignJobFlowModal>
     </div>
   );
 }

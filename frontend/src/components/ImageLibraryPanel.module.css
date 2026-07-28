@@ -1,0 +1,127 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  height: 100%;
+  padding-right: 0.25rem;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-neutral-700);
+}
+
+.groupTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.groupCount {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 999px;
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-600);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.emptyText {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  margin: 0;
+}
+
+.card {
+  position: relative;
+  display: block;
+  height: 4.5rem;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: var(--color-neutral-100);
+}
+
+.cardSelected {
+  border-color: var(--color-brand-500);
+}
+
+.checkbox {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  z-index: 1;
+}
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardBadge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: capitalize;
+  padding: 0.0625rem 0.25rem;
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+.cardMeta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.125rem;
+  padding: 0.0625rem 0.25rem;
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+.versionBadge,
+.dateBadge {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.warningBadge {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  background-color: rgba(146, 64, 14, 0.9);
+  color: #fef3c7;
+  border-radius: 50%;
+}

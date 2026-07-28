@@ -8,6 +8,17 @@ export interface WorkflowSubmitPayload {
   scenario_id?: number;
   priority?: string;
   metadata_json?: Record<string, any>;
+  // WACP 1.1 / WIM Module V2 - ordered follow-on Business Intents
+  // requested alongside the primary workflow_code, in the same
+  // Enterprise Job. Omit entirely for a plain single-intent (WACP
+  // 1.0-shaped) submission - every existing caller already does this.
+  additional_business_intents?: string[];
+  // Explicit override for the PRIMARY WACP business_intent - bypasses
+  // the backend's workflow_code -> business_intent mapping entirely
+  // when supplied. Used by the Business Intent checkbox UI to request a
+  // primary intent other than whatever workflow_code implies (e.g.
+  // IMAGE_DESIGN alone, with PROPERTY_ANALYSIS deselected).
+  business_intent?: string;
 }
 
 export const workflowService = {
@@ -74,6 +85,24 @@ export const workflowService = {
   // Get single result
   async getResult(id: number): Promise<WorkflowResult> {
     return apiClient.get<WorkflowResult>(`/workflow-results/${id}`);
+  },
+
+  /**
+   * Loads the normalized Business Report JSON for a workflow result.
+   * Backend transparently uses the existing PropertyAnalysisReport if
+   * one already exists, or builds one from the result's own stored
+   * response_json and persists it for future requests (best-effort) -
+   * so a historical result processed before WIM V2 support existed
+   * renders the same enterprise report as a freshly-synced one, with no
+   * reprocessing or migration required. Returns null (not an error) if
+   * no business report could be built for this result at all.
+   */
+  async getBusinessReport(id: number): Promise<Record<string, unknown> | null> {
+    try {
+      return await apiClient.get<Record<string, unknown>>(`/workflow-results/${id}/business-report`);
+    } catch {
+      return null;
+    }
   },
 
   // Get parsed sections of a result

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, JSON, Integer, DateTime, ForeignKey, func
+from sqlalchemy import Column, BigInteger, String, JSON, Integer, Boolean, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -18,6 +18,21 @@ class DesignImageVersion(Base):
     file_size = Column(BigInteger, nullable=True)
     width = Column(Integer, nullable=True)
     height = Column(Integer, nullable=True)
+    # AIHOME Image Result Integration - IMAGE_DESIGN provenance. These
+    # columns already exist in the real database (confirmed via
+    # `ALTER TABLE ... ADD COLUMN` returning "Duplicate column name" -
+    # the migration ran) but were never declared on this model class,
+    # meaning ingest_one_generated_image()'s `version.source_image_id =
+    # ...` assignments were silently setting unmapped, never-persisted
+    # Python attributes. Populated only for versions imported from a
+    # DEV-TOOLS IMAGE_DESIGN result; NULL for every version created
+    # through any other existing path.
+    source_image_id = Column(String(120), nullable=True)
+    source_provider = Column(String(80), nullable=True)
+    source_model = Column(String(120), nullable=True)
+    source_checksum = Column(String(128), nullable=True)
+    source_artifact_url = Column(String(500), nullable=True)
+    quality_approved = Column(Boolean, nullable=True)  # TINYINT(1) in MySQL
     # Optional future promotion reference only - approval never auto-populates
     # this. DB FK is ON DELETE SET NULL, so it must remain nullable here.
     generated_asset_id = Column(BigInteger, ForeignKey("cre_generated_assets.asset_id", ondelete="SET NULL"), nullable=True)
