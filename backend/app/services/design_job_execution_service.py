@@ -220,11 +220,27 @@ class DesignJobExecutionService:
         # has fully committed. On DevToolsClientError, dispatch_via_wacp()
         # itself logs the Failed event and re-raises; the already-
         # committed rows above are left exactly as they are.
+        #
+        # AIHOME WIM Module V2 integration: submits
+        # business_intent="IMAGE_DESIGN_ONLY" (supersedes the prior
+        # business_intent="DESIGN_STUDIO" - every current Design Tool
+        # produces images, so this is a routing-name change, not a new
+        # capability). dispatch_via_wacp() itself is unchanged - it
+        # already supported a business_intent parameter; only this call
+        # site's argument changes. job.workflow_code is not read here (as
+        # before) - AIHOME still never selects, derives, or encodes a
+        # workflow template, code, or version anywhere in this call.
+        # WIM Module V2 remains exclusively responsible for resolving
+        # business_intent (together with application_id) to an actual
+        # workflow (WF_IMAGE_DESIGN_ONLY). The selected Design Tool
+        # (tool_code, design_type) is untouched and continues to travel
+        # only inside `data` (job.submitted_payload_json) as business
+        # metadata, never as WACP-level routing.
         ai_orchestration_service.dispatch_via_wacp(
             db,
             execution_obj=execution_obj,
             project_obj=project_obj,
-            wacp_workflow_code=job.workflow_code,
+            business_intent="IMAGE_DESIGN_ONLY",
             data=job.submitted_payload_json,
             priority="Normal",
         )

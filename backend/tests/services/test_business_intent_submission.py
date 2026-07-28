@@ -93,8 +93,14 @@ class TestBusinessIntentMapping:
     def test_mapping_table_contains_only_registered_pipelines(self):
         """Confirms the other 4 frontend-offered pipelines remain
         deliberately unmapped - this fix does not invent business_intent
-        assignments DEV-TOOLS hasn't actually registered."""
-        assert set(_LOCAL_PIPELINE_TO_BUSINESS_INTENT.keys()) == {"ZONING_ANALYSIS"}
+        assignments DEV-TOOLS hasn't actually registered.
+
+        AIHOME Phase 1 (Phase C): PROPERTY_INTELLIGENCE was added as a
+        new, additive entry - the canonical business intent for new
+        AIHOME functionality per the WIMLOGIC Phase 1 Architecture Lock.
+        ZONING_ANALYSIS -> PROPERTY_ANALYSIS remains completely unchanged
+        alongside it, retained as a documented legacy alias."""
+        assert set(_LOCAL_PIPELINE_TO_BUSINESS_INTENT.keys()) == {"ZONING_ANALYSIS", "PROPERTY_INTELLIGENCE"}
 
 
 # ---------------------------------------------------------------------------

@@ -32,7 +32,7 @@ wacp_adapter.get_job_results()) and maps it onto existing AI-CRE models.
 import datetime
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -40,14 +40,18 @@ from sqlalchemy.orm import Session
 from app.services.workflow_execution_service import workflow_execution_service
 from app.services.workflow_result_service import workflow_result_service
 from app.services.generated_asset_service import generated_asset_service
+from app.services.dev_tools_output_flattening import flatten_dev_tools_outputs
 
 # CRUDs (existing, unmodified) - no dedicated service layer exists yet for
 # these three tables, so they are called directly, same as elsewhere in
 # this codebase for tables without a service wrapper.
 from app.crud.project import project as crud_project
+from app.crud.property import property as crud_property
 from app.crud.concept_design import concept_design as crud_concept_design
 from app.crud.estimate import estimate as crud_estimate
 from app.crud.zoning_note import zoning_note as crud_zoning_note
+
+from app.services.business_report_builder import build_business_report
 
 # Schemas (existing, unmodified)
 from app.schemas.workflow_execution import WorkflowExecutionUpdate
@@ -61,6 +65,11 @@ from app.schemas.zoning_note import ZoningNoteCreate
 
 # Models (existing, unmodified)
 from app.models.workflow_execution import WorkflowExecution
+from app.models.workflow_result import WorkflowResult
+from app.models.property_analysis_report import PropertyAnalysisReport
+
+from app.crud.property_analysis_report import property_analysis_report as crud_property_analysis_report
+from app.schemas.property_analysis_report import PropertyAnalysisReportUpdate
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +146,14 @@ def _select_final_output(result_data: Dict[str, Any]) -> Dict[str, Any]:
     skipped here - see _extract_non_final_json_outputs() below, which
     persists it separately rather than discarding it outright.
 
+    Also transparently supports the WIM Module V2 merged shape, where
+    `result_data["outputs"]` contains a single wrapper entry whose own
+    content holds a `workflows` list of nested outputs -
+    flatten_dev_tools_outputs() unwraps that structure first, so this
+    function's own selection logic (by content, never by array position,
+    never by which workflow produced it) is completely unchanged and
+    applies identically either way.
+
     Falls back to two older shapes for backward compatibility with any
     already-persisted execution whose payload predates this verified
     contract - the legacy top-level "property_analysis" key, and a bare
@@ -148,27 +165,25 @@ def _select_final_output(result_data: Dict[str, Any]) -> Dict[str, Any]:
     recognized was found - callers detect "nothing usable" by checking
     the returned dict's own contents (see _sync_completed_job).
     """
-    outputs = result_data.get("outputs")
-    if isinstance(outputs, list):
-        for output in outputs:
-            if not isinstance(output, dict) or output.get("output_type") != "json":
-                continue
-            content = output.get("content")
-            if not isinstance(content, str):
-                continue
-            try:
-                parsed = json.loads(content)
-            except (json.JSONDecodeError, TypeError) as exc:
-                logger.warning(
-                    "Skipping unparseable 'json' output (title=%r) while selecting the Final "
-                    "Property Analysis: %s", output.get("title"), exc,
-                )
-                continue
-            if isinstance(parsed, dict) and "executive_summary" in parsed:
-                return parsed
-        # An "outputs" list was present but no entry's parsed content
-        # contained "executive_summary" - fall through to the legacy
-        # checks below rather than assuming malformed outright.
+    for output in flatten_dev_tools_outputs(result_data):
+        if output.get("output_type") != "json":
+            continue
+        content = output.get("content")
+        if not isinstance(content, str):
+            continue
+        try:
+            parsed = json.loads(content)
+        except (json.JSONDecodeError, TypeError) as exc:
+            logger.warning(
+                "Skipping unparseable 'json' output (title=%r) while selecting the Final "
+                "Property Analysis: %s", output.get("title"), exc,
+            )
+            continue
+        if isinstance(parsed, dict) and "executive_summary" in parsed:
+            return parsed
+    # No entry's parsed content (flat or unwrapped from a WIM V2
+    # wrapper) contained "executive_summary" - fall through to the
+    # legacy checks below rather than assuming malformed outright.
 
     if "property_analysis" in result_data:
         return result_data
@@ -181,25 +196,25 @@ def _select_final_output(result_data: Dict[str, Any]) -> Dict[str, Any]:
 
 def _extract_non_final_json_outputs(result_data: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Returns every OTHER `output_type == "json"` entry from
-    `result_data["outputs"]` besides the Final Property Analysis (e.g.
-    the Property Validation output) - stored separately as their own
-    ResultSection rows (§ "Validation output ignored (or stored
-    separately if already supported)" - it IS already supported, via the
-    existing generic ResultSection shape, so this stores rather than
-    discards). Identifies the Final Property Analysis the same way
-    _select_final_output() does (presence of "executive_summary"), so
-    the two functions can never disagree about which output is which.
-    Each entry's `content` is parsed if it's valid JSON; otherwise the
-    raw string is kept as-is rather than dropping the output entirely.
+    Returns every OTHER `output_type == "json"` entry (besides the Final
+    Property Analysis) from the normalized output list -
+    flatten_dev_tools_outputs() unwraps a WIM Module V2 wrapper the same
+    way _select_final_output() does, so for a WIM V2 job this naturally
+    includes every child workflow's own output (e.g. Damage Detection,
+    Room Classification, Property Risk), not just a legacy Property
+    Validation output - all stored as their own ResultSection rows (§
+    "Validation output ignored (or stored separately if already
+    supported)" - it IS already supported, via the existing generic
+    ResultSection shape, so this stores rather than discards). Identifies
+    the Final Property Analysis the same way _select_final_output() does
+    (presence of "executive_summary"), so the two functions can never
+    disagree about which output is which. Each entry's `content` is
+    parsed if it's valid JSON; otherwise the raw string is kept as-is
+    rather than dropping the output entirely.
     """
-    outputs = result_data.get("outputs")
-    if not isinstance(outputs, list):
-        return []
-
     extras: List[Dict[str, Any]] = []
-    for output in outputs:
-        if not isinstance(output, dict) or output.get("output_type") != "json":
+    for output in flatten_dev_tools_outputs(result_data):
+        if output.get("output_type") != "json":
             continue
         content = output.get("content")
         if not isinstance(content, str):
@@ -317,7 +332,7 @@ def _sync_zoning_notes(
 
 
 def _sync_completed_job(
-    db: Session, *, execution: WorkflowExecution, payload: Dict[str, Any]
+    db: Session, *, execution: WorkflowExecution, payload: Dict[str, Any], local_status: str = "Completed"
 ) -> WorkflowExecution:
     """
     Handles a "completed" DEV-TOOLS result payload. Steps 1-4 (workflow
@@ -326,6 +341,15 @@ def _sync_completed_job(
     ai_orchestration_service.receive_workflow_callback(); steps 5-7
     (concept designs, estimates, zoning notes) are new, per the Phase 4
     extension.
+
+    `local_status` is the exact execution-status string this job
+    completed as - "Completed" (the default, and the only value used by
+    any pre-existing caller) or "Completed with Warnings" (WIM Module V2's
+    COMPLETED_WITH_WARNINGS terminal state, mapped by
+    ai_orchestration_service._map_remote_status). Every step of the
+    synchronization below (workflow result, sections, reports, assets) is
+    identical either way - only the final execution.status write at the
+    end of this function reflects which one actually happened.
     """
     result_version = payload.get("version", "1.0.0")
     # Verified DEV-TOOLS contract (confirmed directly by the DEV-TOOLS
@@ -336,7 +360,23 @@ def _sync_completed_job(
     # under payload["results"]) is preserved ONLY as a fallback for any
     # already-persisted historical payload that predates this contract -
     # never used when "outputs" is actually present.
-    result_data = payload if "outputs" in payload else payload.get("results", {})
+    #
+    # WACP 1.1 / WIM Module V2 (backend/wacp/WACP_PROTOCOL_1_1.md): a
+    # terminal result may instead carry `combined_outputs` and/or
+    # `workflow_results` at this SAME top level, with `outputs` present
+    # only as a backward-compatible alias - which the spec's own example
+    # always shows populated alongside them, but is not guaranteed
+    # non-empty in every real response. Recognizing either key here
+    # (not just "outputs") ensures `result_data` is `payload` itself
+    # whenever ANY of the three business-content keys is present -
+    # otherwise a combined_outputs/workflow_results-only payload would
+    # incorrectly collapse to {} before flatten_dev_tools_outputs (which
+    # already handles all three) ever sees it.
+    result_data = (
+        payload
+        if any(key in payload for key in ("outputs", "combined_outputs", "workflow_results"))
+        else payload.get("results", {})
+    )
 
     # 1. Create Raw Workflow Result
     result_in = WorkflowResultCreate(
@@ -442,6 +482,25 @@ def _sync_completed_job(
         # takeaway) for any older code still reading that one column -
         # the full detail lives in report_json and the ResultSection rows
         # above, not squeezed into the narrow legacy fields.
+        #
+        # report_json now holds the normalized Business Report JSON
+        # (business_report_builder.build_business_report), not the raw
+        # final_output dict - per the simplified architecture, AIHOME's
+        # backend is where DEV-TOOLS' output gets interpreted into one
+        # business report; the frontend only renders section.type
+        # generically from here on. property_identity is AIHOME's OWN
+        # Property row data, not derived from the AI output, since
+        # AIHOME owns Business Data.
+        property_obj = crud_property.get(db, execution.property_id)
+        property_identity = (
+            {
+                "property_id": property_obj.id,
+                "property_uid": property_obj.property_uid,
+                "address": property_obj.address,
+            }
+            if property_obj else {}
+        )
+        business_report = build_business_report(result_data, report_type=execution.workflow_code, property_identity=property_identity)
         report_in = PropertyAnalysisReportCreate(
             project_id=project_id_str,
             property_id=execution.property_id,
@@ -452,7 +511,7 @@ def _sync_completed_job(
             risk_notes=None,
             recommendation=final_output.get("conclusion"),
             score=None,
-            report_json=final_output,
+            report_json=business_report if business_report is not None else final_output,
             workflow_execution_id=execution.execution_id,
             workflow_result_id=result_obj.result_id,
             analysis_version=result_version,
@@ -482,6 +541,19 @@ def _sync_completed_job(
             completed_at=datetime.datetime.now(),
         )
     workflow_result_service.create_report(db, report_in=report_in)
+
+    # 3b. AIHOME Image Result Integration - IMAGE_DESIGN workflow support.
+    # Eager import, at sync time, not lazily when a user opens the
+    # Results page. THIS CALL WAS CONFIRMED MISSING FROM THIS FILE -
+    # design_result_service.ingest_image_design_results() has been
+    # correct and fully tested for several sessions, but was never
+    # actually invoked from anywhere in the real job-completion path,
+    # which is why no IMAGE_DESIGN result has ever been imported despite
+    # every other piece of the pipeline working correctly in isolation.
+    # A result with no design_images at all (the overwhelming majority
+    # of jobs) is a cheap no-op here.
+    from app.services.design_result_service import ingest_image_design_results
+    ingest_image_design_results(db, execution=execution, result_data=result_data)
 
     # 4. Populate associated Assets generated by the workflow (e.g. PDF briefs).
     # Per the standard Enterprise Result Contract, generated_assets lives
@@ -534,9 +606,11 @@ def _sync_completed_job(
     # update_execution). Since result_sync.py is now the single
     # synchronization implementation, this is corrected here so both
     # completion and failure consistently update execution state the
-    # same way.
+    # same way. Uses local_status (not a hardcoded "Completed") so a
+    # COMPLETED_WITH_WARNINGS job correctly ends up displayed as
+    # "Completed with Warnings", not silently collapsed to "Completed".
     update_in = WorkflowExecutionUpdate(
-        status="Completed",
+        status=local_status,
         completed_at=datetime.datetime.now(),
     )
     workflow_execution_service.update_execution(db, execution_id=execution.execution_id, execution_in=update_in)
@@ -545,8 +619,12 @@ def _sync_completed_job(
         db,
         execution_id=execution.execution_id,
         event_type="SYSTEM",
-        status="Completed",
-        message="Workflow analysis successfully processed. Reports and generated assets have been cached.",
+        status=local_status,
+        message=(
+            "Workflow analysis successfully processed. Reports and generated assets have been cached."
+            if local_status == "Completed"
+            else "Workflow analysis processed with warnings. Reports and generated assets have been cached."
+        ),
     )
 
     db.refresh(execution)
@@ -586,14 +664,166 @@ def sync_job_result(
     today; future polling via wacp_adapter.get_job_results() will call
     this exact same function with the same payload shape).
 
-    Already-finalized executions (Completed/Failed) are returned unchanged,
-    matching the existing idempotency guard from the original callback.
+    Already-finalized executions (Completed/Completed with Warnings/
+    Failed/Cancelled - the two "Completed" variants are exempted from
+    the *second* fetch+sync no less than the original single-status
+    guard was) are returned unchanged, matching the existing idempotency
+    guard from the original callback.
+
+    `status` may arrive in either of two forms depending on caller: the
+    webhook callback (receive_workflow_callback) passes DEV-TOOLS' own
+    raw wire-format string verbatim (any casing - "COMPLETED",
+    "completed", "Completed with warnings", etc.), while polling
+    (check_workflow_status) passes the value already normalized through
+    ai_orchestration_service._map_remote_status (e.g. "Completed with
+    Warnings", Title Case). Both terminal-success spellings are matched
+    case-insensitively here for exactly that reason - this function
+    cannot assume its caller already normalized the string. A tiny,
+    local two-entry mapping is used rather than importing
+    _map_remote_status from ai_orchestration_service, which already
+    imports FROM this module (result_sync.sync_job_result) - reusing it
+    here would create a circular import for the sake of two string
+    comparisons.
     """
-    if execution.status in ("Completed", "Failed"):
+    if execution.status in ("Completed", "Completed with Warnings", "Failed", "Cancelled"):
         return execution
 
-    if status.lower() == "completed":
-        return _sync_completed_job(db, execution=execution, payload=payload)
+    # Normalizes both the raw DEV-TOOLS wire format (underscore-separated,
+    # e.g. "COMPLETED_WITH_WARNINGS") and the already-mapped local display
+    # form (space-separated, e.g. "Completed with Warnings") to the same
+    # comparable string - the webhook callback passes the former
+    # verbatim; polling passes the latter (already run through
+    # _map_remote_status). Without this, a raw webhook callback for
+    # COMPLETED_WITH_WARNINGS would fail to match and incorrectly fall
+    # through to the failure path below.
+    normalized = status.strip().lower().replace("_", " ")
+    if normalized == "completed with warnings":
+        return _sync_completed_job(db, execution=execution, payload=payload, local_status="Completed with Warnings")
+    if normalized == "completed":
+        return _sync_completed_job(db, execution=execution, payload=payload, local_status="Completed")
 
     error_msg = payload.get("error_message", "Unknown WIMLOGIC orchestrator execution error.")
     return _sync_failed_job(db, execution=execution, error_message=error_msg)
+
+
+def _is_normalized_business_report(candidate: Any) -> bool:
+    """
+    Recognizes the normalized Business Report JSON contract
+    (report_version "1.0") by shape, so a PropertyAnalysisReport whose
+    report_json predates this contract (the raw flat final_output dict a
+    pre-fix result_sync.py stored, or a legacy `property_analysis`-shape
+    row) is never mistaken for an already-built report. Checking for the
+    presence of "sections" as a list is sufficient and intentionally
+    lightweight - this is a shape check, not full schema validation.
+    """
+    return isinstance(candidate, dict) and isinstance(candidate.get("sections"), list)
+
+
+def get_or_build_business_report(db: Session, *, workflow_result_id: int) -> Optional[Dict[str, Any]]:
+    """
+    The one place AIHOME loads a Business Report for a WorkflowResult -
+    used by the API layer (GET /workflow-results/{id}/business-report)
+    and by anything else that needs "the report for this result",
+    present or historical.
+
+        Load Workflow Result
+                v
+        Does a normalized PropertyAnalysisReport already exist?
+          YES -> use it
+          NO  -> build one from the stored response_json
+                 (business_report_builder.build_business_report -
+                 the exact same deterministic builder used at sync time)
+                 -> persist it for future requests (best-effort; a
+                    missing property association skips the write but
+                    still returns the built report)
+        Continue rendering normally either way.
+
+    This closes the "two generations of reports" gap: a job processed
+    before WIM V2 support existed (report_json missing, or in the old
+    raw-final-output shape) is rebuilt on first request from its already-
+    stored response_json - no reprocessing, no migration, no re-running
+    the original DEV-TOOLS job. build_business_report() is a pure
+    function of its input (classification and interpretation carry no
+    hidden state), so calling this twice for the same stored
+    response_json always produces the same report content - the only
+    field that legitimately differs between calls is `generated_at`,
+    which reflects when THIS build happened, same as any cache
+    timestamp.
+
+    Returns None only if no WorkflowResult exists for this ID, or its
+    stored response_json cannot be parsed/interpreted into any report at
+    all (the same "nothing recognized" case _sync_completed_job already
+    handles at sync time).
+    """
+    result_obj = db.get(WorkflowResult, workflow_result_id)
+    if result_obj is None:
+        return None
+
+    existing = crud_property_analysis_report.get_multi(db, workflow_result_id=workflow_result_id, limit=1)[0]
+    existing_report = existing[0] if existing else None
+    if existing_report is not None and _is_normalized_business_report(existing_report.report_json):
+        return existing_report.report_json
+
+    if not result_obj.response_json:
+        return None
+    try:
+        result_data = json.loads(result_obj.response_json)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning("Cannot rebuild business report for workflow_result_id=%s: response_json is not valid JSON.", workflow_result_id)
+        return None
+
+    execution = db.get(WorkflowExecution, result_obj.execution_id)
+    property_obj = crud_property.get(db, execution.property_id) if execution and execution.property_id else None
+    property_identity = (
+        {"property_id": property_obj.id, "property_uid": property_obj.property_uid, "address": property_obj.address}
+        if property_obj else {}
+    )
+    report_type = (execution.workflow_code if execution else None) or result_obj.result_type
+
+    business_report = build_business_report(result_data, report_type=report_type, property_identity=property_identity)
+    if business_report is None:
+        return None
+
+    # Persist for future requests - best-effort. PropertyAnalysisReport.
+    # property_id is NOT NULL, so a result whose execution has no
+    # property association cannot be persisted this way; the freshly
+    # built report is still returned so rendering succeeds regardless.
+    if execution and execution.property_id:
+        project_obj = crud_project.get(db, execution.project_id) if execution.project_id else None
+        project_id_str = project_obj.project_id if project_obj else "unknown"
+        try:
+            if existing_report is not None:
+                # A row exists but predates the normalized contract (old
+                # raw-final-output shape) - update it in place rather
+                # than creating a second, duplicate report row for the
+                # same workflow_result_id.
+                crud_property_analysis_report.update(
+                    db, db_obj=existing_report,
+                    obj_in=PropertyAnalysisReportUpdate(report_json=business_report),
+                )
+            else:
+                report_in = PropertyAnalysisReportCreate(
+                    project_id=project_id_str,
+                    property_id=execution.property_id,
+                    scenario_id=execution.scenario_id,
+                    recommendation=business_report.get("executive_summary"),
+                    report_json=business_report,
+                    workflow_execution_id=execution.execution_id,
+                    workflow_result_id=workflow_result_id,
+                    analysis_version=result_obj.result_version,
+                    workflow_status="Completed",
+                    completed_at=result_obj.received_at,
+                )
+                workflow_result_service.create_report(db, report_in=report_in)
+        except Exception:
+            # Persistence is explicitly best-effort per the approved
+            # design ("(Optional) Persist... for future requests") - a
+            # failure here must never prevent the already-built report
+            # from being returned and rendered this request.
+            logger.exception(
+                "Failed to persist lazily-built business report for workflow_result_id=%s; "
+                "returning the built report without persisting it.", workflow_result_id,
+            )
+            db.rollback()
+
+    return business_report

@@ -1,0 +1,39 @@
+.intentCheckboxList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.intentCheckboxRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--color-neutral-700);
+  cursor: pointer;
+}
+
+.intentCheckboxRow input[type='checkbox']:disabled {
+  cursor: not-allowed;
+}
+
+.intentHelpText {
+  font-size: 0.75rem;
+  color: var(--color-neutral-400);
+  margin: 0.75rem 0 0 0;
+}
+
+.intentWarningText {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--color-danger-600, #dc2626);
+  margin: 0.75rem 0 0 0;
+}
+
+.intentWarningIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}

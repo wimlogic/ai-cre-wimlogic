@@ -22,6 +22,7 @@ import EnterpriseSelect from '../components/EnterpriseSelect';
 import EmptyState from '../components/EmptyState';
 import LoadingState from '../components/LoadingState';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PropertyImageVersionsPanel from '../components/PropertyImageVersionsPanel';
 import StatusBadge from '../components/StatusBadge';
 import FormField from '../components/FormField';
 import useToast from '../hooks/useToast';
@@ -749,6 +750,12 @@ export default function PropertyImages() {
                   />
                 </FormField>
               </div>
+
+              {/* AIHOME Phase 1 (Phase D) - Versions / Compare / Approval,
+                  added below the existing Details content, unchanged
+                  above. Expandable sections in a single continuous
+                  scroll, not tabs, per the approved revision. */}
+              <PropertyImageVersionsPanel propertyImage={detailImage} />
             </div>
 
             <div className={styles.detailFooter}>

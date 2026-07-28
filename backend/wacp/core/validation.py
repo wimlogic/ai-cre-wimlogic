@@ -82,6 +82,27 @@ def validate_envelope(
             WACP_101, "business_intent or workflow_code must be provided."
         )
 
+    if envelope.additional_business_intents is not None:
+        # WACP 1.1 field on a 1.0 envelope is WACP-101
+        # (backend/wacp/WACP_PROTOCOL_1_1.md, "WACP 1.0 compatibility").
+        if envelope.version != "1.1":
+            raise WacpEnvelopeError(
+                WACP_101,
+                "additional_business_intents is only valid when wacp.version is '1.1' "
+                f"(envelope declares version {envelope.version!r}).",
+            )
+        if not isinstance(envelope.additional_business_intents, list):
+            raise WacpEnvelopeError(
+                WACP_101, "additional_business_intents must be an array of strings."
+            )
+        for item in envelope.additional_business_intents:
+            if not isinstance(item, str) or not item.strip():
+                raise WacpEnvelopeError(
+                    WACP_101,
+                    "additional_business_intents entries must be non-empty strings "
+                    f"(got {item!r}).",
+                )
+
     if not is_valid_request_id(envelope.request_id):
         raise WacpEnvelopeError(
             WACP_101, f"request_id is not a well-formed UUIDv7/ULID: {envelope.request_id!r}."

@@ -21,6 +21,8 @@ from app.api.zoning_note import router as zoning_note_router
 from app.api.ai_orchestration import router as ai_orchestration_router
 from app.api.design_studio_tool import router as design_studio_tool_router
 from app.api.design_studio_job import router as design_studio_job_router
+from app.api.design_studio_image_version import router as design_studio_image_version_router
+from app.api.design_studio_baseline import router as design_studio_baseline_router
 
 api_router = APIRouter()
 
@@ -48,3 +50,17 @@ api_router.include_router(ai_orchestration_router, prefix="/ai-orchestration", t
 # Design Studio (V1.1C/D) - approved namespace: /api/v1/design-studio/*
 api_router.include_router(design_studio_tool_router, prefix="/design-studio/tools", tags=["Design Studio - Tools"])
 api_router.include_router(design_studio_job_router, prefix="/design-studio/jobs", tags=["Design Studio - Jobs"])
+
+# AIHOME Phase 1 (Phase D) - same approved namespace, activating the
+# previously-dormant Design Image Version / Approved Design Baseline
+# tables (schema/CRUD already existed; this is the first API surface
+# for either).
+api_router.include_router(design_studio_image_version_router, prefix="/design-studio/image-versions", tags=["Design Studio - Image Versions"])
+api_router.include_router(design_studio_baseline_router, prefix="/design-studio/baselines", tags=["Design Studio - Baselines"])
+
+# TEMPORARY DEBUGGING FEATURE - see app/services/wacp_debug_intercept.py
+# for full removal instructions. Every endpoint here 404s unless
+# settings.WACP_DEBUG_INTERCEPT is True, so registering the router is
+# harmless with the flag off (the default).
+from app.api.wacp_debug import router as wacp_debug_router
+api_router.include_router(wacp_debug_router, prefix="/wacp-debug", tags=["WACP Debug (temporary)"])

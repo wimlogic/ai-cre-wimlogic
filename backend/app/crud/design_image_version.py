@@ -17,7 +17,9 @@ class CRUDDesignImageVersion:
         return result or 0
 
     def get_multi(
-        self, db: Session, *, skip: int = 0, limit: int = 100, design_job_id: Optional[int] = None, property_id: Optional[int] = None, status: Optional[str] = None
+        self, db: Session, *, skip: int = 0, limit: int = 100, design_job_id: Optional[int] = None,
+        property_id: Optional[int] = None, workflow_execution_id: Optional[int] = None,
+        status: Optional[str] = None
     ) -> Tuple[List[DesignImageVersion], int]:
         query = select(DesignImageVersion)
 
@@ -25,6 +27,8 @@ class CRUDDesignImageVersion:
             query = query.where(DesignImageVersion.design_job_id == design_job_id)
         if property_id is not None:
             query = query.where(DesignImageVersion.property_id == property_id)
+        if workflow_execution_id is not None:
+            query = query.where(DesignImageVersion.workflow_execution_id == workflow_execution_id)
         if status:
             query = query.where(DesignImageVersion.status == status)
 

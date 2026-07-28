@@ -46,6 +46,7 @@ from app.crud.design_tool_image_requirement import design_tool_image_requirement
 from app.crud.project_property import project_property as crud_project_property
 from app.crud.property import property as crud_property
 from app.crud.property_image import property_image as crud_property_image
+from app.crud.design_image_version import design_image_version as crud_design_image_version
 
 from app.schemas.design_job import DesignJobCreate, DesignJobConfigureImageItem
 from app.schemas.design_job_image import DesignJobImageCreate
@@ -62,6 +63,7 @@ from app.models.design_job import DesignJob
 from app.models.design_job_image import DesignJobImage
 from app.models.design_tool_option import DesignToolOption
 from app.models.property_image import PropertyImage
+from app.models.design_image_version import DesignImageVersion
 
 
 class DesignJobNotFoundError(ValueError):
@@ -171,6 +173,25 @@ class DesignJobService:
             "status": image.status,
         }
 
+    def _build_image_version_knowledge_snapshot(self, version: DesignImageVersion) -> Dict[str, Any]:
+        """
+        The DesignImageVersion counterpart to _build_image_knowledge_snapshot
+        above - AIHOME Design Studio V2. A point-in-time business
+        snapshot of the permanent Design Asset being used as a reference
+        input, not a live reference: version_number/status/provenance at
+        the moment it was selected for THIS Design Job, independent of
+        whatever the asset's current state becomes later.
+        """
+        return {
+            "source_image_version_id": version.id,
+            "version_uid": version.version_uid,
+            "version_number": version.version_number,
+            "status": version.status,
+            "source_provider": version.source_provider,
+            "source_model": version.source_model,
+            "quality_approved": version.quality_approved,
+        }
+
     def set_images(
         self, db: Session, *, job_id: int, images: List[DesignJobConfigureImageItem]
     ) -> Optional[List[DesignJobImage]]:
@@ -180,11 +201,23 @@ class DesignJobService:
         maps to 404). Raises DesignJobValidationError for every known
         business-rule violation (router maps to 400):
             - Design Job not in 'draft' status
-            - duplicate property_image_id values in the request
-            - any requested Property Image ID that does not exist
-            - any requested image belonging to a different Property than
-              the Design Job's own property_id
-            - any requested image that is soft-deleted
+            - duplicate values (property_image_id OR source_image_version_id) in the request
+            - any requested Property Image ID or DesignImageVersion ID that does not exist
+            - any requested Property Image belonging to a different Property
+            - any requested DesignImageVersion belonging to a different Property
+              (via its own property_id column - a permanent Design Asset
+              always belongs to exactly one Property, the same as an
+              original photo)
+            - any requested Property Image that is soft-deleted
+
+        AIHOME Design Studio V2 - Image Workspace Evolution: each item is
+        EITHER an original Property Image OR a prior DesignImageVersion
+        (a permanent Design Asset, never a transient workflow output) -
+        DesignJobConfigureImageItem's own validator already enforces
+        exactly one is set per item; this method resolves whichever one
+        it is and snapshots it accordingly. The two id spaces never
+        collide (never compared against each other), so duplicate
+        checking is done separately per source type.
 
         input_role is NOT validated against PropertyImage.image_role -
         the two are intentionally independent (Design Job input context
@@ -216,18 +249,21 @@ class DesignJobService:
                     f"Design Job {job_id} is not in draft status (status='{job.status}'); images cannot be reconfigured"
                 )
 
-            requested_ids = [item.property_image_id for item in images]
-            if len(requested_ids) != len(set(requested_ids)):
+            property_item_ids = [item.property_image_id for item in images if item.property_image_id is not None]
+            version_item_ids = [item.source_image_version_id for item in images if item.source_image_version_id is not None]
+            if len(property_item_ids) != len(set(property_item_ids)):
                 raise DesignJobValidationError("Duplicate property_image_id values in the request")
+            if len(version_item_ids) != len(set(version_item_ids)):
+                raise DesignJobValidationError("Duplicate source_image_version_id values in the request")
 
             found_by_id: Dict[int, PropertyImage] = {}
-            if requested_ids:
-                found_images = crud_property_image.get_by_ids(db, requested_ids)
+            if property_item_ids:
+                found_images = crud_property_image.get_by_ids(db, property_item_ids)
                 found_by_id = {img.id: img for img in found_images}
-                missing_ids = [rid for rid in requested_ids if rid not in found_by_id]
+                missing_ids = [rid for rid in property_item_ids if rid not in found_by_id]
                 if missing_ids:
                     raise DesignJobValidationError(f"Property Image IDs not found: {missing_ids}")
-                for rid in requested_ids:
+                for rid in property_item_ids:
                     img = found_by_id[rid]
                     if img.property_id != job.property_id:
                         raise DesignJobValidationError(
@@ -237,14 +273,31 @@ class DesignJobService:
                     if img.is_deleted == 1:
                         raise DesignJobValidationError(f"Property Image {rid} is deleted and cannot be selected")
 
+            found_version_by_id: Dict[int, DesignImageVersion] = {}
+            for vid in version_item_ids:
+                version = crud_design_image_version.get(db, vid)
+                if not version:
+                    raise DesignJobValidationError(f"Design Image Version {vid} not found")
+                if version.property_id != job.property_id:
+                    raise DesignJobValidationError(
+                        f"Design Image Version {vid} belongs to Property {version.property_id}, "
+                        f"not this Design Job's Property ({job.property_id})"
+                    )
+                found_version_by_id[vid] = version
+
             crud_design_job_image.remove_by_design_job(db, design_job_id=job_id, commit=False)
             new_rows: List[DesignJobImage] = []
             for idx, item in enumerate(images):
-                src_image = found_by_id[item.property_image_id]
-                snapshot = self._build_image_knowledge_snapshot(src_image)
+                if item.property_image_id is not None:
+                    src_image = found_by_id[item.property_image_id]
+                    snapshot = self._build_image_knowledge_snapshot(src_image)
+                else:
+                    src_version = found_version_by_id[item.source_image_version_id]
+                    snapshot = self._build_image_version_knowledge_snapshot(src_version)
                 obj_in = DesignJobImageCreate(
                     design_job_id=job_id,
                     property_image_id=item.property_image_id,
+                    source_image_version_id=item.source_image_version_id,
                     input_role=item.input_role,
                     image_knowledge_snapshot_json=snapshot,
                     display_order=idx + 1,
@@ -414,6 +467,26 @@ class DesignJobService:
             allowed_roles = req.allowed_image_roles_json
             if not allowed_roles:
                 continue  # NULL/empty = any snapshotted image_role permitted
+            # AIHOME Design Studio V2 - Image Workspace Evolution. A
+            # version-sourced image (source_image_version_id set,
+            # property_image_id null) has no image_role to check here -
+            # allowed_image_roles_json restricts which Property Image
+            # BUSINESS role (Kitchen/Exterior/etc.) may satisfy a
+            # requirement, a concept that has never applied to a prior
+            # AI-generated Design Asset. Before this fix, every
+            # version-sourced image failed here unconditionally: its
+            # snapshot has no "image_role" key at all (see
+            # _build_image_version_knowledge_snapshot), so
+            # snapshot.get("image_role") always resolved to None, and
+            # None is never a member of any real allowed_roles list -
+            # confirmed as the actual cause of every submission failing
+            # for jobs mixing an AI version with a role-restricted Tool.
+            # The user explicitly selected this Design Asset as a
+            # reference; that selection is trusted the same way an
+            # original photo's role match is, not re-validated against a
+            # business concept that doesn't apply to it.
+            if img.property_image_id is None:
+                continue
             snapshot = img.image_knowledge_snapshot_json or {}
             snapshotted_role = snapshot.get("image_role")
             if snapshotted_role not in allowed_roles:

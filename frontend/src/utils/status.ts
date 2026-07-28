@@ -61,6 +61,10 @@ export const WORKFLOW_STATUS_MAP: Record<string, StatusConfig> = {
   running: { label: 'Running', variant: 'primary' },
   completed: { label: 'Completed', variant: 'success' },
   succeeded: { label: 'Succeeded', variant: 'success' },
+  // WIM Module V2 terminal SUCCESS state (COMPLETED_WITH_WARNINGS) - a
+  // job that finished successfully but with non-fatal warnings. Warning-
+  // toned (amber), never error-toned (red): the job did NOT fail.
+  'completed with warnings': { label: 'Completed with Warnings', variant: 'warning' },
   failed: { label: 'Failed', variant: 'error' },
   cancelled: { label: 'Cancelled', variant: 'neutral' },
 };
@@ -82,6 +86,30 @@ export const DESIGN_JOB_STATUS_MAP: Record<string, StatusConfig> = {
   completed: { label: 'Completed', variant: 'success' },
   failed: { label: 'Failed', variant: 'error' },
   cancelled: { label: 'Cancelled', variant: 'neutral' },
+};
+
+/**
+ * AIHOME Result Rendering Framework — severity vs. confidence.
+ *
+ * These two maps use the SAME words ("Low", "Medium", "High") for
+ * opposite semantic meanings, so they are deliberately kept separate
+ * rather than sharing one map: a "Low" RISK is good news (green), while
+ * "Low" CONFIDENCE is a caution about the assessment itself, not a
+ * finding of severity - it always renders neutral, never colored as if
+ * it were a risk level. Consumers must pick the correct type; there is
+ * no shared "Low" entry that could accidentally apply the wrong tone.
+ */
+export const SEVERITY_STATUS_MAP: Record<string, StatusConfig> = {
+  critical: { label: 'Critical', variant: 'error' },
+  high: { label: 'High', variant: 'error' },
+  medium: { label: 'Medium', variant: 'warning' },
+  low: { label: 'Low', variant: 'success' },
+};
+
+export const CONFIDENCE_STATUS_MAP: Record<string, StatusConfig> = {
+  high: { label: 'High Confidence', variant: 'neutral' },
+  medium: { label: 'Medium Confidence', variant: 'neutral' },
+  low: { label: 'Low Confidence', variant: 'neutral' },
 };
 
 /**
@@ -107,7 +135,7 @@ export function isTerminalWorkflowStatus(rawStatus: string | undefined | null): 
  */
 export function getStatusConfig(
   rawStatus: string | undefined | null,
-  type: 'project' | 'property' | 'workflow' | 'designJob'
+  type: 'project' | 'property' | 'workflow' | 'designJob' | 'severity' | 'confidence'
 ): StatusConfig {
   if (!rawStatus) return DEFAULT_STATUS_CONFIG;
   const normalized = rawStatus.trim().toLowerCase();
@@ -119,7 +147,11 @@ export function getStatusConfig(
         ? PROPERTY_STATUS_MAP
         : type === 'designJob'
           ? DESIGN_JOB_STATUS_MAP
-          : WORKFLOW_STATUS_MAP;
+          : type === 'severity'
+            ? SEVERITY_STATUS_MAP
+            : type === 'confidence'
+              ? CONFIDENCE_STATUS_MAP
+              : WORKFLOW_STATUS_MAP;
 
   return (
     map[normalized] || {

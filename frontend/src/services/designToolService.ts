@@ -32,11 +32,23 @@ export const designToolService = {
     return apiClient.get<DesignTool>(`/design-studio/tools/${toolId}`);
   },
 
-  async getOptions(toolId: number): Promise<ListResponse<DesignToolOption>> {
-    return apiClient.get<ListResponse<DesignToolOption>>(`/design-studio/tools/${toolId}/options`);
+  /**
+   * NOTE: these two nested endpoints return a PLAIN ARRAY, not a
+   * {items, count} envelope - the backend declares
+   * `response_model=List[DesignToolOptionRead]` /
+   * `List[DesignToolImageRequirementRead]`, unlike the paginated
+   * top-level list() above. Typing them as ListResponse<T> (the prior
+   * signature) made `res.items` always undefined at every call site,
+   * silently yielding an empty list instead of the real data - the
+   * confirmed cause of Tool Options and Image Requirements never
+   * loading, and therefore of the workspace's pre-submit validation
+   * never running at all.
+   */
+  async getOptions(toolId: number): Promise<DesignToolOption[]> {
+    return apiClient.get<DesignToolOption[]>(`/design-studio/tools/${toolId}/options`);
   },
 
-  async getImageRequirements(toolId: number): Promise<ListResponse<DesignToolImageRequirement>> {
-    return apiClient.get<ListResponse<DesignToolImageRequirement>>(`/design-studio/tools/${toolId}/image-requirements`);
+  async getImageRequirements(toolId: number): Promise<DesignToolImageRequirement[]> {
+    return apiClient.get<DesignToolImageRequirement[]>(`/design-studio/tools/${toolId}/image-requirements`);
   },
 };

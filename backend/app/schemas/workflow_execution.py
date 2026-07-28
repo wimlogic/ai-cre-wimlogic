@@ -19,6 +19,10 @@ class WorkflowExecutionBase(BaseModel):
     error_message: Optional[str] = None
     result_sync_error: Optional[str] = None
     metadata_json: Optional[Dict[str, Any]] = None
+    # WACP 1.1 / WIM Module V2 - AIHOME's own audit record of the ordered
+    # follow-on Business Intents requested alongside business_intent.
+    # NULL for every WACP 1.0 single-intent execution.
+    additional_business_intents: Optional[List[str]] = None
 
 class WorkflowExecutionCreate(WorkflowExecutionBase):
     pass
@@ -40,6 +44,7 @@ class WorkflowExecutionUpdate(BaseModel):
     error_message: Optional[str] = None
     result_sync_error: Optional[str] = None
     metadata_json: Optional[Dict[str, Any]] = None
+    additional_business_intents: Optional[List[str]] = None
 
 class WorkflowExecutionRead(WorkflowExecutionBase):
     execution_id: int

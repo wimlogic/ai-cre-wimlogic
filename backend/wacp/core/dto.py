@@ -27,6 +27,13 @@ class WacpEnvelope:
     (§9); this DTO does not validate its contents beyond it being present
     as a mapping. Business-data schema validation is a DEV-TOOLS Schema
     Registry responsibility (§10), explicitly outside SDK scope.
+
+    `additional_business_intents` (WACP 1.1, backend/wacp/WACP_PROTOCOL_1_1.md)
+    is an optional ordered list of follow-on Business Intents, valid only
+    when `version` is "1.1" - enforced by wacp.core.validation, not here.
+    `business_intent` remains the primary/default intent (unchanged from
+    1.0); this field never replaces it. Belongs to the `wacp` envelope
+    block on the wire, never to `data` or `extensions`.
     """
 
     version: str
@@ -37,6 +44,7 @@ class WacpEnvelope:
     project_code: str
     data: dict[str, Any]
     business_intent: Optional[str] = None
+    additional_business_intents: Optional[list[str]] = None
     workflow_code: Optional[str] = None
     workflow_version: Optional[str] = None
     priority: Priority = Priority.NORMAL
@@ -85,10 +93,14 @@ class WacpResponseMeta:
 class WacpResponse:
     """10_WACP_PROTOCOL.md §14.1/§14.2 — the full response envelope.
 
-    `result` is populated only when `status == JobStatus.COMPLETED`;
-    `error` is populated only when `status` is `REJECTED` or `FAILED`.
-    Both default to None, matching the wire format's explicit `null` for
-    whichever one does not apply (§14.2).
+    `result` is populated for either terminal SUCCESS state -
+    `status == JobStatus.COMPLETED` or `JobStatus.COMPLETED_WITH_WARNINGS`
+    (the latter per WACP 1.1's WIM Module V2 multi-Business-Intent plan
+    behavior - a mix of completed and skipped/failed intents still
+    produces a `result` for whatever did complete). `error` is populated
+    only when `status` is `REJECTED` or `FAILED`. Both default to None,
+    matching the wire format's explicit `null` for whichever one does not
+    apply (§14.2).
     """
 
     wacp: WacpResponseMeta

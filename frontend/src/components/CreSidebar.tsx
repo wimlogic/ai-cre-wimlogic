@@ -9,8 +9,6 @@ import {
   Settings as SettingsIcon,
   LogOut
 } from 'lucide-react';
-import { motion } from 'motion/react';
-
 interface CreSidebarProps {
   currentView: string;
   onViewChange: (view: string) => void;
@@ -24,7 +22,7 @@ export default function CreSidebar({ currentView, onViewChange, activeWorkflows 
     { id: 'properties', label: 'Properties', icon: Building },
     { id: 'property-images', label: 'Property Images', icon: ImageIcon },
     { id: 'ai-orchestration', label: 'AI Orchestration', icon: Cpu },
-    { id: 'workflow-results', label: 'Workflow Results', icon: FileText },
+    { id: 'workflow-results', label: 'Workflow Results', icon: FileText, badge: activeWorkflows || undefined },
     { id: 'generated-assets', label: 'Generated Assets', icon: Download },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];

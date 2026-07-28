@@ -11,10 +11,11 @@ export const additionalService = {
     return apiClient.get<{ count: number; items: CreRenovationScenario[] }>(`/renovation-scenarios/${searchParams.toString() ? `?${searchParams.toString()}` : ''}`);
   },
 
-  listReports: async (params?: { project_id?: string; property_id?: number; search?: string }) => {
+  listReports: async (params?: { project_id?: string; property_id?: number; workflow_result_id?: number; search?: string }) => {
     const searchParams = new URLSearchParams();
     if (params?.project_id) searchParams.append('project_id', params.project_id);
     if (params?.property_id !== undefined) searchParams.append('property_id', String(params.property_id));
+    if (params?.workflow_result_id !== undefined) searchParams.append('workflow_result_id', String(params.workflow_result_id));
     if (params?.search) searchParams.append('search', params.search);
     return apiClient.get<{ count: number; items: CrePropertyAnalysisReport[] }>(`/property-analysis-reports/${searchParams.toString() ? `?${searchParams.toString()}` : ''}`);
   },

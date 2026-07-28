@@ -20,9 +20,10 @@ refactor - api/ai_orchestration.py (and therefore the existing frontend
 API contract) requires no changes.
 """
 
+import datetime
 import logging
 import uuid
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -76,6 +77,14 @@ _WACP_STATUS_TO_LOCAL: Dict[str, str] = {
     "QUEUED": "Queued",
     "RUNNING": "Running",
     "COMPLETED": "Completed",
+    # WIM Module V2 terminal SUCCESS state - a job that completed with
+    # non-fatal warnings. Mapped to its own distinct local status (never
+    # collapsed onto plain "Completed", and never treated as "Failed")
+    # so AI-CRE can display "Completed with Warnings" and optionally show
+    # a warning indicator, while every downstream consequence of
+    # completion (result retrieval, synchronization) proceeds exactly as
+    # it does for COMPLETED.
+    "COMPLETED_WITH_WARNINGS": "Completed with Warnings",
     "FAILED": "Failed",
     "CANCELLED": "Cancelled",
 }
@@ -84,7 +93,10 @@ _WACP_STATUS_TO_LOCAL: Dict[str, str] = {
 # pre-existing Completed/Failed pair now that WACP's job lifecycle (§12)
 # actively uses CANCELLED - the pre-WACP implementation only ever checked
 # ("Completed", "Failed") since the legacy protocol had no cancel concept.
-_TERMINAL_LOCAL_STATUSES = ("Completed", "Failed", "Cancelled")
+# "Completed with Warnings" is a second terminal SUCCESS state alongside
+# "Completed" (see _WACP_STATUS_TO_LOCAL above) - both must stop polling
+# and trigger result retrieval identically.
+_TERMINAL_LOCAL_STATUSES = ("Completed", "Completed with Warnings", "Failed", "Cancelled")
 
 
 def _map_remote_status(raw_wacp_status: Optional[str]) -> Optional[str]:
@@ -127,8 +139,27 @@ def _map_remote_status(raw_wacp_status: Optional[str]) -> Optional[str]:
 # an unmapped pipeline fails clearly and locally (see
 # _map_to_business_intent below) rather than sending an unregistered
 # business_intent that would just fail on DEV-TOOLS' side anyway.
+#
+# AIHOME Phase 1: PROPERTY_INTELLIGENCE is the new canonical business
+# intent (WIMLOGIC Phase 1 Architecture Lock §3) for all new AIHOME
+# functionality - added here as a genuinely NEW, additive entry, not a
+# rename of the existing ZONING_ANALYSIS mapping. ZONING_ANALYSIS ->
+# PROPERTY_ANALYSIS is left completely unchanged below, preserving
+# backward compatibility for whatever already calls it - existing
+# integrations continue to receive exactly the business_intent they
+# always have. PROPERTY_ANALYSIS itself is retained here only as a
+# documented legacy alias, per approved Phase 1 principles - not
+# deleted, not silently reinterpreted.
+#
+# This mapping is a local, in-repo lookup ONLY - it never selects a
+# workflow, workflow_template_id, or workflow_version_id. It resolves an
+# AIHOME-internal pipeline code to the business_intent STRING AIHOME
+# sends; the WIM Module on DEV-TOOLS remains exclusively responsible for
+# resolving that business_intent to an actual workflow. Nothing in this
+# module encodes or assumes which workflow template DEV-TOOLS will pick.
 _LOCAL_PIPELINE_TO_BUSINESS_INTENT: Dict[str, str] = {
-    "ZONING_ANALYSIS": "PROPERTY_ANALYSIS",
+    "ZONING_ANALYSIS": "PROPERTY_ANALYSIS",  # legacy alias - unchanged, preserved for compatibility
+    "PROPERTY_INTELLIGENCE": "PROPERTY_INTELLIGENCE",  # canonical, new Phase 1 entry
 }
 
 
@@ -164,6 +195,7 @@ class AIOrchestrationService:
         local_workflow_code: str,
         priority: str,
         metadata_json: Optional[Dict[str, Any]],
+        additional_business_intents: Optional[List[str]] = None,
         commit: bool = True,
     ) -> WorkflowExecution:
         """
@@ -211,6 +243,7 @@ class AIOrchestrationService:
             status="Pending",
             priority=priority,
             metadata_json=metadata_json or {},
+            additional_business_intents=additional_business_intents,
         )
         execution_obj = workflow_execution_service.create_execution(db, execution_in=execution_in, commit=commit)
 
@@ -233,6 +266,7 @@ class AIOrchestrationService:
         data: Dict[str, Any],
         priority: str,
         business_intent: Optional[str] = None,
+        additional_business_intents: Optional[List[str]] = None,
         wacp_workflow_code: Optional[str] = None,
     ) -> WorkflowExecution:
         """
@@ -264,6 +298,7 @@ class AIOrchestrationService:
             response = wacp_adapter.submit_payload(
                 data,
                 business_intent=business_intent,
+                additional_business_intents=additional_business_intents,
                 workflow_code=wacp_workflow_code,
                 project_code=project_obj.project_id,
                 priority=priority,
@@ -322,6 +357,8 @@ class AIOrchestrationService:
         scenario_id: Optional[int] = None,
         priority: str = "Normal",
         metadata_json: Optional[Dict[str, Any]] = None,
+        additional_business_intents: Optional[List[str]] = None,
+        business_intent: Optional[str] = None,
     ) -> WorkflowExecution:
         """
         Coordinates submission of a new AI request via WACP:
@@ -329,20 +366,41 @@ class AIOrchestrationService:
             Validate (via payload_builder) -> Build data block -> Submit
             through the WACP adapter -> Store execution -> Return response.
 
-        Unchanged public signature AND unchanged behavior - the existing
-        frontend call (POST /ai-orchestration/submit) requires no changes.
-        The body below is the exact same sequence as before this
-        refactor, just factored into create_pending_execution() and
-        dispatch_via_wacp() above, called back-to-back with nothing in
-        between - this exists so Checkpoint 8's Design Studio execution
-        path can reuse those two pieces directly without duplicating
-        this orchestration logic, not to change this method's behavior.
+        `workflow_code` remains AIHOME's own local pipeline categorization
+        (stored on the execution record regardless of which Business
+        Intent(s) are actually requested) - unchanged.
+
+        `business_intent` (optional) explicitly overrides the primary
+        WACP routing intent, bypassing the workflow_code -> business_intent
+        mapping (_map_to_business_intent) entirely when supplied. This
+        exists for UI flows (the Business Intent checkbox group) where a
+        user may deselect the intent workflow_code would otherwise imply
+        and select a different one as primary instead - e.g. requesting
+        IMAGE_DESIGN alone, with no PROPERTY_ANALYSIS in the plan at all.
+        When omitted (every existing caller), behavior is completely
+        unchanged: the primary intent is still derived from workflow_code
+        exactly as before.
+
+        `additional_business_intents` (WACP 1.1, WIM Module V2) requests
+        ordered follow-on Business Intents alongside the resolved primary
+        intent, in the SAME Enterprise Job.
+
+        Raises ValueError (-> HTTP 400, same as an unknown project/
+        property id) if, after resolution, there is no primary intent AND
+        no additional intents at all - AIHOME requires at least one
+        Business Intent to be requested before submitting anything to
+        DEV-TOOLS. This mirrors the same validation the checkbox UI
+        already enforces client-side; this is the server-side backstop.
         """
         project_obj = crud_project.get(db, project_id)
         if not project_obj:
             raise ValueError(f"Project with ID '{project_id}' does not exist")
 
-        business_intent = _map_to_business_intent(workflow_code)
+        resolved_business_intent = business_intent or _map_to_business_intent(workflow_code)
+        if not resolved_business_intent and not additional_business_intents:
+            raise ValueError(
+                "At least one Business Intent must be selected before an analysis can be submitted."
+            )
 
         data = payload_builder.build_enterprise_payload(
             db,
@@ -359,13 +417,15 @@ class AIOrchestrationService:
             local_workflow_code=workflow_code,
             priority=priority,
             metadata_json=metadata_json,
+            additional_business_intents=additional_business_intents,
         )
 
         return self.dispatch_via_wacp(
             db,
             execution_obj=execution_obj,
             project_obj=project_obj,
-            business_intent=business_intent,
+            business_intent=resolved_business_intent,
+            additional_business_intents=additional_business_intents,
             data=data,
             priority=priority,
         )
@@ -430,7 +490,43 @@ class AIOrchestrationService:
 
         try:
             status_response = wacp_adapter.get_job_status(execution_obj.devtools_execution_id)
+        except wacp_adapter.DevToolsResponseError as e:
+            # A well-formed WACP response with a populated `error` field -
+            # per AIHOME_WACP_JOB_STATUS_AND_FAILURE_HANDLING.md, this is
+            # how a terminal FAILED/REJECTED job surfaces from status
+            # polling (HTTP 200, but `error` populated; the WACP SDK
+            # raises rather than returning a normal response). This is a
+            # server-reported OUTCOME, not a transient polling failure -
+            # it must terminate the local execution, never keep it
+            # Running. (The previous behavior caught this identically to
+            # a genuine connection failure below, logged a POLL event,
+            # and left the execution Running indefinitely - the
+            # confirmed root cause of an execution appearing stuck after
+            # DEV-TOOLS had already reached a terminal FAILED state.)
+            logger.error(
+                "WACP job %s reached a terminal error state during status polling "
+                "(execution_id=%s): [%s] %s",
+                execution_obj.devtools_execution_id, execution_id, e.code, e.message,
+            )
+            workflow_execution_service.add_event(
+                db,
+                execution_id=execution_obj.execution_id,
+                event_type="POLL",
+                status="Failed",
+                message=f"DEV-TOOLS reported a terminal failure ({e.code}): {e.message}",
+            )
+            update_in = WorkflowExecutionUpdate(
+                completed_at=datetime.datetime.now(),
+                error_message=e.message or str(e),
+            )
+            workflow_execution_service.update_execution(db, execution_id=execution_obj.execution_id, execution_in=update_in)
+            return "Failed"
         except wacp_adapter.DevToolsClientError as e:
+            # Genuine transport/connectivity failure (timeout, DNS,
+            # gateway error) or an adapter-level configuration issue -
+            # not a server-reported outcome. Bounded retry via the next
+            # poll cycle remains correct here; the execution stays in
+            # its current (non-terminal) status.
             logger.warning(
                 "Polling WACP status failed for execution_id=%s: %s", execution_id, e
             )

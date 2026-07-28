@@ -56,6 +56,13 @@ def envelope_to_dict(envelope: WacpEnvelope) -> dict[str, Any]:
     }
     if envelope.business_intent is not None:
         wacp_block["business_intent"] = envelope.business_intent
+    if envelope.additional_business_intents is not None:
+        # WACP 1.1 (backend/wacp/WACP_PROTOCOL_1_1.md): belongs inside the
+        # `wacp` block, never `data` or `extensions`. An explicit empty
+        # list is still encoded (has the same execution semantics as
+        # omitting it, per the protocol doc, but this layer's job is
+        # faithful encoding, not deciding what's semantically equivalent).
+        wacp_block["additional_business_intents"] = envelope.additional_business_intents
     if envelope.workflow_code is not None:
         wacp_block["workflow_code"] = envelope.workflow_code
     if envelope.workflow_version is not None:
@@ -118,6 +125,7 @@ def dict_to_envelope(payload: dict[str, Any]) -> WacpEnvelope:
         project_code=wacp_block["project_code"],
         data=data_block,
         business_intent=wacp_block.get("business_intent"),
+        additional_business_intents=wacp_block.get("additional_business_intents"),
         workflow_code=wacp_block.get("workflow_code"),
         workflow_version=wacp_block.get("workflow_version"),
         priority=priority,

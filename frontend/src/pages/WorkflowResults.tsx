@@ -3,6 +3,7 @@ import { workflowService } from '../services/workflowService';
 import { generatedAssetService } from '../services/generatedAssetService';
 import { projectService } from '../services/projectService';
 import { propertyService } from '../services/propertyService';
+import PropertyIntelligenceReport from '../components/PropertyIntelligenceReport';
 // Explicit '../types/index' path: '../types' currently resolves to the
 // legacy types.ts sibling file under this project's bundler resolution,
 // which does not export these names. Pre-existing issue, deferred to
@@ -107,6 +108,17 @@ export default function WorkflowResults() {
   const [activeTab, setActiveTab] = useState<'summary' | 'sections' | 'raw' | 'assets'>('summary');
   const [copiedReport, setCopiedReport] = useState(false);
   const [isRetryingSync, setIsRetryingSync] = useState(false);
+  /**
+   * Whether AIHOME has already interpreted this result into a normalized
+   * Business Report (business_report_builder.py, backend-side). When
+   * true, this page delegates entirely to PropertyIntelligenceReport -
+   * the same Enterprise Report Renderer used from Properties > Reports -
+   * rather than maintaining a second, duplicate report-rendering
+   * implementation here. Only when no report exists (a genuinely
+   * unrecognized or non-Property-Intelligence workflow result) does this
+   * page fall back to its own existing raw sections/assets view below.
+   */
+  const [hasBusinessReport, setHasBusinessReport] = useState(false);
 
   /**
    * Loads the results catalog. This is the same function a future
@@ -145,6 +157,7 @@ export default function WorkflowResults() {
     setExecution(null);
     setProjName('');
     setPropAddress('');
+    setHasBusinessReport(false);
 
     try {
       // 1. Fetch related sections
@@ -168,6 +181,14 @@ export default function WorkflowResults() {
         const prop = await propertyService.get(exec.property_id).catch(() => null);
         if (prop) setPropAddress(prop.address || '');
       }
+
+      // 5. Check whether a normalized Business Report can be shown for
+      // this result - the backend transparently builds one from stored
+      // response_json if none exists yet (and persists it for future
+      // requests), so this correctly recognizes historical results too,
+      // not just ones already processed with WIM V2 support.
+      const businessReport = await workflowService.getBusinessReport(res.result_id);
+      setHasBusinessReport(businessReport !== null);
 
     } catch (err) {
       console.error('Failed to load result deep details:', err);
@@ -320,6 +341,13 @@ export default function WorkflowResults() {
                 Retrieving report packets...
               </div>
             ) : selectedResult ? (
+              hasBusinessReport ? (
+                <PropertyIntelligenceReport
+                  resultId={selectedResult.result_id}
+                  projectName={projName}
+                  propertyAddress={propAddress}
+                />
+              ) : (
               <div className="space-y-6 flex-1 flex flex-col">
                 {/* Result header metadata */}
                 <div className="border-b border-slate-100 pb-4 shrink-0">
@@ -586,6 +614,7 @@ export default function WorkflowResults() {
                   )}
                 </div>
               </div>
+              )
             ) : (
               <div className="flex-1 flex justify-center items-center text-slate-400 text-xs font-mono uppercase">
                 Select a result dossier from the catalog panel.

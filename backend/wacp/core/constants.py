@@ -20,17 +20,24 @@ from __future__ import annotations
 # Protocol identity (10_WACP_PROTOCOL.md §7.2, §20.2)
 # ---------------------------------------------------------------------------
 
-#: The WACP protocol version implemented by this SDK release. This is a
-#: statement about what this copy of wacp.core speaks, not a claim about
-#: what any particular DEV-TOOLS deployment supports — that is discovered
-#: at runtime via the meta endpoint (see WACP_META_PATH below).
-CURRENT_PROTOCOL_VERSION: str = "1.0"
+#: The WACP protocol version new envelopes built by this SDK release
+#: declare. SDK 0.3.0 defaults to 1.1 (additive over 1.0: ordered
+#: multi-Business-Intent submission via `additional_business_intents`,
+#: per backend/wacp/WACP_PROTOCOL_1_1.md). This is a statement about what
+#: this copy of wacp.core speaks by default, not a claim about what any
+#: particular DEV-TOOLS deployment supports — that is discovered at
+#: runtime via the meta endpoint (see WACP_META_PATH below). A caller
+#: needing to speak strict 1.0 to an as-yet-unupgraded DEV-TOOLS
+#: deployment sets `ClientConfig.protocol_version="1.0"` explicitly.
+CURRENT_PROTOCOL_VERSION: str = "1.1"
 
 #: Protocol versions this SDK release is able to construct and parse.
-#: A single-element tuple today; grows only when this SDK is deliberately
-#: updated to support an additional protocol version (20_WACP_SDK_ARCHITECTURE
-#: .md §8.2 — SDK version and protocol version are independent axes).
-SUPPORTED_PROTOCOL_VERSIONS: tuple[str, ...] = ("1.0",)
+#: WACP 1.1 is additive-only over 1.0 (10_WACP_PROTOCOL.md §20.2), so
+#: SDK 0.3.0 retains full 1.0 support unchanged alongside 1.1. Grows only
+#: when this SDK is deliberately updated to support an additional
+#: protocol version (20_WACP_SDK_ARCHITECTURE.md §8.2 — SDK version and
+#: protocol version are independent axes).
+SUPPORTED_PROTOCOL_VERSIONS: tuple[str, ...] = ("1.0", "1.1")
 
 
 # ---------------------------------------------------------------------------

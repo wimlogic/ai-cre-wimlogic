@@ -9,6 +9,7 @@ import WorkflowResults from './pages/WorkflowResults';
 import GeneratedAssets from './pages/GeneratedAssets';
 import Settings from './pages/Settings';
 import EnterpriseLayout from './layouts/EnterpriseLayout';
+import WacpDebugModal from './components/WacpDebugModal';
 
 type ViewType = 'Dashboard' | 'Projects' | 'Properties' | 'Property Images' | 'Home Studio' | 'AI Orchestration' | 'Workflow Results' | 'Generated Assets' | 'Settings';
 
@@ -76,13 +77,20 @@ export default function App() {
   };
 
   return (
-    <EnterpriseLayout
-      currentView={currentView}
-      onNavigate={handleNavigate}
-      selectedProjectId={selectedProjectId}
-      id="app-enterprise-layout"
-    >
-      {renderActiveView()}
-    </EnterpriseLayout>
+    <>
+      <EnterpriseLayout
+        currentView={currentView}
+        onNavigate={handleNavigate}
+        selectedProjectId={selectedProjectId}
+        id="app-enterprise-layout"
+      >
+        {renderActiveView()}
+      </EnterpriseLayout>
+      {/* TEMPORARY DEBUGGING FEATURE - see
+          app/services/wacp_debug_intercept.py for full removal
+          instructions. Renders nothing unless the backend's
+          WACP_DEBUG_INTERCEPT setting is enabled. */}
+      <WacpDebugModal />
+    </>
   );
 }

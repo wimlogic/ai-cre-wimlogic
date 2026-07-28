@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, String, JSON, DateTime, ForeignKey, Computed, func
+from sqlalchemy import Column, BigInteger, String, JSON, DateTime, ForeignKey, Computed, UniqueConstraint, func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -17,6 +17,24 @@ class ApprovedDesignBaseline(Base):
     must never be set directly from the ORM side.
     """
     __tablename__ = "cre_approved_design_baselines"
+
+    __table_args__ = (
+        # AIHOME Phase 1 (Phase E RC1 validation) - this UNIQUE constraint
+        # was already documented above and already present in the
+        # maintained SQL reference (ai_cre_schema.sql:
+        # uq_approved_design_baselines_active_scope), but was missing from
+        # this ORM model's own __table_args__ - meaning any database
+        # bootstrapped via Base.metadata.create_all() (every test database
+        # used throughout this project) never actually had this DB-level
+        # backstop, relying solely on the application-level Property-row
+        # lock in design_result_service.approve_design_version(). That
+        # lock is itself correct and tested, but this constraint is the
+        # documented, intended defense-in-depth this table was designed
+        # to have. Added here to close that model/schema drift - not a
+        # new design, a correction to match what was already intended and
+        # already true of the reference schema.
+        UniqueConstraint("active_scope_key", name="uq_approved_design_baselines_active_scope"),
+    )
 
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
     baseline_uid = Column(String(120), unique=True, index=True, nullable=False)

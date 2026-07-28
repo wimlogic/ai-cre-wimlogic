@@ -216,7 +216,7 @@ def test_step7_retry_ignores_all_post_submit_source_changes(db):
 
     captured = {}
 
-    def capture(data, *, business_intent=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
+    def capture(data, *, business_intent=None, additional_business_intents=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
         captured["data"] = data
         return {"job_id": "DEVTOOLS-RETRY", "status": "QUEUED"}
 
@@ -243,7 +243,7 @@ def test_step7_wacp_submission_continues_using_frozen_payload_on_execute(db):
 
     captured = {}
 
-    def capture(data, *, business_intent=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
+    def capture(data, *, business_intent=None, additional_business_intents=None, workflow_code, project_code, priority="NORMAL", correlation_id=None, callback_url=None):
         captured["data"] = data
         return {"job_id": "DEVTOOLS-EXEC", "status": "QUEUED"}
 

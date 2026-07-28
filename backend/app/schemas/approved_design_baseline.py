@@ -4,22 +4,32 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 class ApprovedDesignBaselineApproveRequest(BaseModel):
     """
-    The client supplies only the two facts a human approver actually
-    decides: which generated version is being approved, and which design
-    scope it belongs to. Every other baseline field - project_id,
-    property_id, design_job_id, tool_id, tool_code, design_type,
-    tool_options_json, effective_context_json, submitted_payload_json - is
-    derived and snapshotted by the service from the approved Image Version
-    and its Design Job. None of those are accepted from the client here.
+    The client supplies only the one fact a human approver actually
+    decides: which generated version is being approved. Every other
+    baseline field - project_id, property_id, design_job_id, tool_id,
+    tool_code, design_type, tool_options_json, effective_context_json,
+    submitted_payload_json - is derived and snapshotted by the service
+    from the approved Image Version and its Design Job. None of those
+    are accepted from the client here.
+
+    design_scope is optional and, for AIHOME Phase 1, is always derived
+    server-side (design_result_service._resolve_design_scope() - the
+    Design Job's primary selected image's own image_role, e.g.
+    "kitchen"). This is a documented TEMPORARY Phase 1 implementation,
+    not a permanent design: a future phase may let an approver supply an
+    explicit design_scope override, at which point this field would stop
+    being ignored. It is accepted here now only so the schema doesn't
+    need a breaking change later - the service does not currently read
+    it even when supplied.
     """
     image_version_id: int
-    design_scope: str
+    design_scope: Optional[str] = None
 
     @field_validator("design_scope")
     @classmethod
-    def _design_scope_non_empty(cls, v: str) -> str:
-        if not v or not v.strip():
-            raise ValueError("design_scope must not be empty")
+    def _design_scope_non_empty_if_supplied(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not v.strip():
+            raise ValueError("design_scope, if supplied, must not be empty")
         return v
 
 class ApprovedDesignBaselineRead(BaseModel):

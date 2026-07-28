@@ -64,6 +64,7 @@ class JobSubmission:
         *,
         data: dict[str, Any],
         business_intent: Optional[str] = None,
+        additional_business_intents: Optional[list[str]] = None,
         workflow_code: Optional[str] = None,
         company_id: Optional[str] = None,
         project_code: Optional[str] = None,
@@ -74,6 +75,10 @@ class JobSubmission:
         extensions: Optional[dict[str, Any]] = None,
     ) -> WacpResponse:
         """Submits a new job: POST /wacp/v1/jobs (§13.1).
+
+        `additional_business_intents` (WACP 1.1) requests ordered
+        follow-on Business Intents alongside the primary `business_intent`
+        - see PayloadBuilder.build() for validation rules.
 
         Raises WacpEnvelopeError (WACP-101) before any network call if
         PayloadBuilder.build(...) rejects the inputs (e.g. missing
@@ -89,6 +94,7 @@ class JobSubmission:
         envelope = self._builder.build(
             data=data,
             business_intent=business_intent,
+            additional_business_intents=additional_business_intents,
             workflow_code=workflow_code,
             company_id=company_id,
             project_code=project_code,

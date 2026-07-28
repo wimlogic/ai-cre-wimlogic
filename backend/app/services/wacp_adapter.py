@@ -42,7 +42,7 @@ local status semantics.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from wacp.client.client import WacpClient
 from wacp.client.config import ClientConfig
@@ -77,7 +77,19 @@ class DevToolsConnectionError(DevToolsClientError):
 
 class DevToolsResponseError(DevToolsClientError):
     """Raised when the WACP server returns a protocol-level error response
-    (a well-formed WacpResponse whose `error` field is populated)."""
+    (a well-formed WacpResponse whose `error` field is populated) - per
+    AIHOME_WACP_JOB_STATUS_AND_FAILURE_HANDLING.md, this is how a
+    terminal FAILED/REJECTED job status surfaces from status polling
+    (HTTP 200, but `error` populated). This is a server-reported outcome,
+    never a transient transport failure - `code`/`message` are exposed as
+    real attributes (not just embedded in the exception's string form) so
+    callers can act on the specific DEV-TOOLS error rather than merely
+    log it and retry."""
+
+    def __init__(self, formatted_message: str, *, code: Optional[str] = None, message: Optional[str] = None):
+        super().__init__(formatted_message)
+        self.code = code
+        self.message = message
 
 
 class DevToolsConfigurationError(DevToolsClientError):
@@ -132,7 +144,7 @@ def _get_client() -> WacpClient:
             api_key=settings.WACP_API_KEY,
             api_secret=settings.WACP_API_SECRET,
             timeout_seconds=float(settings.WACP_TIMEOUT_SECONDS),
-            verify_ssl=False,
+            verify_ssl=settings.WACP_VERIFY_SSL,
         )
     except ValueError as exc:
         # ClientConfig validates its own inputs (empty fields, a base_url
@@ -240,7 +252,8 @@ def _invoke(action: str, call: Callable[[], WacpResponse]) -> Dict[str, Any]:
         ) from exc
     except _SdkWacpError as exc:
         raise DevToolsResponseError(
-            f"WACP server returned an error while {action} ({exc.error_code.code}): {exc.message}"
+            f"WACP server returned an error while {action} ({exc.error_code.code}): {exc.message}",
+            code=exc.error_code.code, message=exc.message,
         ) from exc
     return _normalize(response)
 
@@ -259,6 +272,7 @@ def submit_payload(
     data: Dict[str, Any],
     *,
     business_intent: Optional[str] = None,
+    additional_business_intents: Optional[List[str]] = None,
     workflow_code: Optional[str] = None,
     project_code: str,
     priority: str = "NORMAL",
@@ -269,21 +283,33 @@ def submit_payload(
     Submits a new Enterprise Job. `data` is the WACP envelope's `data`
     block, as built by payload_builder.build_enterprise_payload(). Every
     other envelope field is either supplied here explicitly by the caller
-    (`business_intent`, `workflow_code`, `project_code`, `priority`,
-    `correlation_id`, `callback_url`) or filled in automatically by the
-    SDK from configuration (`application_id`, `company_id` default,
-    `request_id`, `timestamp`) - this function never constructs any of
-    that itself.
+    (`business_intent`, `additional_business_intents`, `workflow_code`,
+    `project_code`, `priority`, `correlation_id`, `callback_url`) or
+    filled in automatically by the SDK from configuration
+    (`application_id`, `company_id` default, `request_id`, `timestamp`) -
+    this function never constructs any of that itself.
 
-    `business_intent` (WACP v1.1, Build Week WIM Module V1) is the
-    canonical routing field - a plain string DEV-TOOLS' WIM Module V1
-    matches (after normalization) against a `workflow_code` actually
-    registered and assigned to this Client Application. `workflow_code`
-    remains supported as the legacy routing mechanism for callers not yet
-    migrated. At least one of the two must be provided - the SDK itself
-    raises WacpEnvelopeError (WACP-101) before any network call if both
-    are omitted, exactly as it already does for other missing-required-
-    field cases.
+    `business_intent` (WACP 1.0) is the canonical routing field - a plain
+    string DEV-TOOLS' WIM Module matches (after normalization) against a
+    `workflow_code` actually registered and assigned to this Client
+    Application. `workflow_code` remains supported as the legacy routing
+    mechanism for callers not yet migrated. At least one of the two must
+    be provided - the SDK itself raises WacpEnvelopeError (WACP-101)
+    before any network call if both are omitted, exactly as it already
+    does for other missing-required-field cases.
+
+    `additional_business_intents` (WACP 1.1, WIM Module V2 - see
+    backend/wacp/WACP_PROTOCOL_1_1.md) requests ordered follow-on
+    Business Intents alongside the primary one, e.g. a Property
+    Intelligence submission that also requests Design Studio and
+    Renovation Planner analysis in the same Enterprise Job. This is
+    passed straight through to the SDK - AIHOME performs no ordering,
+    deduplication, or intent-resolution logic of its own here; that is
+    entirely WIM routing's responsibility on the DEV-TOOLS side, per the
+    platform's own documented ownership boundary. Only valid when the
+    configured client speaks WACP 1.1 (the SDK 0.3.0 default) - the SDK
+    itself raises WacpEnvelopeError (WACP-101) before any network call if
+    supplied against a client explicitly configured for WACP 1.0.
 
     `callback_url` defaults to None: AI-CRE does not yet register a
     callback endpoint with signature verification (10_WACP_PROTOCOL.md
@@ -295,10 +321,12 @@ def submit_payload(
     """
     client = _get_client()
     return _invoke(
-        f"submitting job (business_intent={business_intent}, workflow_code={workflow_code})",
+        f"submitting job (business_intent={business_intent}, "
+        f"additional_business_intents={additional_business_intents}, workflow_code={workflow_code})",
         lambda: client.submit(
             data=data,
             business_intent=business_intent,
+            additional_business_intents=additional_business_intents,
             workflow_code=workflow_code,
             project_code=project_code,
             priority=_to_priority(priority),

@@ -11,6 +11,7 @@ import StatusBadge from '../components/StatusBadge';
 import LoadingState from '../components/LoadingState';
 import EmptyState from '../components/EmptyState';
 import FormField from '../components/FormField';
+import BusinessIntentCheckboxes, { ALL_BUSINESS_INTENTS } from '../components/BusinessIntentCheckboxes';
 import type { EnterpriseJobTimelineEntry } from '../components/EnterpriseJobTimeline';
 import { Cpu, Clock, Sparkles, RefreshCw, Activity, Play } from 'lucide-react';
 import styles from './AIOrchestration.module.css';
@@ -86,6 +87,7 @@ export default function AIOrchestration() {
   // Workflow config (unchanged business fields)
   const [workflowCode, setWorkflowCode] = useState('ZONING_ANALYSIS');
   const [priority, setPriority] = useState('Normal');
+  const [selectedAdditionalIntents, setSelectedAdditionalIntents] = useState<Set<string>>(new Set(['PROPERTY_ANALYSIS']));
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduleTime, setScheduleTime] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
@@ -233,6 +235,15 @@ export default function AIOrchestration() {
     loadProperties();
   }, [selectedProjectId]);
 
+  const toggleAdditionalIntent = (intent: string) => {
+    setSelectedAdditionalIntents((prev) => {
+      const next = new Set(prev);
+      if (next.has(intent)) next.delete(intent);
+      else next.add(intent);
+      return next;
+    });
+  };
+
   const handleGenerateAnalysis = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
@@ -254,6 +265,12 @@ export default function AIOrchestration() {
       return;
     }
 
+    const selectedInOrder = ALL_BUSINESS_INTENTS.filter((intent) => selectedAdditionalIntents.has(intent));
+    if (selectedInOrder.length === 0) {
+      setFormError('Select at least one Business Intent to run an analysis.');
+      return;
+    }
+
     setClientPhase('Preparing');
     setIsSubmitting(true);
     try {
@@ -267,12 +284,15 @@ export default function AIOrchestration() {
       }
 
       setClientPhase('Submitting');
+      const [primaryIntent, ...additionalIntents] = selectedInOrder;
       const res = await workflowService.submit({
         project_id: projObj.id,
         property_id: propObj.id,
         workflow_code: workflowCode,
         priority,
         metadata_json,
+        business_intent: primaryIntent,
+        ...(additionalIntents.length > 0 ? { additional_business_intents: additionalIntents } : {}),
       });
 
       setActiveExecutionId(res.execution_id);
@@ -288,6 +308,7 @@ export default function AIOrchestration() {
       setCustomPrompt('');
       setIsScheduled(false);
       setScheduleTime('');
+      setSelectedAdditionalIntents(new Set(['PROPERTY_ANALYSIS']));
 
       await loadExecutions();
     } catch (err: any) {
@@ -386,6 +407,12 @@ export default function AIOrchestration() {
               </div>
             </FormField>
 
+            <BusinessIntentCheckboxes
+              selected={selectedAdditionalIntents}
+              onToggle={toggleAdditionalIntent}
+              disabled={isSubmitting}
+            />
+
             <div className={styles.scheduleRow}>
               <label className={styles.scheduleLabel}>
                 <Clock className={styles.scheduleIcon} />
@@ -425,7 +452,7 @@ export default function AIOrchestration() {
 
             <button
               type="submit"
-              disabled={isSubmitting || properties.length === 0}
+              disabled={isSubmitting || properties.length === 0 || selectedAdditionalIntents.size === 0}
               className={`enterprise-btn enterprise-btn-primary enterprise-btn-lg ${styles.submitBtn} ${isSubmitting ? 'enterprise-btn-loading' : ''}`}
             >
               <Play className={styles.submitIcon} />

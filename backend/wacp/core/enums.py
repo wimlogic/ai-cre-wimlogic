@@ -34,7 +34,15 @@ class Priority(str, Enum):
 
 
 class JobStatus(str, Enum):
-    """10_WACP_PROTOCOL.md §12.1/§12.2 — job lifecycle states."""
+    """10_WACP_PROTOCOL.md §12.1/§12.2 — job lifecycle states.
+
+    COMPLETED_WITH_WARNINGS (WIM Module V2): a terminal SUCCESS state,
+    exactly like COMPLETED - the job finished and its result should be
+    retrieved and synchronized the same way. The distinction from
+    COMPLETED is presentation-only (AI-CRE surfaces it as "Completed with
+    Warnings" rather than "Completed"); it must never be treated as a
+    failure state anywhere downstream.
+    """
 
     RECEIVED = "RECEIVED"
     VALIDATING = "VALIDATING"
@@ -43,6 +51,7 @@ class JobStatus(str, Enum):
     QUEUED = "QUEUED"
     RUNNING = "RUNNING"
     COMPLETED = "COMPLETED"
+    COMPLETED_WITH_WARNINGS = "COMPLETED_WITH_WARNINGS"
     FAILED = "FAILED"
     CANCELLED = "CANCELLED"
 
@@ -54,6 +63,7 @@ TERMINAL_JOB_STATUSES: FrozenSet[JobStatus] = frozenset(
     {
         JobStatus.REJECTED,
         JobStatus.COMPLETED,
+        JobStatus.COMPLETED_WITH_WARNINGS,
         JobStatus.FAILED,
         JobStatus.CANCELLED,
     }
@@ -70,7 +80,7 @@ VALID_TRANSITIONS: dict[JobStatus, FrozenSet[JobStatus]] = {
     JobStatus.ACCEPTED: frozenset({JobStatus.QUEUED}),
     JobStatus.QUEUED: frozenset({JobStatus.RUNNING, JobStatus.CANCELLED}),
     JobStatus.RUNNING: frozenset(
-        {JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED}
+        {JobStatus.COMPLETED, JobStatus.COMPLETED_WITH_WARNINGS, JobStatus.FAILED, JobStatus.CANCELLED}
     ),
 }
 
