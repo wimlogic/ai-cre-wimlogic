@@ -162,6 +162,11 @@ _LOCAL_PIPELINE_TO_BUSINESS_INTENT: Dict[str, str] = {
     "PROPERTY_INTELLIGENCE": "PROPERTY_INTELLIGENCE",  # canonical, new Phase 1 entry
 }
 
+_SUPPORTED_EXPLICIT_BUSINESS_INTENTS = frozenset({
+    "PROPERTY_ANALYSIS",
+    "IMAGE_DESIGN",
+})
+
 
 def _map_to_business_intent(local_workflow_code: str) -> str:
     """Maps an AI-CRE business pipeline code to the business_intent value
@@ -182,6 +187,25 @@ def _map_to_business_intent(local_workflow_code: str) -> str:
             f"Pipeline '{local_workflow_code}' has no business_intent mapping configured yet."
         )
     return mapped
+
+
+def _resolve_business_intent(
+    local_workflow_code: str,
+    explicit_business_intent: Optional[str],
+) -> str:
+    """Resolve the authoritative WACP intent without changing legacy callers.
+
+    A nonempty explicit intent takes precedence. Missing, null, empty, and
+    whitespace-only values retain the deployed workflow-code mapping.
+    Unsupported explicit values use the router's existing ValueError -> HTTP
+    400 convention and fail before creating a local execution or calling WACP.
+    """
+    explicit = explicit_business_intent.strip() if explicit_business_intent else ""
+    if not explicit:
+        return _map_to_business_intent(local_workflow_code)
+    if explicit not in _SUPPORTED_EXPLICIT_BUSINESS_INTENTS:
+        raise ValueError(f"Business intent '{explicit}' is not supported.")
+    return explicit
 
 
 class AIOrchestrationService:
@@ -396,11 +420,10 @@ class AIOrchestrationService:
         if not project_obj:
             raise ValueError(f"Project with ID '{project_id}' does not exist")
 
-        resolved_business_intent = business_intent or _map_to_business_intent(workflow_code)
-        if not resolved_business_intent and not additional_business_intents:
-            raise ValueError(
-                "At least one Business Intent must be selected before an analysis can be submitted."
-            )
+        resolved_business_intent = _resolve_business_intent(
+            workflow_code,
+            business_intent,
+        )
 
         data = payload_builder.build_enterprise_payload(
             db,
