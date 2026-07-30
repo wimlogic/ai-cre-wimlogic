@@ -11,6 +11,7 @@ import json
 from io import BytesIO
 
 import pytest
+import httpx
 from PIL import Image
 from sqlalchemy import BigInteger, create_engine, func, select
 from sqlalchemy.ext.compiler import compiles
@@ -118,13 +119,24 @@ def _png_bytes(color=(20, 40, 60)) -> bytes:
 
 
 class _ArtifactResponse:
-    def __init__(self, data: bytes, mime_type: str = "image/png"):
-        self.status_code = 200
-        self.content = data
+    def __init__(self, data: bytes, mime_type: str = "image/png", status_code: int = 200):
+        self.status_code = status_code
+        self._data = data
         self.headers = {
             "Content-Type": mime_type,
             "Content-Disposition": 'attachment; filename="generated.png"',
         }
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        return False
+
+    def iter_bytes(self):
+        midpoint = len(self._data) // 2
+        yield self._data[:midpoint]
+        yield self._data[midpoint:]
 
 
 def _configure_storage(monkeypatch, tmp_path):
@@ -226,11 +238,11 @@ class TestImageDesignArtifactIngestion:
         data = _png_bytes()
         calls = []
 
-        def fake_get(url, *, headers, timeout):
-            calls.append({"url": url, "headers": headers, "timeout": timeout})
+        def fake_stream(method, url, *, headers, timeout):
+            calls.append({"method": method, "url": url, "headers": headers, "timeout": timeout})
             return _ArtifactResponse(data)
 
-        monkeypatch.setattr(design_result_service.requests, "get", fake_get)
+        monkeypatch.setattr(design_result_service.httpx, "stream", fake_stream)
         entry = _artifact_entry("standalone-1", data)
         versions = ingest_image_design_results(
             db,
@@ -247,6 +259,7 @@ class TestImageDesignArtifactIngestion:
         assert len(versions) == 1
         version = versions[0]
         assert len(calls) == 1
+        assert calls[0]["method"] == "GET"
         assert calls[0]["url"] == "https://devtools.example/wacp/v1/artifacts/file"
         assert calls[0]["headers"] == {
             "X-WACP-Application-Id": "test-app",
@@ -270,6 +283,62 @@ class TestImageDesignArtifactIngestion:
         assert provider.exists(relative_path=version.storage_path)
         assert provider.exists(relative_path=version.thumbnail_path)
 
+    @pytest.mark.parametrize(
+        ("error", "message"),
+        [
+            (httpx.ReadTimeout("timed out"), "Network error downloading artifact"),
+            (httpx.ConnectError("connection refused"), "Network error downloading artifact"),
+        ],
+    )
+    def test_httpx_network_failures_are_retried_and_translated(
+        self, monkeypatch, error, message,
+    ):
+        attempts = []
+
+        def failing_stream(method, url, *, headers, timeout):
+            attempts.append((method, url, headers, timeout))
+            raise error
+
+        monkeypatch.setattr(design_result_service.httpx, "stream", failing_stream)
+        monkeypatch.setattr(design_result_service.time, "sleep", lambda _seconds: None)
+
+        with pytest.raises(design_result_service.ImageDesignIngestionError, match=message):
+            design_result_service._download_artifact(
+                "https://devtools.example/artifact.png?token=secret#fragment",
+                "image/png",
+            )
+
+        assert len(attempts) == design_result_service._ARTIFACT_DOWNLOAD_MAX_RETRIES + 1
+        assert all(attempt[0] == "GET" for attempt in attempts)
+        assert all(
+            attempt[3] == design_result_service._ARTIFACT_DOWNLOAD_TIMEOUT_SECONDS
+            for attempt in attempts
+        )
+
+    def test_httpx_non_success_response_is_translated_without_retry(self, monkeypatch):
+        attempts = []
+
+        def forbidden_stream(method, url, *, headers, timeout):
+            attempts.append(url)
+            return _ArtifactResponse(b"", status_code=403)
+
+        monkeypatch.setattr(design_result_service.httpx, "stream", forbidden_stream)
+
+        with pytest.raises(
+            design_result_service.ImageDesignIngestionError,
+            match=r"HTTP 403.*expected 200",
+        ) as exc_info:
+            design_result_service._download_artifact(
+                "https://devtools.example/artifact.png?token=secret#fragment",
+                "image/png",
+            )
+
+        assert attempts == [
+            "https://devtools.example/artifact.png?token=secret#fragment"
+        ]
+        assert "token=secret" not in str(exc_info.value)
+        assert "fragment" not in str(exc_info.value)
+
     def test_final_package_supports_multiple_images(self, db, monkeypatch, tmp_path):
         scenario = _make_scenario(db, _suffix())
         provider = _configure_storage(monkeypatch, tmp_path)
@@ -278,10 +347,10 @@ class TestImageDesignArtifactIngestion:
             "https://devtools.example/b.png": _png_bytes((40, 50, 60)),
         }
 
-        def fake_get(url, *, headers, timeout):
+        def fake_stream(method, url, *, headers, timeout):
             return _ArtifactResponse(images[url])
 
-        monkeypatch.setattr(design_result_service.requests, "get", fake_get)
+        monkeypatch.setattr(design_result_service.httpx, "stream", fake_stream)
         entries = [
             _artifact_entry("package-a", images["https://devtools.example/a.png"], url="https://devtools.example/a.png"),
             _artifact_entry("package-b", images["https://devtools.example/b.png"], url="https://devtools.example/b.png"),
@@ -330,12 +399,12 @@ class TestImageDesignArtifactIngestion:
         data = _png_bytes()
         download_count = 0
 
-        def fake_get(url, *, headers, timeout):
+        def fake_stream(method, url, *, headers, timeout):
             nonlocal download_count
             download_count += 1
             return _ArtifactResponse(data)
 
-        monkeypatch.setattr(design_result_service.requests, "get", fake_get)
+        monkeypatch.setattr(design_result_service.httpx, "stream", fake_stream)
         result_data = {"outputs": [{
             "output_type": "artifact",
             "content": json.dumps(_artifact_entry("repeat-1", data)),
@@ -406,7 +475,7 @@ class TestImageDesignArtifactIngestion:
         def unexpected_download(*args, **kwargs):
             raise AssertionError("duplicate detection must precede download")
 
-        monkeypatch.setattr(design_result_service.requests, "get", unexpected_download)
+        monkeypatch.setattr(design_result_service.httpx, "stream", unexpected_download)
         imported = design_result_service.ingest_one_generated_image(
             db,
             execution=scenario["workflow_execution"],
@@ -436,9 +505,9 @@ class TestImageDesignArtifactIngestion:
             entry["checksum"] = "0" * 64
 
         monkeypatch.setattr(
-            design_result_service.requests,
-            "get",
-            lambda url, *, headers, timeout: _ArtifactResponse(data, response_mime),
+            design_result_service.httpx,
+            "stream",
+            lambda method, url, *, headers, timeout: _ArtifactResponse(data, response_mime),
         )
         with pytest.raises(design_result_service.ImageDesignIngestionError, match=expected_message):
             design_result_service.ingest_one_generated_image(
@@ -463,9 +532,9 @@ class TestImageDesignArtifactIngestion:
         _configure_storage(monkeypatch, tmp_path)
         data = _png_bytes()
         monkeypatch.setattr(
-            design_result_service.requests,
-            "get",
-            lambda url, *, headers, timeout: _ArtifactResponse(data),
+            design_result_service.httpx,
+            "stream",
+            lambda method, url, *, headers, timeout: _ArtifactResponse(data),
         )
 
         def fail_version_creation(*args, **kwargs):

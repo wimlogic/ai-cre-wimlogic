@@ -31,7 +31,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence
 
-import requests
+import httpx
 from PIL import Image
 from io import BytesIO
 from urllib.parse import urljoin, urlsplit, urlunsplit
@@ -553,7 +553,7 @@ def _download_artifact(url: str, expected_mime_type: str) -> "_DownloadedArtifac
         merely "contains png") - a mismatch is rejected outright, per the
         spec's explicit MIME-mismatch handling.
 
-    Raises ImageDesignIngestionError (never a raw requests exception) on
+    Raises ImageDesignIngestionError (never a raw httpx exception) on
     any failure, so the caller's per-image try/except catches a single,
     predictable error type.
     """
@@ -568,42 +568,48 @@ def _download_artifact(url: str, expected_mime_type: str) -> "_DownloadedArtifac
 
     for attempt in range(_ARTIFACT_DOWNLOAD_MAX_RETRIES + 1):
         try:
-            response = requests.get(
+            with httpx.stream(
+                "GET",
                 url,
                 headers=auth_headers,
                 timeout=_ARTIFACT_DOWNLOAD_TIMEOUT_SECONDS,
-            )
-        except requests.RequestException as exc:
+            ) as response:
+                status_code = response.status_code
+                response_headers = response.headers
+                response_data = (
+                    b"".join(response.iter_bytes()) if status_code == 200 else b""
+                )
+        except httpx.HTTPError as exc:
             last_exc = exc
             if attempt < _ARTIFACT_DOWNLOAD_MAX_RETRIES:
                 time.sleep(_ARTIFACT_DOWNLOAD_RETRY_BASE_SECONDS * (2 ** attempt))
                 continue
             raise ImageDesignIngestionError(f"Network error downloading artifact from '{safe_url}': {exc}") from exc
 
-        if response.status_code == 404:
+        if status_code == 404:
             raise ImageDesignIngestionError(
                 f"Artifact endpoint returned HTTP 404 for '{safe_url}' - the artifact is unavailable "
                 "or expired; regeneration is required rather than retrying."
             )
-        if 500 <= response.status_code < 600:
+        if 500 <= status_code < 600:
             if attempt < _ARTIFACT_DOWNLOAD_MAX_RETRIES:
                 logger.warning(
                     "Artifact endpoint returned HTTP %s for '%s' (attempt %d/%d) - retrying "
                     "after bounded exponential backoff.",
-                    response.status_code, safe_url, attempt + 1, _ARTIFACT_DOWNLOAD_MAX_RETRIES + 1,
+                    status_code, safe_url, attempt + 1, _ARTIFACT_DOWNLOAD_MAX_RETRIES + 1,
                 )
                 time.sleep(_ARTIFACT_DOWNLOAD_RETRY_BASE_SECONDS * (2 ** attempt))
                 continue
             raise ImageDesignIngestionError(
-                f"Artifact endpoint returned HTTP {response.status_code} for '{safe_url}' after "
+                f"Artifact endpoint returned HTTP {status_code} for '{safe_url}' after "
                 f"{_ARTIFACT_DOWNLOAD_MAX_RETRIES + 1} attempts."
             )
-        if response.status_code != 200:
+        if status_code != 200:
             raise ImageDesignIngestionError(
-                f"Artifact endpoint returned HTTP {response.status_code} for '{safe_url}' (expected 200)."
+                f"Artifact endpoint returned HTTP {status_code} for '{safe_url}' (expected 200)."
             )
 
-        response_mime_type = response.headers.get("Content-Type", "").split(";")[0].strip()
+        response_mime_type = response_headers.get("Content-Type", "").split(";")[0].strip()
         if response_mime_type != expected_mime_type:
             raise ImageDesignIngestionError(
                 f"Artifact MIME mismatch for '{safe_url}': expected {expected_mime_type!r}, "
@@ -611,8 +617,8 @@ def _download_artifact(url: str, expected_mime_type: str) -> "_DownloadedArtifac
             )
 
         return _DownloadedArtifact(
-            data=response.content,
-            content_disposition=response.headers.get("Content-Disposition"),
+            data=response_data,
+            content_disposition=response_headers.get("Content-Disposition"),
             mime_type=response_mime_type,
         )
 
