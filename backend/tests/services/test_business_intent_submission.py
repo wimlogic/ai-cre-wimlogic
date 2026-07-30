@@ -12,6 +12,7 @@ Covers:
   - Legacy Design Studio callers (wacp_workflow_code=...) unaffected.
 """
 import datetime
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -23,8 +24,10 @@ from app.services import wacp_adapter
 from app.services.ai_orchestration_service import (
     ai_orchestration_service,
     _map_to_business_intent,
+    _resolve_business_intent,
     _LOCAL_PIPELINE_TO_BUSINESS_INTENT,
 )
+from app.api.ai_orchestration import WorkflowSubmitRequest
 
 
 # ---------------------------------------------------------------------------
@@ -101,6 +104,73 @@ class TestBusinessIntentMapping:
         ZONING_ANALYSIS -> PROPERTY_ANALYSIS remains completely unchanged
         alongside it, retained as a documented legacy alias."""
         assert set(_LOCAL_PIPELINE_TO_BUSINESS_INTENT.keys()) == {"ZONING_ANALYSIS", "PROPERTY_INTELLIGENCE"}
+
+    @pytest.mark.parametrize("explicit", [None, "", "   "])
+    def test_missing_or_blank_explicit_intent_uses_legacy_mapping(self, explicit):
+        assert _resolve_business_intent("ZONING_ANALYSIS", explicit) == "PROPERTY_ANALYSIS"
+
+    def test_explicit_image_design_overrides_legacy_mapping(self):
+        assert _resolve_business_intent("ZONING_ANALYSIS", "IMAGE_DESIGN") == "IMAGE_DESIGN"
+
+    def test_explicit_property_analysis_remains_property_analysis(self):
+        assert _resolve_business_intent("ZONING_ANALYSIS", "PROPERTY_ANALYSIS") == "PROPERTY_ANALYSIS"
+
+    def test_unsupported_explicit_intent_uses_existing_value_error_convention(self):
+        with pytest.raises(ValueError, match="is not supported"):
+            _resolve_business_intent("ZONING_ANALYSIS", "UNSUPPORTED_INTENT")
+
+
+class TestWorkflowSubmitRequestBoundary:
+    def test_business_intent_survives_actual_request_model_parsing(self):
+        request = WorkflowSubmitRequest(
+            project_id=1,
+            property_id=2,
+            workflow_code="ZONING_ANALYSIS",
+            business_intent="IMAGE_DESIGN",
+        )
+        assert request.business_intent == "IMAGE_DESIGN"
+        assert _resolve_business_intent(
+            request.workflow_code,
+            request.business_intent,
+        ) == "IMAGE_DESIGN"
+
+    def test_parsed_image_design_is_forwarded_to_dispatch_without_provider_or_db(self):
+        request = WorkflowSubmitRequest(
+            project_id=1,
+            property_id=2,
+            workflow_code="ZONING_ANALYSIS",
+            business_intent="IMAGE_DESIGN",
+        )
+        project = SimpleNamespace(id=1, project_id="PRJ-1")
+        execution = SimpleNamespace(execution_id=9)
+
+        with (
+            patch("app.services.ai_orchestration_service.crud_project.get", return_value=project),
+            patch("app.services.ai_orchestration_service.payload_builder.build_enterprise_payload", return_value={"safe": True}),
+            patch.object(ai_orchestration_service, "create_pending_execution", return_value=execution),
+            patch.object(ai_orchestration_service, "dispatch_via_wacp", return_value=execution) as dispatch,
+        ):
+            result = ai_orchestration_service.submit_workflow(
+                object(),
+                project_id=request.project_id,
+                property_id=request.property_id,
+                workflow_code=request.workflow_code,
+                business_intent=request.business_intent,
+            )
+
+        assert result is execution
+        assert dispatch.call_args.kwargs["business_intent"] == "IMAGE_DESIGN"
+        assert "wacp_workflow_code" not in dispatch.call_args.kwargs
+
+    def test_additional_business_intents_remains_ignored(self):
+        request = WorkflowSubmitRequest(
+            project_id=1,
+            property_id=2,
+            workflow_code="ZONING_ANALYSIS",
+            additional_business_intents=["IMAGE_DESIGN"],
+        )
+        assert "additional_business_intents" not in type(request).model_fields
+        assert "additional_business_intents" not in request.model_dump()
 
 
 # ---------------------------------------------------------------------------
@@ -215,6 +285,23 @@ class TestSubmitWorkflowIntegration:
 
         after_count = db.query(WorkflowExecution).count()
         assert after_count == before_count  # no Pending row created either
+
+    def test_unsupported_explicit_intent_fails_before_wacp_or_local_record(self, db, project, property_obj):
+        from app.models.workflow_execution import WorkflowExecution
+        before_count = db.query(WorkflowExecution).count()
+
+        with patch.object(wacp_adapter, "submit_payload") as mock_submit:
+            with pytest.raises(ValueError, match="is not supported"):
+                ai_orchestration_service.submit_workflow(
+                    db,
+                    project_id=project.id,
+                    property_id=property_obj.id,
+                    workflow_code="ZONING_ANALYSIS",
+                    business_intent="UNSUPPORTED_INTENT",
+                )
+            mock_submit.assert_not_called()
+
+        assert db.query(WorkflowExecution).count() == before_count
 
 
 # ---------------------------------------------------------------------------

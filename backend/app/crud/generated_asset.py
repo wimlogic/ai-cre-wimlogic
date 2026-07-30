@@ -39,11 +39,20 @@ class CRUDGeneratedAsset:
         
         return list(results), total_count
 
-    def create(self, db: Session, *, obj_in: GeneratedAssetCreate) -> GeneratedAsset:
+    def create(
+        self,
+        db: Session,
+        *,
+        obj_in: GeneratedAssetCreate,
+        commit: bool = True,
+    ) -> GeneratedAsset:
         db_obj = GeneratedAsset(**obj_in.model_dump())
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        if commit:
+            db.commit()
+            db.refresh(db_obj)
+        else:
+            db.flush()
         return db_obj
 
     def update(self, db: Session, *, db_obj: GeneratedAsset, obj_in: GeneratedAssetUpdate) -> GeneratedAsset:
