@@ -59,7 +59,6 @@ from app.models.approved_design_baseline import ApprovedDesignBaseline
 from app.schemas.generated_asset import GeneratedAssetCreate
 from app.services.generated_asset_service import generated_asset_service
 from app.integrations.storage.filesystem_storage_provider import FilesystemStorageProvider
-from wacp.core.constants import HEADER_API_KEY, HEADER_API_SECRET, HEADER_APPLICATION_ID
 
 logger = logging.getLogger(__name__)
 
@@ -559,9 +558,9 @@ def _download_artifact(url: str, expected_mime_type: str) -> "_DownloadedArtifac
     """
     last_exc: Optional[Exception] = None
     auth_headers = {
-        HEADER_APPLICATION_ID: settings.WACP_APPLICATION_ID,
-        HEADER_API_KEY: settings.WACP_API_KEY,
-        HEADER_API_SECRET: settings.WACP_API_SECRET,
+        "X-App-Code": settings.WACP_APPLICATION_ID,
+        "X-API-Key": settings.WACP_API_KEY,
+        "X-API-Secret": settings.WACP_API_SECRET,
     }
     auth_headers = {name: value for name, value in auth_headers.items() if value}
     safe_url = _safe_artifact_url_for_log(url)
