@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+backend/venv/
+
+# Node
+node_modules/
+
+# Build
+dist/
+build/
+
+# Local environment
+.env
+.env.*
+
+# Local uploads (will use Docker volume)
+backend/uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+
+# Archives
+*.zip

@@ -9,6 +9,7 @@ python-dotenv>=1.0.1
 python-multipart>=0.0.9
 httpx>=0.27.0
 Pillow>=10.0.0
+requests>=2.32.0
 
 # NOTE: the WACP Client SDK is NOT a pip dependency of this project. The
 # WACP Platform Installer (install_wacp.py) vendors it directly as source

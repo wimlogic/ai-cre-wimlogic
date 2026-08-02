@@ -1,0 +1,1133 @@
+-- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
+--
+-- Host: localhost    Database: ai_cre_wimlogic
+-- ------------------------------------------------------
+-- Server version	8.0.46
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `api_usage_logs`
+--
+
+DROP TABLE IF EXISTS `api_usage_logs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `api_usage_logs` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `provider` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `api_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `endpoint` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `request_count` int DEFAULT '1',
+  `estimated_cost` decimal(10,4) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=367 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `api_usage_logs`
+--
+
+LOCK TABLES `api_usage_logs` WRITE;
+/*!40000 ALTER TABLE `api_usage_logs` DISABLE KEYS */;
+INSERT INTO `api_usage_logs` VALUES (1,'DEVTOOLS','SubmitPayload','/wacp/v1/jobs',1,0.0150,'2026-07-11 11:10:34'),(2,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:10:34'),(3,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:10:39'),(4,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:10:44'),(5,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:13'),(6,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:18'),(7,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:22'),(8,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:22'),(9,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:27'),(10,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:32'),(11,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:37'),(12,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:51'),(13,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:11:56'),(14,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:12:01'),(15,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:12:06'),(16,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:14:12'),(17,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:14:19'),(18,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:14:19'),(19,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:14:24'),(20,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:14:30'),(21,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:14:35'),(22,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:14:40'),(23,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:14:45'),(24,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:20:06'),(25,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:20:07'),(26,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:20:12'),(27,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:27:22'),(28,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:45:29'),(29,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:45:38'),(30,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:45:38'),(31,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:45:43'),(32,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:45:48'),(33,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 11:45:48'),(34,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 12:00:02'),(35,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 12:00:02'),(36,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 12:00:08'),(37,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 19:33:38'),(38,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 19:33:39'),(39,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 21:24:39'),(40,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-11 21:24:39'),(41,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-12 03:59:21'),(42,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-12 03:59:22'),(43,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-12 05:19:19'),(44,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-12 08:16:19'),(45,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-12 08:16:19'),(46,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-12 23:28:41'),(47,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-12 23:28:55'),(48,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 10:32:28'),(49,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 10:32:28'),(50,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 10:32:33'),(51,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 10:32:38'),(52,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 10:32:43'),(53,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 10:33:18'),(54,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 10:34:06'),(55,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 11:07:45'),(56,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 20:07:06'),(57,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 20:07:06'),(58,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 20:07:18'),(59,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 20:07:23'),(60,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 20:07:28'),(61,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 20:07:33'),(62,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 22:06:39'),(63,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 22:06:39'),(64,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 22:10:09'),(65,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 22:10:09'),(66,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 23:18:07'),(67,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 23:18:21'),(68,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 23:19:27'),(69,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 23:19:39'),(70,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 23:24:46'),(71,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-16 23:25:00'),(72,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 03:19:50'),(73,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 03:20:04'),(74,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 03:23:20'),(75,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 03:23:34'),(76,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 03:46:59'),(77,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 03:47:13'),(78,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 03:47:30'),(79,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 04:35:44'),(80,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 04:35:58'),(81,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 04:36:17'),(82,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 04:53:04'),(83,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 04:53:21'),(84,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 05:45:24'),(85,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 05:45:39'),(86,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 08:17:11'),(87,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 08:17:25'),(88,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 10:37:46'),(89,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 10:38:03'),(90,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 10:38:17'),(91,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 10:38:24'),(92,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-17 10:43:11'),(93,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:52:00'),(94,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:52:01'),(95,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:53:54'),(96,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:53:55'),(97,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:54:00'),(98,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:54:05'),(99,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:54:10'),(100,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:54:15'),(101,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:54:20'),(102,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:54:39'),(103,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:09'),(104,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:09'),(105,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:14'),(106,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:19'),(107,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:24'),(108,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:39'),(109,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:44'),(110,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:49'),(111,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:56:54'),(112,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:57:23'),(113,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:57:44'),(114,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000002/status',1,0.0020,'2026-07-18 19:57:49'),(115,'DEVTOOLS','SubmitPayload','/wacp/v1/jobs',1,0.0150,'2026-07-18 19:57:51'),(116,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:57:51'),(117,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:57:56'),(118,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:01'),(119,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:06'),(120,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:11'),(121,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:16'),(122,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:21'),(123,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:26'),(124,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:32'),(125,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:37'),(126,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:42'),(127,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:47'),(128,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:58:52'),(129,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:59:05'),(130,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 19:59:36'),(131,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:00:40'),(132,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:01'),(133,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:04'),(134,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:05'),(135,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:10'),(136,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:15'),(137,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:20'),(138,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:25'),(139,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:30'),(140,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:35'),(141,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:40'),(142,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:45'),(143,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:47'),(144,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:52'),(145,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:01:57'),(146,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:02:03'),(147,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:02:08'),(148,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:02:18'),(149,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:02:28'),(150,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:02:46'),(151,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:03:02'),(152,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:12:06'),(153,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:14:55'),(154,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:16:44'),(155,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:32:06'),(156,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:32:06'),(157,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:32:11'),(158,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:35:24'),(159,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:36:17'),(160,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:36:37'),(161,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-18 20:36:57'),(162,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:09:54'),(163,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:09:55'),(164,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:10:00'),(165,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:10:05'),(166,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:10:10'),(167,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:11:08'),(168,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:11:18'),(169,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:11:28'),(170,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:12:28'),(171,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:12:38'),(172,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:12:43'),(173,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:13:19'),(174,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:14:01'),(175,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:14:21'),(176,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:14:29'),(177,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:15:43'),(178,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:16:05'),(179,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:16:27'),(180,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:24:05'),(181,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 05:26:35'),(182,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:19:03'),(183,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:19:04'),(184,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:19:09'),(185,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:21:02'),(186,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:22:07'),(187,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:26:08'),(188,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:26:16'),(189,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:40:08'),(190,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:57:18'),(191,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:57:18'),(192,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 06:57:23'),(193,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-19 07:01:52'),(194,'DEVTOOLS','SubmitPayload','/wacp/v1/jobs',1,0.0150,'2026-07-19 07:01:55'),(195,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000008/status',1,0.0020,'2026-07-19 07:01:55'),(196,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000008/status',1,0.0020,'2026-07-19 07:02:00'),(197,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000008/status',1,0.0020,'2026-07-19 07:02:39'),(198,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000008/status',1,0.0020,'2026-07-19 07:02:45'),(199,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000008/status',1,0.0020,'2026-07-19 07:03:00'),(200,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000008/status',1,0.0020,'2026-07-19 07:04:12'),(201,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 01:51:39'),(202,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 01:51:40'),(203,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 01:51:46'),(204,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 01:51:57'),(205,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 01:51:57'),(206,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 01:52:02'),(207,'DEVTOOLS','SubmitPayload','/wacp/v1/jobs',1,0.0150,'2026-07-20 01:52:04'),(208,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000009/status',1,0.0020,'2026-07-20 01:52:04'),(209,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000009/status',1,0.0020,'2026-07-20 01:52:18'),(210,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000009/status',1,0.0020,'2026-07-20 01:53:12'),(211,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000009/status',1,0.0020,'2026-07-20 01:53:22'),(212,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000009/status',1,0.0020,'2026-07-20 02:06:18'),(213,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:09:47'),(214,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:09:47'),(215,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:09:50'),(216,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:10:13'),(217,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:10:13'),(218,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:10:18'),(219,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:10:47'),(220,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:10:47'),(221,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:10:52'),(222,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:10:57'),(223,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:11:04'),(224,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:11:04'),(225,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:11:09'),(226,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:17:35'),(227,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:17:35'),(228,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:12'),(229,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:12'),(230,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:17'),(231,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:17'),(232,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:23'),(233,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:24'),(234,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:24'),(235,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:29'),(236,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:35'),(237,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:40'),(238,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 02:22:46'),(239,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 05:18:56'),(240,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 05:18:57'),(241,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 08:28:20'),(242,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 08:28:21'),(243,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 08:28:27'),(244,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 08:28:32'),(245,'DEVTOOLS','SubmitPayload','/wacp/v1/jobs',1,0.0150,'2026-07-20 08:28:36'),(246,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:28:37'),(247,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:28:42'),(248,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:28:47'),(249,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:28:52'),(250,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:28:57'),(251,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:02'),(252,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:08'),(253,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:13'),(254,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:13'),(255,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:18'),(256,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:23'),(257,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:28'),(258,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:33'),(259,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:38'),(260,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:44'),(261,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:49'),(262,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:54'),(263,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:29:59'),(264,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:30:04'),(265,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:30:09'),(266,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:30:14'),(267,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:30:24'),(268,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:30:34'),(269,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:30:44'),(270,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:30:54'),(271,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:31:04'),(272,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:31:14'),(273,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:31:36'),(274,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:31:46'),(275,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:31:56'),(276,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:32:06'),(277,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:32:16'),(278,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:32:36'),(279,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:32:56'),(280,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:33:16'),(281,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:33:36'),(282,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:33:57'),(283,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:34:17'),(284,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:42:49'),(285,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:43:39'),(286,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:43:39'),(287,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:43:45'),(288,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:43:50'),(289,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:43:55'),(290,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:00'),(291,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:05'),(292,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:10'),(293,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:15'),(294,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:20'),(295,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:25'),(296,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:30'),(297,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:35'),(298,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 08:44:40'),(299,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:25:37'),(300,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:26:34'),(301,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:26:34'),(302,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:26:41'),(303,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:26:41'),(304,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:26:46'),(305,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:08'),(306,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:08'),(307,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:17'),(308,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:17'),(309,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:22'),(310,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:27'),(311,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:32'),(312,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:37'),(313,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:43'),(314,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:48'),(315,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:53'),(316,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:37:58'),(317,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:38:03'),(318,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:38:08'),(319,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:38:13'),(320,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:38:18'),(321,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:38:28'),(322,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:38:38'),(323,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:38:48'),(324,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:38:58'),(325,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:39:09'),(326,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:39:19'),(327,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:39:29'),(328,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:39:39'),(329,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:39:49'),(330,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:39:59'),(331,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:40:09'),(332,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:40:19'),(333,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:41:09'),(334,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:41:26'),(335,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 10:52:34'),(336,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:22:31'),(337,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:22:31'),(338,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:22:36'),(339,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:22:41'),(340,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:22:46'),(341,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:22:51'),(342,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:22:56'),(343,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:23:14'),(344,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:23:14'),(345,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:23:20'),(346,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:23:20'),(347,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000010/status',1,0.0020,'2026-07-20 11:23:27'),(348,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 11:26:04'),(349,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 11:26:04'),(350,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 11:26:11'),(351,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 11:26:12'),(352,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000004/status',1,0.0020,'2026-07-20 11:26:17'),(353,'DEVTOOLS','SubmitPayload','/wacp/v1/jobs',1,0.0150,'2026-07-20 11:26:20'),(354,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:26:20'),(355,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:26:24'),(356,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:26:40'),(357,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:26:45'),(358,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:26:50'),(359,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:26:55'),(360,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:27:00'),(361,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:27:06'),(362,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:27:11'),(363,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:27:16'),(364,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:27:21'),(365,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:27:31'),(366,'DEVTOOLS','GetJobStatus','/wacp/v1/jobs/JOB-0000011/status',1,0.0020,'2026-07-20 11:27:41');
+/*!40000 ALTER TABLE `api_usage_logs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_approved_design_baselines`
+--
+
+DROP TABLE IF EXISTS `cre_approved_design_baselines`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_approved_design_baselines` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `baseline_uid` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `project_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `property_id` bigint NOT NULL,
+  `design_job_id` bigint NOT NULL,
+  `image_version_id` bigint NOT NULL,
+  `tool_id` bigint NOT NULL,
+  `tool_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `design_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `design_scope` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tool_options_json` json DEFAULT NULL,
+  `effective_context_json` json DEFAULT NULL,
+  `submitted_payload_json` json DEFAULT NULL,
+  `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'active',
+  `active_scope_key` varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci GENERATED ALWAYS AS ((case when (`status` = _utf8mb4'active') then concat(`property_id`,_utf8mb4'|',`design_type`,_utf8mb4'|',`design_scope`) else NULL end)) STORED,
+  `approved_by` bigint DEFAULT NULL,
+  `approved_at` datetime NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_approved_design_baselines_uid` (`baseline_uid`),
+  UNIQUE KEY `uq_approved_design_baselines_image_version` (`image_version_id`),
+  UNIQUE KEY `uq_approved_design_baselines_active_scope` (`active_scope_key`),
+  KEY `idx_approved_design_baselines_property_id` (`property_id`),
+  KEY `idx_approved_design_baselines_project_id` (`project_id`),
+  KEY `idx_approved_design_baselines_status` (`status`),
+  KEY `idx_approved_design_baselines_type_scope` (`design_type`,`design_scope`),
+  KEY `fk_approved_design_baselines_job` (`design_job_id`),
+  KEY `fk_approved_design_baselines_tool` (`tool_id`),
+  CONSTRAINT `fk_approved_design_baselines_job` FOREIGN KEY (`design_job_id`) REFERENCES `cre_design_jobs` (`id`),
+  CONSTRAINT `fk_approved_design_baselines_property` FOREIGN KEY (`property_id`) REFERENCES `cre_properties` (`id`),
+  CONSTRAINT `fk_approved_design_baselines_tool` FOREIGN KEY (`tool_id`) REFERENCES `cre_design_tools` (`id`),
+  CONSTRAINT `fk_approved_design_baselines_version` FOREIGN KEY (`image_version_id`) REFERENCES `cre_design_image_versions` (`id`),
+  CONSTRAINT `chk_approved_design_baselines_status` CHECK ((`status` in (_utf8mb4'active',_utf8mb4'superseded')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_approved_design_baselines`
+--
+
+LOCK TABLES `cre_approved_design_baselines` WRITE;
+/*!40000 ALTER TABLE `cre_approved_design_baselines` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_approved_design_baselines` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_concept_designs`
+--
+
+DROP TABLE IF EXISTS `cre_concept_designs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_concept_designs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` varchar(100) NOT NULL,
+  `property_id` bigint NOT NULL,
+  `scenario_id` int DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `concept_prompt` text NOT NULL,
+  `concept_notes` text,
+  `image_reference_ids` json DEFAULT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'draft',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `workflow_execution_id` bigint DEFAULT NULL,
+  `design_version` varchar(30) DEFAULT NULL,
+  `approved_by` bigint DEFAULT NULL,
+  `approved_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_concepts_project_property` (`project_id`,`property_id`),
+  KEY `idx_concepts_scenario_id` (`scenario_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_concept_designs`
+--
+
+LOCK TABLES `cre_concept_designs` WRITE;
+/*!40000 ALTER TABLE `cre_concept_designs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_concept_designs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_image_lineage`
+--
+
+DROP TABLE IF EXISTS `cre_design_image_lineage`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_image_lineage` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `image_version_id` bigint NOT NULL,
+  `source_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `source_property_image_id` bigint DEFAULT NULL,
+  `source_image_version_id` bigint DEFAULT NULL,
+  `lineage_role` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'primary',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_image_lineage_version_property_image` (`image_version_id`,`source_property_image_id`),
+  UNIQUE KEY `uq_design_image_lineage_version_source_version` (`image_version_id`,`source_image_version_id`),
+  KEY `idx_design_image_lineage_source_property_image_id` (`source_property_image_id`),
+  KEY `idx_design_image_lineage_source_image_version_id` (`source_image_version_id`),
+  CONSTRAINT `fk_design_image_lineage_source_property_image` FOREIGN KEY (`source_property_image_id`) REFERENCES `cre_property_images` (`id`),
+  CONSTRAINT `fk_design_image_lineage_source_version` FOREIGN KEY (`source_image_version_id`) REFERENCES `cre_design_image_versions` (`id`),
+  CONSTRAINT `fk_design_image_lineage_version` FOREIGN KEY (`image_version_id`) REFERENCES `cre_design_image_versions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_design_image_lineage_role` CHECK ((`lineage_role` in (_utf8mb4'primary',_utf8mb4'supporting',_utf8mb4'reference',_utf8mb4'parent'))),
+  CONSTRAINT `chk_design_image_lineage_source_type` CHECK ((`source_type` in (_utf8mb4'property_image',_utf8mb4'image_version'))),
+  CONSTRAINT `chk_design_image_lineage_source_xor` CHECK ((((`source_type` = _utf8mb4'property_image') and (`source_property_image_id` is not null) and (`source_image_version_id` is null)) or ((`source_type` = _utf8mb4'image_version') and (`source_image_version_id` is not null) and (`source_property_image_id` is null))))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_image_lineage`
+--
+
+LOCK TABLES `cre_design_image_lineage` WRITE;
+/*!40000 ALTER TABLE `cre_design_image_lineage` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_design_image_lineage` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_image_versions`
+--
+
+DROP TABLE IF EXISTS `cre_design_image_versions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_image_versions` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `version_uid` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `design_job_id` bigint NOT NULL,
+  `property_id` bigint NOT NULL,
+  `workflow_execution_id` bigint NOT NULL,
+  `version_number` int NOT NULL,
+  `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `storage_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `thumbnail_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `mime_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `file_size` bigint DEFAULT NULL,
+  `width` int DEFAULT NULL,
+  `height` int DEFAULT NULL,
+  `generated_asset_id` bigint DEFAULT NULL,
+  `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'generated',
+  `generated_at` datetime NOT NULL,
+  `generated_by` bigint DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_image_versions_uid` (`version_uid`),
+  UNIQUE KEY `uq_design_image_versions_job_version` (`design_job_id`,`version_number`),
+  KEY `idx_design_image_versions_property_id` (`property_id`),
+  KEY `idx_design_image_versions_status` (`status`),
+  KEY `idx_design_image_versions_workflow_execution_id` (`workflow_execution_id`),
+  KEY `fk_design_image_versions_asset` (`generated_asset_id`),
+  CONSTRAINT `fk_design_image_versions_asset` FOREIGN KEY (`generated_asset_id`) REFERENCES `cre_generated_assets` (`asset_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_design_image_versions_execution` FOREIGN KEY (`workflow_execution_id`) REFERENCES `cre_workflow_executions` (`execution_id`),
+  CONSTRAINT `fk_design_image_versions_job` FOREIGN KEY (`design_job_id`) REFERENCES `cre_design_jobs` (`id`),
+  CONSTRAINT `fk_design_image_versions_property` FOREIGN KEY (`property_id`) REFERENCES `cre_properties` (`id`),
+  CONSTRAINT `chk_design_image_versions_status` CHECK ((`status` in (_utf8mb4'generated',_utf8mb4'rejected',_utf8mb4'approved',_utf8mb4'superseded')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_image_versions`
+--
+
+LOCK TABLES `cre_design_image_versions` WRITE;
+/*!40000 ALTER TABLE `cre_design_image_versions` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_design_image_versions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_job_executions`
+--
+
+DROP TABLE IF EXISTS `cre_design_job_executions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_job_executions` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `design_job_id` bigint NOT NULL,
+  `workflow_execution_id` bigint NOT NULL,
+  `attempt_number` int NOT NULL,
+  `is_current` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_job_executions_attempt` (`design_job_id`,`attempt_number`),
+  UNIQUE KEY `uq_design_job_executions_execution` (`workflow_execution_id`),
+  KEY `idx_design_job_executions_job_id` (`design_job_id`),
+  CONSTRAINT `fk_design_job_executions_execution` FOREIGN KEY (`workflow_execution_id`) REFERENCES `cre_workflow_executions` (`execution_id`),
+  CONSTRAINT `fk_design_job_executions_job` FOREIGN KEY (`design_job_id`) REFERENCES `cre_design_jobs` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_job_executions`
+--
+
+LOCK TABLES `cre_design_job_executions` WRITE;
+/*!40000 ALTER TABLE `cre_design_job_executions` DISABLE KEYS */;
+INSERT INTO `cre_design_job_executions` VALUES (1,1,22,1,1,'2026-07-14 01:17:56');
+/*!40000 ALTER TABLE `cre_design_job_executions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_job_images`
+--
+
+DROP TABLE IF EXISTS `cre_design_job_images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_job_images` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `design_job_id` bigint NOT NULL,
+  `property_image_id` bigint NOT NULL,
+  `input_role` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'primary',
+  `image_knowledge_snapshot_json` json DEFAULT NULL,
+  `display_order` int NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_job_images_job_image` (`design_job_id`,`property_image_id`),
+  KEY `idx_design_job_images_property_image_id` (`property_image_id`),
+  CONSTRAINT `fk_design_job_images_job` FOREIGN KEY (`design_job_id`) REFERENCES `cre_design_jobs` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_design_job_images_property_image` FOREIGN KEY (`property_image_id`) REFERENCES `cre_property_images` (`id`),
+  CONSTRAINT `chk_design_job_images_input_role` CHECK ((`input_role` in (_utf8mb4'primary',_utf8mb4'supporting',_utf8mb4'reference')))
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_job_images`
+--
+
+LOCK TABLES `cre_design_job_images` WRITE;
+/*!40000 ALTER TABLE `cre_design_job_images` DISABLE KEYS */;
+INSERT INTO `cre_design_job_images` VALUES (2,1,35,'primary','{\"tags\": [\"front-facade\", \"retail-commercial\", \"storefront\", \"signage\", \"exterior\", \"stucco\"], \"notes\": \"\", \"status\": \"uploaded\", \"priority\": 10, \"ai_prompt\": \"Preserve storefront geometry, window locations, tenant signage positions, and the existing building footprint. Modernize the exterior facade while keeping the commercial property recognizable.\", \"image_role\": \"primary\", \"is_primary\": 1, \"constraints\": \"Do not remove parking, change the building footprint, relocate storefront windows, or remove tenant access. Preserve primary structural geometry.\", \"property_image_id\": 35}',1,'2026-07-13 22:54:47');
+/*!40000 ALTER TABLE `cre_design_job_images` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_jobs`
+--
+
+DROP TABLE IF EXISTS `cre_design_jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_jobs` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `job_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `project_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `property_id` bigint NOT NULL,
+  `tool_id` bigint NOT NULL,
+  `tool_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `design_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `workflow_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tool_options_json` json DEFAULT NULL,
+  `effective_context_json` json DEFAULT NULL,
+  `submitted_payload_json` json DEFAULT NULL,
+  `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'draft',
+  `requested_by` bigint DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `job_prompt` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `job_constraints` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_jobs_job_number` (`job_number`),
+  KEY `idx_design_jobs_property_id` (`property_id`),
+  KEY `idx_design_jobs_project_id` (`project_id`),
+  KEY `idx_design_jobs_tool_id` (`tool_id`),
+  KEY `idx_design_jobs_status` (`status`),
+  CONSTRAINT `fk_design_jobs_property` FOREIGN KEY (`property_id`) REFERENCES `cre_properties` (`id`),
+  CONSTRAINT `fk_design_jobs_tool` FOREIGN KEY (`tool_id`) REFERENCES `cre_design_tools` (`id`),
+  CONSTRAINT `chk_design_jobs_status` CHECK ((`status` in (_utf8mb4'draft',_utf8mb4'submitted',_utf8mb4'processing',_utf8mb4'completed',_utf8mb4'failed',_utf8mb4'cancelled')))
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_jobs`
+--
+
+LOCK TABLES `cre_design_jobs` WRITE;
+/*!40000 ALTER TABLE `cre_design_jobs` DISABLE KEYS */;
+INSERT INTO `cre_design_jobs` VALUES (1,'DSJ-WIM-E09CB8EFCADE','PRJ-7328',927,1,'EXTERIOR_REMODEL','PROPERTY_REDESIGN','WF_EXTERIOR_REMODEL','{\"design_style\": \"Modern\"}','{}','{\"inputs\": {\"images\": [{\"url\": \"http://127.0.0.1:8000/uploads/properties/927/original/3456cbfd4e334952bb376f28be62ba7a.jpg\", \"mime_type\": \"image/jpeg\", \"image_type\": \"uploaded\", \"input_role\": \"primary\", \"property_image_id\": 35, \"original_file_name\": \"1227VALLEY-IMAGES-2.jpg\"}]}, \"tool_code\": \"EXTERIOR_REMODEL\", \"job_number\": \"DSJ-WIM-E09CB8EFCADE\", \"project_id\": \"PRJ-7328\", \"design_type\": \"PROPERTY_REDESIGN\", \"property_id\": 927, \"tool_options\": {\"design_style\": \"Modern\"}, \"workflow_code\": \"WF_EXTERIOR_REMODEL\", \"effective_context\": {}}','processing',NULL,'2026-07-13 00:33:12','2026-07-14 01:17:56',NULL,NULL),(2,'DSJ-WIM-6CD2146F59BF','PRJ-7328',927,1,'EXTERIOR_REMODEL','PROPERTY_REDESIGN','WF_EXTERIOR_REMODEL',NULL,NULL,NULL,'draft',NULL,'2026-07-13 22:53:05','2026-07-13 22:53:05',NULL,NULL);
+/*!40000 ALTER TABLE `cre_design_jobs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_tool_image_requirements`
+--
+
+DROP TABLE IF EXISTS `cre_design_tool_image_requirements`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_tool_image_requirements` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `tool_id` bigint NOT NULL,
+  `input_role` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `allowed_image_roles_json` json DEFAULT NULL,
+  `min_count` int NOT NULL DEFAULT '0',
+  `max_count` int DEFAULT NULL,
+  `display_order` int NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_tool_img_req_tool_role` (`tool_id`,`input_role`),
+  KEY `idx_design_tool_img_req_tool_id` (`tool_id`),
+  CONSTRAINT `fk_design_tool_img_req_tool` FOREIGN KEY (`tool_id`) REFERENCES `cre_design_tools` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_design_tool_img_req_role` CHECK ((`input_role` in (_utf8mb4'primary',_utf8mb4'supporting',_utf8mb4'reference')))
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_tool_image_requirements`
+--
+
+LOCK TABLES `cre_design_tool_image_requirements` WRITE;
+/*!40000 ALTER TABLE `cre_design_tool_image_requirements` DISABLE KEYS */;
+INSERT INTO `cre_design_tool_image_requirements` VALUES (1,1,'primary','[\"primary\", \"exterior\"]',1,1,1,'2026-07-12 14:14:29','2026-07-12 14:14:29');
+/*!40000 ALTER TABLE `cre_design_tool_image_requirements` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_tool_knowledge_rules`
+--
+
+DROP TABLE IF EXISTS `cre_design_tool_knowledge_rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_tool_knowledge_rules` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `tool_id` bigint NOT NULL,
+  `knowledge_scope` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `is_required` tinyint(1) NOT NULL DEFAULT '0',
+  `include_in_context` tinyint(1) NOT NULL DEFAULT '1',
+  `instructions` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `field_code` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_tool_knowledge_rules_scope` (`tool_id`,`knowledge_scope`,`field_code`),
+  KEY `idx_design_tool_knowledge_rules_tool_id` (`tool_id`),
+  CONSTRAINT `fk_design_tool_knowledge_rules_tool` FOREIGN KEY (`tool_id`) REFERENCES `cre_design_tools` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_design_tool_knowledge_rules_scope` CHECK ((`knowledge_scope` in (_utf8mb4'project',_utf8mb4'property',_utf8mb4'image',_utf8mb4'design_job')))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_tool_knowledge_rules`
+--
+
+LOCK TABLES `cre_design_tool_knowledge_rules` WRITE;
+/*!40000 ALTER TABLE `cre_design_tool_knowledge_rules` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_design_tool_knowledge_rules` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_tool_options`
+--
+
+DROP TABLE IF EXISTS `cre_design_tool_options`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_tool_options` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `tool_id` bigint NOT NULL,
+  `option_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `option_label` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `option_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `allowed_values_json` json DEFAULT NULL,
+  `default_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `is_required` tinyint(1) NOT NULL DEFAULT '0',
+  `display_order` int NOT NULL DEFAULT '0',
+  `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'active',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_tool_options_tool_option` (`tool_id`,`option_code`),
+  KEY `idx_design_tool_options_tool_id` (`tool_id`),
+  CONSTRAINT `fk_design_tool_options_tool` FOREIGN KEY (`tool_id`) REFERENCES `cre_design_tools` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chk_design_tool_options_type` CHECK ((`option_type` in (_utf8mb4'select',_utf8mb4'multiselect',_utf8mb4'boolean',_utf8mb4'number',_utf8mb4'text',_utf8mb4'slider')))
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_tool_options`
+--
+
+LOCK TABLES `cre_design_tool_options` WRITE;
+/*!40000 ALTER TABLE `cre_design_tool_options` DISABLE KEYS */;
+INSERT INTO `cre_design_tool_options` VALUES (1,1,'design_style','Design Style','select','[\"Modern\", \"Contemporary\", \"Minimalist\"]','Modern',1,1,'active','2026-07-12 14:38:11','2026-07-12 14:38:11');
+/*!40000 ALTER TABLE `cre_design_tool_options` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_design_tools`
+--
+
+DROP TABLE IF EXISTS `cre_design_tools`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_design_tools` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `tool_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tool_name` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `design_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `workflow_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `card_image_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `icon_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `business_description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `business_purpose` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `business_instructions` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  `input_config_json` json DEFAULT NULL,
+  `output_expectations_json` json DEFAULT NULL,
+  `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'active',
+  `display_order` int NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_design_tools_tool_code` (`tool_code`),
+  KEY `idx_design_tools_status` (`status`),
+  KEY `idx_design_tools_design_type` (`design_type`),
+  KEY `idx_design_tools_display_order` (`display_order`),
+  CONSTRAINT `chk_design_tools_status` CHECK ((`status` in (_utf8mb4'active',_utf8mb4'inactive',_utf8mb4'archived')))
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_design_tools`
+--
+
+LOCK TABLES `cre_design_tools` WRITE;
+/*!40000 ALTER TABLE `cre_design_tools` DISABLE KEYS */;
+INSERT INTO `cre_design_tools` VALUES (1,'EXTERIOR_REMODEL','Exterior Remodel','PROPERTY_REDESIGN','WF_EXTERIOR_REMODEL',NULL,'house','Generate exterior property redesign concepts.','Visualize exterior improvements before analysis and estimation.','Preserve the property\'s primary geometry unless configured otherwise.','null','{\"output_type\": \"design_image_versions\"}','active',1,'2026-07-12 14:07:07','2026-07-12 14:07:07');
+/*!40000 ALTER TABLE `cre_design_tools` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_estimates`
+--
+
+DROP TABLE IF EXISTS `cre_estimates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_estimates` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `property_id` bigint NOT NULL,
+  `scenario` enum('cosmetic','heavy_remodel','demo_rebuild','custom') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `proposed_use` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proposed_building_sqft` int DEFAULT NULL,
+  `proposed_units` int DEFAULT NULL,
+  `low_cost` decimal(14,2) DEFAULT NULL,
+  `mid_cost` decimal(14,2) DEFAULT NULL,
+  `high_cost` decimal(14,2) DEFAULT NULL,
+  `cost_per_sqft_low` decimal(10,2) DEFAULT NULL,
+  `cost_per_sqft_high` decimal(10,2) DEFAULT NULL,
+  `assumptions` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `risk_level` enum('low','medium','high') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'medium',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `workflow_execution_id` bigint DEFAULT NULL,
+  `estimate_source` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `estimate_version` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `property_id` (`property_id`),
+  CONSTRAINT `cre_estimates_ibfk_1` FOREIGN KEY (`property_id`) REFERENCES `cre_properties` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_estimates`
+--
+
+LOCK TABLES `cre_estimates` WRITE;
+/*!40000 ALTER TABLE `cre_estimates` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_estimates` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_generated_assets`
+--
+
+DROP TABLE IF EXISTS `cre_generated_assets`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_generated_assets` (
+  `asset_id` bigint NOT NULL AUTO_INCREMENT,
+  `execution_id` bigint NOT NULL,
+  `property_id` bigint NOT NULL,
+  `asset_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `asset_category` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `storage_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `thumbnail_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mime_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_size` bigint DEFAULT NULL,
+  `version` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`asset_id`),
+  KEY `idx_asset_execution` (`execution_id`),
+  KEY `idx_asset_property` (`property_id`),
+  CONSTRAINT `fk_asset_execution` FOREIGN KEY (`execution_id`) REFERENCES `cre_workflow_executions` (`execution_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_generated_assets`
+--
+
+LOCK TABLES `cre_generated_assets` WRITE;
+/*!40000 ALTER TABLE `cre_generated_assets` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_generated_assets` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_project_properties`
+--
+
+DROP TABLE IF EXISTS `cre_project_properties`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_project_properties` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` varchar(100) NOT NULL,
+  `property_id` bigint NOT NULL,
+  `scan_id` varchar(100) DEFAULT NULL,
+  `role` varchar(100) DEFAULT NULL,
+  `selected` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_project_property` (`project_id`,`property_id`),
+  KEY `idx_project_properties_project_id` (`project_id`),
+  KEY `idx_project_properties_property_id` (`property_id`),
+  KEY `idx_project_properties_scan_id` (`scan_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1805 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_project_properties`
+--
+
+LOCK TABLES `cre_project_properties` WRITE;
+/*!40000 ALTER TABLE `cre_project_properties` DISABLE KEYS */;
+INSERT INTO `cre_project_properties` VALUES (1802,'PRJ-7328',927,NULL,NULL,1,'2026-07-02 01:20:16'),(1803,'PRJ-348',928,NULL,NULL,1,'2026-07-16 20:27:38'),(1804,'PRJ-488',929,NULL,NULL,1,'2026-07-18 12:41:51');
+/*!40000 ALTER TABLE `cre_project_properties` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_projects`
+--
+
+DROP TABLE IF EXISTS `cre_projects`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_projects` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` varchar(100) NOT NULL,
+  `project_name` varchar(255) NOT NULL,
+  `description` text,
+  `status` varchar(50) NOT NULL DEFAULT 'active',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `default_city` varchar(120) DEFAULT NULL,
+  `default_state` varchar(50) DEFAULT NULL,
+  `main_street` varchar(255) DEFAULT NULL,
+  `beginning_address` varchar(255) DEFAULT NULL,
+  `ending_address` varchar(255) DEFAULT NULL,
+  `side` varchar(50) DEFAULT NULL,
+  `scan_mode` varchar(50) DEFAULT NULL,
+  `goals` text,
+  `hoa_rules` text,
+  `climate` text,
+  `budget_low` decimal(14,2) DEFAULT NULL,
+  `budget_high` decimal(14,2) DEFAULT NULL,
+  `preferred_styles` json DEFAULT NULL,
+  `design_preferences` text,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `project_id` (`project_id`),
+  KEY `idx_cre_projects_status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_projects`
+--
+
+LOCK TABLES `cre_projects` WRITE;
+/*!40000 ALTER TABLE `cre_projects` DISABLE KEYS */;
+INSERT INTO `cre_projects` VALUES (16,'PRJ-7328','WORLD PLAZA AT ALHAMBRA ','Property analysis, concept design, and estimate cost including costmic remodels with new parking lot & landscape improvement','active','2026-06-29 22:44:24','2026-07-03 16:13:37','Alhambra','CA','1227 W Valley Blvd ','1200','1227','both','full',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(19,'PRJ-348','APPARTMENT AT GARFIELD','','active','2026-07-03 16:14:54','2026-07-04 02:40:35','ALHAMBRA','CA','MAIN STREET','','','Both','Deep Audit',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(20,'PRJ-488','ORANGE COUNTY','Project Name:\nCoastal Family Home Renovation Test\n\nGoals:\nModernize the property while preserving the existing structure and improving comfort, durability, and resale appeal.\n\nHOA Rules:\nExterior modifications must retain the original roofline and window locations. Exterior colors must remain within neutral coastal tones. No expansion of the building footprint.\n\nClimate:\nWarm coastal climate with strong sunlight, salt-air exposure, moderate humidity, and occasional heavy rain.\n\nBudget Low:\n75000\n\nBudget High:\n125000\n\nPreferred Styles:\nCoastal Modern\nWarm Contemporary\n\nDesign Preferences:\nUse durable low-maintenance materials, warm neutral colors, natural wood accents, efficient lighting, and a consistent design language across exterior and interior spaces.','active','2026-07-18 12:39:27','2026-07-18 12:40:45','Hutington Beach','CA','Beach Blvd','761','761','Both','High Density',NULL,NULL,NULL,NULL,NULL,'null',NULL);
+/*!40000 ALTER TABLE `cre_projects` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_properties`
+--
+
+DROP TABLE IF EXISTS `cre_properties`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_properties` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `property_uid` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `city` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `state` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `zip` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `apn` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL,
+  `lot_sqft` int DEFAULT NULL,
+  `building_sqft` int DEFAULT NULL,
+  `year_built` int DEFAULT NULL,
+  `zoning_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `existing_use` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `business_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `land_value` decimal(14,2) DEFAULT NULL,
+  `improvement_value` decimal(14,2) DEFAULT NULL,
+  `total_assessed_value` decimal(14,2) DEFAULT NULL,
+  `data_source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `street_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `street_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `side_of_street` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phase2_source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `display_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `source` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `confidence_score` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `raw_api_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `api_source_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `bedrooms` int DEFAULT NULL,
+  `bathrooms` decimal(3,1) DEFAULT NULL,
+  `construction_type` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `existing_materials` json DEFAULT NULL,
+  `existing_colors` json DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `property_uid` (`property_uid`),
+  KEY `idx_address` (`address`),
+  KEY `idx_apn` (`apn`),
+  KEY `idx_city_street` (`city`,`address`),
+  KEY `idx_cre_properties_street_number` (`street_number`),
+  KEY `idx_cre_properties_street_name` (`street_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=930 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_properties`
+--
+
+LOCK TABLES `cre_properties` WRITE;
+/*!40000 ALTER TABLE `cre_properties` DISABLE KEYS */;
+INSERT INTO `cre_properties` VALUES (927,'PROP-5091','128 W Valley Blvd ','Los Angeles','CA','90032 ','5342-111-222',NULL,NULL,15000,8500,2007,'C2-1','Retail Commercial','TF SHOPS',1500000.00,1888000.00,5333111.00,'County Assessor','2026-07-02 08:20:16','2026-07-17 07:39:16','1227C','Westmont','North','Esri ArcGIS',NULL,'Captured',NULL,'Things to be accomplished:\n\n□ Evaluate Purchase\n□ Renovation Analysis\n□ Redevelopment\n□ Flip Opportunity\n□ Rental Investment\n□ Market Research\n□ Contractor Estimate\n□ AI Concept Design\n□ Custom\n\n1) Is Property worth the value? AI will check again the neightborhood properties and sizes\n2) Costmetics remodel in the areas according to the images, Front yard landscape redesign, Living room retiled, Kitchen with new cabinets and counter tops, renew Master bed room\n\nThen AI-CRE will create the job, DEV-TOOLS will reason from the info, images URL, redesing concept images return, find the best value for the remodel, generate qoutation for contractors, estimate remodel cost.  ','High',NULL,NULL,NULL,NULL,NULL,NULL,NULL),(928,'PROP-30477940','761 Harbor Ln','Huntington Beach','CA','92649','',34.0818500,-118.1487200,15000,8500,2005,'C2-1','Retail Commercial','',3600000.00,2400000.00,6000000.00,'County Assessor','2026-07-17 03:27:38','2026-07-17 07:40:12','761','7661 Still Harbor Ln','-','Google Maps','','Active','Manual Entry','','High','{\n  \"source\": \"County Assessor API\",\n  \"parcel_type\": \"Commercial\",\n  \"tax_year\": 2025,\n  \"zoning_limits\": {\n    \"max_height_ft\": 45,\n    \"far_multiplier\": 1.5,\n    \"parking_ratio\": \"1:250 SQFT\"\n  }\n}','https://api.cre-handshake.gov/parcels/PROP-30477940',NULL,NULL,NULL,NULL,NULL),(929,'PROP-93172120','15541 PRODUCT LANE','HUNTINGTON BEACH','CA','92649','2222-666-88',34.0818500,-118.1487200,7000,3000,2005,'R-2','Multi-Family Residential','TF RESIDENT',1000000.00,500000.00,2000000.00,'Manual Entry','2026-07-18 19:41:51','2026-07-18 19:53:06','15541','PRODUCT LANE','North','Google Maps','','Active','Manual Entry','Property Name:\nPhase 1.2A Knowledge Inheritance Test Home\n\nAddress:\n2458 Pacific View Drive\n\nCity:\nHuntington Beach\n\nState:\nCA\n\nPostal Code:\n92648\n\nBedrooms:\n3\n\nBathrooms:\n2.5\n\nConstruction Type:\nWood-frame residential construction with stucco, painted masonry, and wood siding exterior elements.\n\nExisting Materials:\nStucco\nPainted brick\nWood siding\nConcrete porch\nEngineered hardwood\nPainted drywall\nQuartz countertop\n\nExisting Colors:\nWarm white\nLight beige\nNatural oak\nSoft gray\nMatte black accents','High','{\n  \"source\": \"County Assessor API\",\n  \"parcel_type\": \"Commercial\",\n  \"tax_year\": 2025,\n  \"zoning_limits\": {\n    \"max_height_ft\": 45,\n    \"far_multiplier\": 1.5,\n    \"parking_ratio\": \"1:250 SQFT\"\n  }\n}','https://api.cre-handshake.gov/parcels/PROP-93172120',NULL,NULL,NULL,'null','null');
+/*!40000 ALTER TABLE `cre_properties` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_property_analysis_reports`
+--
+
+DROP TABLE IF EXISTS `cre_property_analysis_reports`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_property_analysis_reports` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` varchar(100) NOT NULL,
+  `property_id` bigint NOT NULL,
+  `scenario_id` int DEFAULT NULL,
+  `estimate_low` decimal(14,2) DEFAULT NULL,
+  `estimate_high` decimal(14,2) DEFAULT NULL,
+  `zoning_notes` text,
+  `risk_notes` text,
+  `recommendation` text,
+  `score` decimal(5,2) DEFAULT NULL,
+  `report_json` json DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `workflow_execution_id` bigint DEFAULT NULL,
+  `workflow_result_id` bigint DEFAULT NULL,
+  `analysis_version` varchar(30) DEFAULT NULL,
+  `confidence_score` decimal(5,2) DEFAULT NULL,
+  `workflow_status` varchar(30) DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_reports_project_property` (`project_id`,`property_id`),
+  KEY `idx_reports_scenario_id` (`scenario_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_property_analysis_reports`
+--
+
+LOCK TABLES `cre_property_analysis_reports` WRITE;
+/*!40000 ALTER TABLE `cre_property_analysis_reports` DISABLE KEYS */;
+INSERT INTO `cre_property_analysis_reports` VALUES (8,'PRJ-488',929,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{}','2026-07-19 00:04:12','2026-07-19 00:04:12',27,1,'1.0.0',NULL,'Completed','2026-07-19 00:04:13'),(9,'PRJ-488',929,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{}','2026-07-19 19:06:18','2026-07-19 19:06:18',28,2,'1.0.0',NULL,'Completed','2026-07-19 19:06:19'),(10,'PRJ-488',929,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'{}','2026-07-20 04:23:27','2026-07-20 04:23:27',29,3,'1.0.0',NULL,'Completed','2026-07-20 04:23:27'),(11,'PRJ-488',929,NULL,NULL,NULL,NULL,NULL,'The renovation opportunity remains attractive and strategically aligned with the stated goal of improving comfort, durability, curb appeal, and resale appeal. The primary barrier is not the renovation concept; it is the reliability of the underlying property data. Executive decision-makers should authorize immediate data reconciliation before advancing to budgeting, valuation, HOA submission, permitting, or contractor engagement. Once the property record is corrected, the project can move forward with a controlled, cosmetic renovation strategy that preserves the structure, respects HOA rules, and supports market-facing value creation.',NULL,'{\"conclusion\": \"The renovation opportunity remains attractive and strategically aligned with the stated goal of improving comfort, durability, curb appeal, and resale appeal. The primary barrier is not the renovation concept; it is the reliability of the underlying property data. Executive decision-makers should authorize immediate data reconciliation before advancing to budgeting, valuation, HOA submission, permitting, or contractor engagement. Once the property record is corrected, the project can move forward with a controlled, cosmetic renovation strategy that preserves the structure, respects HOA rules, and supports market-facing value creation.\", \"key_findings\": [\"Validation status is \'needs_review\' due to multiple inconsistencies in the property record.\", \"The primary property record lists 15541 Product Lane, Huntington Beach, CA 92649, while project instructions reference 2458 Pacific View Drive, Huntington Beach, CA 92648.\", \"The provided latitude and longitude do not appear to align with the Huntington Beach address information and require re-geocoding.\", \"Financial data is inconsistent: land value of $1,000,000 plus improvement value of $500,000 equals $1,500,000, but the submitted total assessed value is $2,000,000.\", \"Key property attributes are partially complete: lot size, building size, year built, zoning, use, APN, and images are present; bedrooms, bathrooms, property name, verified address, verified geocode, and legal parcel documentation remain unconfirmed.\", \"The renovation goals and constraints are well-defined: preserve roofline, window locations, building footprint, room footprints, plumbing wall, fireplace location, and major appliance locations.\", \"The design direction is aligned with market-relevant preferences for Huntington Beach: coastal modern, warm contemporary, durable low-maintenance materials, neutral coastal tones, natural wood accents, and efficient lighting.\", \"Uploaded images and notes provide usable renovation direction for kitchen, living room, and front elevation improvements.\"], \"business_health\": \"Business health is assessed as moderate but not decision-ready. The project has a strong strategic renovation concept, defined budget range, clear design preferences, and scope discipline that supports cost control and HOA compliance. However, data integrity risk is high because the property identity, location, and financial baseline are not fully reliable. Proceeding without resolving these issues could lead to incorrect budgeting, appraisal assumptions, permit misalignment, HOA submission errors, or investment decisions based on the wrong property record.\", \"recommendations\": [\"Pause valuation, permitting, and final design decisions until address, geocode, APN, and financial records are verified.\", \"Assign one accountable owner to complete property data reconciliation within 3 business days and update the system of record.\", \"Use the $75,000 to $125,000 budget as a preliminary planning range only until the correct property and improvement scope are confirmed.\", \"Proceed with conceptual design exploration for kitchen, living room, and front elevation only if outputs are clearly marked as preliminary and non-binding.\", \"Prioritize cosmetic, HOA-compliant improvements: cabinetry refresh or replacement, updated backsplash, improved lighting, durable countertops, warm wall finishes, improved furniture layout, neutral exterior paint, enhanced entry details, and low-maintenance coastal materials.\", \"Avoid any scope that changes roofline, window locations, porch columns, building footprint, plumbing wall, or major appliance locations unless separately approved.\", \"Create a pre-renovation decision gate requiring verified property identity, reconciled financials, confirmed HOA constraints, and approved preliminary scope before committing contractor pricing or procurement.\", \"Upload additional visual and technical assets to improve planning accuracy: floor plans, exterior elevations, roof plan if available, site plan, and additional interior room photos.\"], \"priority_actions\": [\"Confirm the canonical property address immediately: determine whether the active project property is 15541 Product Lane, 92649 or 2458 Pacific View Drive, 92648.\", \"Re-run geocoding after address confirmation and update latitude and longitude in the property record.\", \"Reconcile assessed values by obtaining the latest county assessor record and resolving the $500,000 discrepancy between calculated and submitted assessed value.\", \"Verify the APN against Orange County assessor records and confirm whether APN 2222-666-88 is formatted and assigned correctly.\", \"Add confirmed bedroom count, bathroom count, and property name into the structured property record before further workflow use.\", \"Convert renovation budget assumptions into structured fields: budget_low = 75000 and budget_high = 125000.\", \"Collect supporting documents before design or valuation decisions: parcel map, assessor report, title or deed record, site plan, and available floor plans.\"], \"executive_summary\": \"The Coastal Family Home Renovation project has a clear strategic objective: modernize the property while preserving the existing structure, improving comfort, durability, curb appeal, and resale potential within an estimated $75,000 to $125,000 budget. However, the property record is not yet decision-ready. The validation review identified material data conflicts involving the property address, geolocation, and assessed value totals. These issues should be resolved before proceeding with design approvals, budgeting, valuation, permitting, or HOA-related decisions. The renovation scope appears directionally feasible because the requested improvements are primarily cosmetic and preservation-based, but execution should be paused until core property data is verified.\"}','2026-07-20 04:27:41','2026-07-20 04:27:41',30,4,'1.0.0',NULL,'Completed','2026-07-20 04:27:42');
+/*!40000 ALTER TABLE `cre_property_analysis_reports` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_property_images`
+--
+
+DROP TABLE IF EXISTS `cre_property_images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_property_images` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `property_id` bigint NOT NULL,
+  `image_type` enum('street_view','satellite','parcel_map','uploaded') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `image_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `provider` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `heading` decimal(8,3) DEFAULT NULL,
+  `pitch` decimal(8,3) DEFAULT NULL,
+  `fov` decimal(8,3) DEFAULT NULL,
+  `cached_path` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `last_checked_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `project_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `original_file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `file_size` int DEFAULT NULL,
+  `file_type` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `image_role` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `ai_prompt` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `tags` json DEFAULT NULL,
+  `constraints` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `priority` int DEFAULT NULL,
+  `is_primary` tinyint(1) NOT NULL DEFAULT '0',
+  `status` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT '0',
+  `camera_direction` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `existing_furniture` json DEFAULT NULL,
+  `existing_lighting` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  PRIMARY KEY (`id`),
+  KEY `property_id` (`property_id`),
+  KEY `idx_property_images_primary` (`property_id`,`is_primary`),
+  CONSTRAINT `cre_property_images_ibfk_1` FOREIGN KEY (`property_id`) REFERENCES `cre_properties` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_property_images`
+--
+
+LOCK TABLES `cre_property_images` WRITE;
+/*!40000 ALTER TABLE `cre_property_images` DISABLE KEYS */;
+INSERT INTO `cre_property_images` VALUES (35,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/3456cbfd4e334952bb376f28be62ba7a.jpg',NULL,'2026-07-04 09:43:39','PRJ-7328','1227VALLEY-IMAGES-2.jpg',675143,'image/jpeg','other','','Preserve storefront geometry, window locations, tenant signage positions, and the existing building footprint. Modernize the exterior facade while keeping the commercial property recognizable.','[\"front-facade\", \"retail-commercial\", \"storefront\", \"signage\", \"exterior\", \"stucco\"]','Do not remove parking, change the building footprint, relocate storefront windows, or remove tenant access. Preserve primary structural geometry.',10,0,'active',0,NULL,NULL,NULL),(36,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/c2d795bd0f8348d7aa5199d4f61d4137.jpg',NULL,'2026-07-16 23:18:35','PRJ-7328','AIHOME_KICHEN_01.jpg',1247402,'image/jpeg','kitchen','Enhance the kitchen using Gray, Dark Yellow, and Green color theme',NULL,'[]',NULL,10,0,'active',0,NULL,NULL,NULL),(37,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/6d3ca3c95c2341848535e8f69696c148.jpg',NULL,'2026-07-17 02:45:15','PRJ-7328','AIHOME_STUDIO_LVING_ROOM.jpg',2099584,'image/jpeg','Living Room','',NULL,'null',NULL,NULL,0,'Active',0,NULL,NULL,NULL),(38,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/29567e421d3245f1b8b470286a35636b.jpg',NULL,'2026-07-17 02:46:23','PRJ-7328','AIHOME_STUDIO_DINNING.jpg',423058,'image/jpeg','dining_room','Keep design and only change colors based on the project\'s color theme',NULL,'[\"ColorTheme\"]',NULL,5,0,'active',0,NULL,NULL,NULL),(39,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/0eb12895368a4e52946860d0cef41e09.jpg',NULL,'2026-07-17 02:52:16','PRJ-7328','AIHOME_STUDIO_YARD_FRONT_2.jpg',2373288,'image/jpeg','interior','Front Elevation Image 1 and keep structure no change, only cosmetics improvement',NULL,'[\"Exterior\"]',NULL,5,1,'active',0,NULL,NULL,NULL),(40,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/7e2e78a5f18f445a96627945aa4b4c61.jpg',NULL,'2026-07-17 02:52:16','PRJ-7328','AIHOME_STUDIO_YARD_FRONT_1.jpg',3796907,'image/jpeg','Front Yard Two','',NULL,'null',NULL,NULL,0,'active',0,NULL,NULL,NULL),(41,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/38327c14d647485ca7647dbbde77b6ae.jpg',NULL,'2026-07-17 02:52:16','PRJ-7328','AIHOME_STUDIO_YARD_BACK.jpg',4511868,'image/jpeg','Back Yard','',NULL,'null',NULL,NULL,0,'active',0,NULL,NULL,NULL),(43,928,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/928/original/b562e9341eb340fb93a393cd42769116.jpg',NULL,'2026-07-17 03:28:25','PRJ-348','AIHOME_STUDIO_DINNING.jpg',423058,'image/jpeg','dining_room','',NULL,'null',NULL,NULL,0,'active',0,NULL,NULL,NULL),(44,928,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/928/original/4622768dece241f68a5b1ef5b391d8d6.jpg',NULL,'2026-07-17 03:28:25','PRJ-348','AIHOME_STUDIO_FAMILY_ROOM.jpg',943163,'image/jpeg','living_room','',NULL,'null',NULL,NULL,1,'active',0,NULL,NULL,NULL),(45,928,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/928/original/ebb3af928d384278ac9f506159be5ca8.jpg',NULL,'2026-07-17 03:28:25','PRJ-348','AIHOME_KICHEN_01.jpg',1247402,'image/jpeg','kitchen','',NULL,'null',NULL,NULL,0,'active',0,NULL,NULL,NULL),(47,928,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/928/original/9aa84899b906452dafd531ecb33c88c4.jpg',NULL,'2026-07-17 03:28:26','PRJ-348','AIHOME_STUDIO_LVING_ROOM.jpg',2099584,'image/jpeg','living_room','',NULL,'null',NULL,NULL,0,'active',0,NULL,NULL,NULL),(48,928,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/928/original/2a5c214effca48f0b78573ef43a0c8ef.jpg',NULL,'2026-07-17 03:28:26','PRJ-348','AIHOME_STUDIO_YARD_BACK.jpg',4511868,'image/jpeg','yard','',NULL,'null',NULL,NULL,0,'active',0,NULL,NULL,NULL),(50,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/6e4658c7baea4f7c806aa4e07d725729.jpg',NULL,'2026-07-17 03:44:34','PRJ-7328','AIHOME_STUDIO_SG_1227 W Valley Blvd.jpg',1189333,'image/jpeg','exterior','Use dark gray, master yellow, and lime green theme for external design',NULL,'null',NULL,NULL,0,'active',0,NULL,NULL,NULL),(51,927,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/927/original/a629f77f40264b8e97b2edadf7359635.jpg',NULL,'2026-07-17 08:57:08','PRJ-7328','AIHOME_STUDIO_SG_1227_FRONT2.jpg',2596565,'image/jpeg','exterior','Front Elevation Closed View. Change the door color the White',NULL,'[]',NULL,10,0,'uploaded',0,NULL,NULL,NULL),(52,929,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/929/original/d64652a967e04565bdeaa6893e636810.jpg',NULL,'2026-07-18 19:45:15','PRJ-488','AIHOME_STUDIO_YARD_FRONT_2.jpg',2373288,'image/jpeg','exterior','Front elevation of the house. Preserve the existing roof shape, window locations, porch columns, front door location, and building footprint. Improve curb appeal using cosmetic exterior changes only.',NULL,'[\"Exterior\", \"Front Elevation\", \"Curb Appeal\", \"Structure Preserved\", \"Coastal Modern\"]',NULL,1,1,'uploaded',0,NULL,'null',NULL),(53,929,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/929/original/763f26f14cb14fb39019b08006d610ae.jpg',NULL,'2026-07-18 19:45:33','PRJ-488','AIHOME_STUDIO_LVING_ROOM.jpg',2099584,'image/jpeg','living_room','Living room viewed from the entry side. Preserve the window openings, ceiling height, fireplace location, and flooring footprint. Improve furniture layout, lighting, wall finishes, and visual warmth.\n',NULL,'[\"Interior\", \"Living Room\", \"Furniture Layout\", \"Lighting\", \"Warm Contemporary\"]',NULL,5,0,'uploaded',0,NULL,'null',NULL),(55,929,'uploaded',NULL,'manual_upload',NULL,NULL,NULL,'properties/929/original/01acd027e07a49e58458a5f22dedf67b.jpg',NULL,'2026-07-18 19:50:22','PRJ-488','AIHOME_KICHEN_01.jpg',1247402,'image/jpeg','kitchen','Kitchen viewed from the dining area. Preserve the room footprint, exterior windows, plumbing wall, and main appliance locations. Improve cabinetry, backsplash, lighting, storage efficiency, and countertop appearance.\n',NULL,'[\"Interior\", \"Kitchen\", \"Cabinetry\", \"Lighting\", \"Storage\", \"Coastal Modern\"]',NULL,10,0,'uploaded',0,NULL,'null',NULL);
+/*!40000 ALTER TABLE `cre_property_images` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_renovation_scenarios`
+--
+
+DROP TABLE IF EXISTS `cre_renovation_scenarios`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_renovation_scenarios` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `project_id` varchar(100) NOT NULL,
+  `property_id` bigint NOT NULL,
+  `renovation_type` varchar(100) NOT NULL,
+  `scenario_type` varchar(100) DEFAULT NULL,
+  `scenario_name` varchar(255) DEFAULT NULL,
+  `rationale` text,
+  `risk_level` varchar(50) DEFAULT NULL,
+  `estimated_complexity` varchar(50) DEFAULT NULL,
+  `custom_notes` text,
+  `status` varchar(50) NOT NULL DEFAULT 'draft',
+  `source` varchar(100) DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_scenarios_project_property` (`project_id`,`property_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_renovation_scenarios`
+--
+
+LOCK TABLES `cre_renovation_scenarios` WRITE;
+/*!40000 ALTER TABLE `cre_renovation_scenarios` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_renovation_scenarios` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_result_sections`
+--
+
+DROP TABLE IF EXISTS `cre_result_sections`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_result_sections` (
+  `section_id` bigint NOT NULL AUTO_INCREMENT,
+  `result_id` bigint NOT NULL,
+  `section_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `display_order` int NOT NULL DEFAULT '0',
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `confidence_score` decimal(5,2) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`section_id`),
+  KEY `idx_section_result` (`result_id`),
+  CONSTRAINT `fk_section_result` FOREIGN KEY (`result_id`) REFERENCES `cre_workflow_results` (`result_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_result_sections`
+--
+
+LOCK TABLES `cre_result_sections` WRITE;
+/*!40000 ALTER TABLE `cre_result_sections` DISABLE KEYS */;
+INSERT INTO `cre_result_sections` VALUES (1,2,'unrecognized_output',0,'Unrecognized Output Format','{}',NULL,'2026-07-19 19:06:18'),(2,3,'unrecognized_output',0,'Unrecognized Output Format','{}',NULL,'2026-07-20 04:23:27'),(3,4,'executive_summary',0,'Executive Summary','The Coastal Family Home Renovation project has a clear strategic objective: modernize the property while preserving the existing structure, improving comfort, durability, curb appeal, and resale potential within an estimated $75,000 to $125,000 budget. However, the property record is not yet decision-ready. The validation review identified material data conflicts involving the property address, geolocation, and assessed value totals. These issues should be resolved before proceeding with design approvals, budgeting, valuation, permitting, or HOA-related decisions. The renovation scope appears directionally feasible because the requested improvements are primarily cosmetic and preservation-based, but execution should be paused until core property data is verified.',NULL,'2026-07-20 04:27:41'),(4,4,'key_findings',1,'Key Findings','[\"Validation status is \'needs_review\' due to multiple inconsistencies in the property record.\", \"The primary property record lists 15541 Product Lane, Huntington Beach, CA 92649, while project instructions reference 2458 Pacific View Drive, Huntington Beach, CA 92648.\", \"The provided latitude and longitude do not appear to align with the Huntington Beach address information and require re-geocoding.\", \"Financial data is inconsistent: land value of $1,000,000 plus improvement value of $500,000 equals $1,500,000, but the submitted total assessed value is $2,000,000.\", \"Key property attributes are partially complete: lot size, building size, year built, zoning, use, APN, and images are present; bedrooms, bathrooms, property name, verified address, verified geocode, and legal parcel documentation remain unconfirmed.\", \"The renovation goals and constraints are well-defined: preserve roofline, window locations, building footprint, room footprints, plumbing wall, fireplace location, and major appliance locations.\", \"The design direction is aligned with market-relevant preferences for Huntington Beach: coastal modern, warm contemporary, durable low-maintenance materials, neutral coastal tones, natural wood accents, and efficient lighting.\", \"Uploaded images and notes provide usable renovation direction for kitchen, living room, and front elevation improvements.\"]',NULL,'2026-07-20 04:27:41'),(5,4,'business_health',2,'Business Health','Business health is assessed as moderate but not decision-ready. The project has a strong strategic renovation concept, defined budget range, clear design preferences, and scope discipline that supports cost control and HOA compliance. However, data integrity risk is high because the property identity, location, and financial baseline are not fully reliable. Proceeding without resolving these issues could lead to incorrect budgeting, appraisal assumptions, permit misalignment, HOA submission errors, or investment decisions based on the wrong property record.',NULL,'2026-07-20 04:27:41'),(6,4,'priority_actions',3,'Priority Actions','[\"Confirm the canonical property address immediately: determine whether the active project property is 15541 Product Lane, 92649 or 2458 Pacific View Drive, 92648.\", \"Re-run geocoding after address confirmation and update latitude and longitude in the property record.\", \"Reconcile assessed values by obtaining the latest county assessor record and resolving the $500,000 discrepancy between calculated and submitted assessed value.\", \"Verify the APN against Orange County assessor records and confirm whether APN 2222-666-88 is formatted and assigned correctly.\", \"Add confirmed bedroom count, bathroom count, and property name into the structured property record before further workflow use.\", \"Convert renovation budget assumptions into structured fields: budget_low = 75000 and budget_high = 125000.\", \"Collect supporting documents before design or valuation decisions: parcel map, assessor report, title or deed record, site plan, and available floor plans.\"]',NULL,'2026-07-20 04:27:41'),(7,4,'recommendations',4,'Recommendations','[\"Pause valuation, permitting, and final design decisions until address, geocode, APN, and financial records are verified.\", \"Assign one accountable owner to complete property data reconciliation within 3 business days and update the system of record.\", \"Use the $75,000 to $125,000 budget as a preliminary planning range only until the correct property and improvement scope are confirmed.\", \"Proceed with conceptual design exploration for kitchen, living room, and front elevation only if outputs are clearly marked as preliminary and non-binding.\", \"Prioritize cosmetic, HOA-compliant improvements: cabinetry refresh or replacement, updated backsplash, improved lighting, durable countertops, warm wall finishes, improved furniture layout, neutral exterior paint, enhanced entry details, and low-maintenance coastal materials.\", \"Avoid any scope that changes roofline, window locations, porch columns, building footprint, plumbing wall, or major appliance locations unless separately approved.\", \"Create a pre-renovation decision gate requiring verified property identity, reconciled financials, confirmed HOA constraints, and approved preliminary scope before committing contractor pricing or procurement.\", \"Upload additional visual and technical assets to improve planning accuracy: floor plans, exterior elevations, roof plan if available, site plan, and additional interior room photos.\"]',NULL,'2026-07-20 04:27:41'),(8,4,'conclusion',5,'Conclusion','The renovation opportunity remains attractive and strategically aligned with the stated goal of improving comfort, durability, curb appeal, and resale appeal. The primary barrier is not the renovation concept; it is the reliability of the underlying property data. Executive decision-makers should authorize immediate data reconciliation before advancing to budgeting, valuation, HOA submission, permitting, or contractor engagement. Once the property record is corrected, the project can move forward with a controlled, cosmetic renovation strategy that preserves the structure, respects HOA rules, and supports market-facing value creation.',NULL,'2026-07-20 04:27:41'),(9,4,'supplementary_output',6,'Agent Output for af45bd82','{\"validation_status\": \"needs_review\", \"summary\": \"Property record is largely populated but contains multiple important inconsistencies and missing required fields that require confirmation before use.\", \"property_reference\": {\"property_id\": 929, \"property_uid\": \"PROP-93172120\", \"apn\": \"2222-666-88\", \"apn_notes\": \"APN provided with hyphens. Verify APN format against county assessor (APN length/segmenting may differ by county).\"}, \"address\": {\"source_record\": {\"raw_address\": \"15541 PRODUCT LANE\", \"city\": \"HUNTINGTON BEACH\", \"state\": \"CA\", \"zip\": \"92649\"}, \"normalized\": {\"street\": \"15541 Product Lane\", \"city\": \"Huntington Beach\", \"state\": \"CA\", \"zip\": \"92649\", \"country\": \"US\", \"full_address\": \"15541 Product Lane, Huntington Beach, CA 92649\"}, \"alternate_address_from_instructions\": {\"raw\": \"2458 Pacific View Drive, Huntington Beach, CA 92648\", \"notes\": \"An alternate property address (2458 Pacific View Drive, 92648) is present in instructions/additional_notes and conflicts with property record address. Confirm correct address.\"}, \"discrepancy\": \"Address in property record (15541 Product Lane, 92649) conflicts with address in instructions (2458 Pacific View Drive, 92648).\"}, \"geolocation\": {\"latitude\": 34.08185, \"longitude\": -118.14872, \"coordinate_format_valid\": true, \"coordinate_address_consistency\": {\"match\": false, \"confidence\": \"low\", \"notes\": \"Provided coordinates (34.08185, -118.14872) do not strongly match the Huntington Beach addresses (92648/92649). Recommend geocoding address and/or confirming coordinates.\"}}, \"physical_attributes\": {\"lot_sqft\": 7000, \"building_sqft\": 3000, \"year_built\": 2005, \"zoning_code\": \"R-2\", \"existing_use\": \"Multi-Family Residential\"}, \"financials\": {\"land_value\": 1000000.0, \"improvement_value\": 500000.0, \"total_assessed_value\": 2000000.0, \"consistency_check\": {\"expected_total\": 1500000.0, \"provided_total\": 2000000.0, \"consistent\": false, \"notes\": \"Sum of land_value and improvement_value (1,500,000) does not equal total_assessed_value (2,000,000). Investigate source of discrepancy or additional assessed items.\"}, \"project_budget_from_description\": {\"budget_low\": 75000, \"budget_high\": 125000, \"notes\": \"Extracted from project.description; consider promoting these to structured fields if used programmatically.\"}}, \"images\": [{\"url\": \"http://127.0.0.1:8000/uploads/properties/929/original/01acd027e07a49e58458a5f22dedf67b.jpg\", \"image_type\": \"uploaded\", \"notes\": \"Kitchen viewed from the dining area. Preserve the room footprint, exterior windows, plumbing wall, and main appliance locations. Improve cabinetry, backsplash, lighting, storage efficiency, and countertop appearance.\", \"validation\": {\"url_format_valid\": true, \"notes_present\": true, \"recommended_usage\": \"interior - kitchen\"}}, {\"url\": \"http://127.0.0.1:8000/uploads/properties/929/original/763f26f14cb14fb39019b08006d610ae.jpg\", \"image_type\": \"uploaded\", \"notes\": \"Living room viewed from the entry side. Preserve the window openings, ceiling height, fireplace location, and flooring footprint. Improve furniture layout, lighting, wall finishes, and visual warmth.\", \"validation\": {\"url_format_valid\": true, \"notes_present\": true, \"recommended_usage\": \"interior - living room\"}}, {\"url\": \"http://127.0.0.1:8000/uploads/properties/929/original/d64652a967e04565bdeaa6893e636810.jpg\", \"image_type\": \"uploaded\", \"notes\": \"Front elevation of the house. Preserve the existing roof shape, window locations, porch columns, front door location, and building footprint. Improve curb appeal using cosmetic exterior changes only.\", \"validation\": {\"url_format_valid\": true, \"notes_present\": true, \"recommended_usage\": \"exterior - front elevation\"}}], \"required_fields_check\": {\"present\": [\"property_id\", \"property_uid\", \"apn\", \"address (record)\", \"city\", \"state\", \"zip\", \"latitude\", \"longitude\", \"lot_sqft\", \"building_sqft\", \"year_built\", \"zoning_code\", \"existing_use\", \"land_value\", \"improvement_value\", \"total_assessed_value\", \"images\"], \"missing_or_not_confirmed\": [{\"field\": \"bedrooms\", \"notes\": \"Not present in property record. Instructions mention \'Bedrooms: 3\' \\u2014 confirm and place into property record if accurate.\"}, {\"field\": \"bathrooms\", \"notes\": \"Not present in property record. Instructions mention \'Bathrooms: 2.5\' \\u2014 confirm and place into property record if accurate.\"}, {\"field\": \"property_name\", \"notes\": \"Not present in main property record. Additional_notes include \'Phase 1.2A Knowledge Inheritance Test Home\' \\u2014 confirm whether this is the property_name.\"}, {\"field\": \"verified_address\", \"notes\": \"Conflicting addresses present; verification required to determine canonical address.\"}, {\"field\": \"verified_geocode\", \"notes\": \"Coordinates likely do not match address; re-geocode or provide verified coordinates.\"}, {\"field\": \"legal/parcel_map_document\", \"notes\": \"No uploaded title, parcel map, or deed provided \\u2014 recommended for APN/parcel verification.\"}]}, \"discrepancies_found\": [\"Property address (15541 Product Lane, 92649) vs instructions address (2458 Pacific View Drive, 92648) \\u2014 conflict\", \"Latitude/Longitude (34.08185, -118.14872) do not appear to match Huntington Beach address(es) \\u2014 confirm coordinates\", \"Sum of land_value + improvement_value (1,500,000) != total_assessed_value (2,000,000) \\u2014 financial inconsistency\"], \"recommendations\": [\"Confirm correct canonical property address (15541 Product Lane, 92649) OR (2458 Pacific View Drive, 92648). Update property record accordingly.\", \"Re-run geocoding for the confirmed address and update latitude/longitude or provide authoritative coordinates from survey/parcel map.\", \"Reconcile assessed values: provide source documents (assessor parcel report) or correct total_assessed_value to equal land + improvement (or provide breakdown for additional assessed items).\", \"Add missing key fields to property record: bedrooms (3?), bathrooms (2.5?), property_name if applicable.\", \"Verify APN with county assessor and supply scanned parcel map or deed if available.\", \"If this record is used for design/budget decisions, ensure project budget fields are moved into structured fields (budget_low, budget_high) and confirm budgets align with scope.\", \"Consider uploading additional assets if needed: site plan, floor plans, parcel map, title report, and exterior aerial image for better validation.\"], \"actions_required\": [\"Address confirmation (required)\", \"Geocode verification (required)\", \"Financial reconciliation (recommended before appraisal/valuation workflows)\", \"Add/confirm bedrooms & bathrooms (recommended)\"], \"notes\": \"All returned data reflect values present in the submitted payload. No external lookups or network fetches were performed; geocode/address mismatch flagged by heuristic comparison and should be validated with an authoritative geocoding service or county records.\"}',NULL,'2026-07-20 04:27:41');
+/*!40000 ALTER TABLE `cre_result_sections` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_scan_jobs`
+--
+
+DROP TABLE IF EXISTS `cre_scan_jobs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_scan_jobs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `scan_id` varchar(100) NOT NULL,
+  `project_id` varchar(100) NOT NULL,
+  `project_name` varchar(255) NOT NULL,
+  `main_street` varchar(255) NOT NULL,
+  `beginning_address` varchar(255) NOT NULL,
+  `ending_address` varchar(255) NOT NULL,
+  `side_selection` varchar(50) NOT NULL DEFAULT 'both',
+  `status` varchar(50) NOT NULL DEFAULT 'created',
+  `found_count` int NOT NULL DEFAULT '0',
+  `notes` text,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `scan_source` varchar(120) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `scan_id` (`scan_id`),
+  KEY `idx_scan_jobs_project_id` (`project_id`),
+  KEY `idx_scan_jobs_scan_id` (`scan_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_scan_jobs`
+--
+
+LOCK TABLES `cre_scan_jobs` WRITE;
+/*!40000 ALTER TABLE `cre_scan_jobs` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_scan_jobs` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_scan_properties`
+--
+
+DROP TABLE IF EXISTS `cre_scan_properties`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_scan_properties` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `scan_id` bigint NOT NULL,
+  `property_id` bigint NOT NULL,
+  `scan_order` int DEFAULT NULL,
+  `side_of_street` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `frontage_street` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `included_reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_scan_property` (`scan_id`,`property_id`),
+  KEY `property_id` (`property_id`),
+  CONSTRAINT `cre_scan_properties_ibfk_1` FOREIGN KEY (`scan_id`) REFERENCES `cre_scans` (`id`),
+  CONSTRAINT `cre_scan_properties_ibfk_2` FOREIGN KEY (`property_id`) REFERENCES `cre_properties` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3126 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_scan_properties`
+--
+
+LOCK TABLES `cre_scan_properties` WRITE;
+/*!40000 ALTER TABLE `cre_scan_properties` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_scan_properties` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_scans`
+--
+
+DROP TABLE IF EXISTS `cre_scans`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_scans` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `scan_uid` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `city` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `state` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `main_street` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `start_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `end_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `side` enum('north','south','east','west','both') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'both',
+  `scan_mode` enum('quick','full') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'quick',
+  `status` enum('pending','processing','complete','failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `project_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `project_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `scan_source` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `scan_uid` (`scan_uid`)
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_scans`
+--
+
+LOCK TABLES `cre_scans` WRITE;
+/*!40000 ALTER TABLE `cre_scans` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_scans` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_workflow_events`
+--
+
+DROP TABLE IF EXISTS `cre_workflow_events`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_workflow_events` (
+  `event_id` bigint NOT NULL AUTO_INCREMENT,
+  `execution_id` bigint NOT NULL,
+  `event_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`event_id`),
+  KEY `idx_event_execution` (`execution_id`),
+  CONSTRAINT `fk_event_execution` FOREIGN KEY (`execution_id`) REFERENCES `cre_workflow_executions` (`execution_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=419 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_workflow_events`
+--
+
+LOCK TABLES `cre_workflow_events` WRITE;
+/*!40000 ALTER TABLE `cre_workflow_events` DISABLE KEYS */;
+INSERT INTO `cre_workflow_events` VALUES (1,1,'SYSTEM','Pending','Created workflow execution state EXE-WIM-564E825B7854. Dispatching to DEV-TOOLS.','2026-07-04 04:14:57'),(2,2,'SYSTEM','Pending','Created workflow execution state EXE-WIM-4E8FD6EC9B1D. Dispatching to DEV-TOOLS.','2026-07-04 04:17:03'),(3,3,'SYSTEM','Pending','Created workflow execution state EXE-WIM-BC67C25A02B7. Dispatching to DEV-TOOLS.','2026-07-04 04:24:10'),(4,3,'ERROR','Failed','Failed to submit workflow to DEV-TOOLS: Failed to reach DEV-TOOLS at \'http://127.0.0.1:9000/api/v1/jobs\': [WinError 10061] No connection could be made because the target machine actively refused it','2026-07-04 04:24:13'),(5,4,'SYSTEM','Pending','Created workflow execution state EXE-WIM-225BD67696FF. Dispatching to DEV-TOOLS.','2026-07-08 12:15:27'),(6,4,'ERROR','Failed','Failed to submit workflow to DEV-TOOLS: Failed to reach DEV-TOOLS at \'http://127.0.0.1:9000/api/v1/jobs\': [WinError 10061] No connection could be made because the target machine actively refused it','2026-07-08 12:15:30'),(7,5,'SYSTEM','Pending','Created workflow execution state EXE-WIM-DA0AC7F14265. Dispatching to DEV-TOOLS.','2026-07-08 12:49:02'),(8,5,'ERROR','Failed','Failed to submit workflow to DEV-TOOLS: DEV-TOOLS returned an error status for POST /jobs: 404','2026-07-08 12:49:02'),(9,6,'SYSTEM','Pending','Created workflow execution state EXE-WIM-D367BCAD04DC. Dispatching to DEV-TOOLS.','2026-07-08 12:50:11'),(10,6,'ERROR','Failed','Failed to submit workflow to DEV-TOOLS: DEV-TOOLS returned an error status for POST /jobs: 404','2026-07-08 12:50:12'),(11,7,'SYSTEM','Pending','Created workflow execution state EXE-WIM-07505909AD9C. Dispatching to DEV-TOOLS.','2026-07-10 03:36:04'),(12,7,'ERROR','Failed','Failed to submit workflow to DEV-TOOLS: DEV-TOOLS returned an error status for POST /jobs: 404','2026-07-10 03:36:05'),(13,8,'SYSTEM','Pending','Created workflow execution state EXE-WIM-793D0E964E40. Dispatching via WACP.','2026-07-10 12:16:27'),(14,8,'ERROR','Failed','Failed to submit workflow via WACP: WACP_BASE_URL is not configured. Set WACP_BASE_URL, WACP_APPLICATION_ID, WACP_API_KEY, and WACP_API_SECRET before submitting or polling Enterprise Jobs.','2026-07-10 12:16:27'),(15,9,'SYSTEM','Pending','Created workflow execution state EXE-WIM-425A9885A1D7. Dispatching via WACP.','2026-07-10 12:33:25'),(16,9,'ERROR','Failed','Failed to submit workflow via WACP: Failed to reach the WACP server while submitting job (workflow_code=ZONING_ANALYSIS): All 5 attempt(s) failed for POST https://<your-dev-tools-server>/wacp/v1/jobs.','2026-07-10 12:33:30'),(17,10,'SYSTEM','Pending','Created workflow execution state EXE-WIM-EA1B13F5FFBF. Dispatching via WACP.','2026-07-10 12:39:15'),(18,10,'ERROR','Failed','Failed to submit workflow via WACP: Failed to reach the WACP server while submitting job (workflow_code=ZONING_ANALYSIS): All 5 attempt(s) failed for POST https://<your-dev-tools-server>/wacp/v1/jobs.','2026-07-10 12:39:19'),(19,11,'SYSTEM','Pending','Created workflow execution state EXE-WIM-ABB680F84A05. Dispatching via WACP.','2026-07-10 12:40:40'),(20,11,'ERROR','Failed','Failed to submit workflow via WACP: Invalid WACP client configuration: base_url must be an HTTPS URL (10_WACP_PROTOCOL.md §16.3 transport requirement).','2026-07-10 12:40:40'),(21,12,'SYSTEM','Pending','Created workflow execution state EXE-WIM-EC1B8D3FABC3. Dispatching via WACP.','2026-07-10 12:40:41'),(22,12,'ERROR','Failed','Failed to submit workflow via WACP: Invalid WACP client configuration: base_url must be an HTTPS URL (10_WACP_PROTOCOL.md §16.3 transport requirement).','2026-07-10 12:40:41'),(23,13,'SYSTEM','Pending','Created workflow execution state EXE-WIM-B9D50476D02D. Dispatching via WACP.','2026-07-10 15:01:54'),(24,13,'ERROR','Failed','Failed to submit workflow via WACP: Invalid WACP client configuration: base_url must be an HTTPS URL (10_WACP_PROTOCOL.md §16.3 transport requirement).','2026-07-10 15:01:54'),(25,14,'SYSTEM','Pending','Created workflow execution state EXE-WIM-2FBEE0735A72. Dispatching via WACP.','2026-07-10 15:30:25'),(26,14,'ERROR','Failed','Failed to submit workflow via WACP: Failed to reach the WACP server while submitting job (workflow_code=ZONING_ANALYSIS): All 5 attempt(s) failed for POST https://127.0.0.1:9000/wacp/v1/jobs.','2026-07-10 15:30:30'),(27,15,'SYSTEM','Pending','Created workflow execution state EXE-WIM-96EA5E2462F6. Dispatching via WACP.','2026-07-10 15:56:29'),(28,15,'ERROR','Failed','Failed to submit workflow via WACP: Failed to reach the WACP server while submitting job (workflow_code=ZONING_ANALYSIS): All 5 attempt(s) failed for POST https://127.0.0.1:9000/wacp/v1/jobs.','2026-07-10 15:56:33'),(29,16,'SYSTEM','Pending','Created workflow execution state EXE-WIM-A7DE9F01884B. Dispatching via WACP.','2026-07-10 23:47:06'),(30,16,'ERROR','Failed','Failed to submit workflow via WACP: Failed to reach the WACP server while submitting job (workflow_code=ZONING_ANALYSIS): All 5 attempt(s) failed for POST https://127.0.0.1:9000/wacp/v1/jobs.','2026-07-10 23:47:11'),(31,17,'SYSTEM','Pending','Created workflow execution state EXE-WIM-1274E1311051. Dispatching via WACP.','2026-07-10 23:47:20'),(32,17,'ERROR','Failed','Failed to submit workflow via WACP: Failed to reach the WACP server while submitting job (workflow_code=ZONING_ANALYSIS): All 5 attempt(s) failed for POST https://127.0.0.1:9000/wacp/v1/jobs.','2026-07-10 23:47:25'),(33,18,'SYSTEM','Pending','Created workflow execution state EXE-WIM-B64E3B324FD7. Dispatching via WACP.','2026-07-10 23:50:55'),(34,18,'ERROR','Failed','Failed to submit workflow via WACP: Failed to reach the WACP server while submitting job (workflow_code=ZONING_ANALYSIS): All 5 attempt(s) failed for POST https://127.0.0.1:9443/wacp/v1/jobs.','2026-07-10 23:51:00'),(35,19,'SYSTEM','Pending','Created workflow execution state EXE-WIM-2375392E0E19. Dispatching via WACP.','2026-07-10 23:57:28'),(36,19,'ERROR','Failed','Failed to submit workflow via WACP: Failed to reach the WACP server while submitting job (workflow_code=ZONING_ANALYSIS): All 5 attempt(s) failed for POST https://127.0.0.1:9443/wacp/v1/jobs.','2026-07-10 23:57:33'),(37,20,'SYSTEM','Pending','Created workflow execution state EXE-WIM-DBCFC614C058. Dispatching via WACP.','2026-07-11 00:19:32'),(38,20,'ERROR','Failed','Failed to submit workflow via WACP: WACP server returned an error while submitting job (workflow_code=ZONING_ANALYSIS) (WACP-401): Project \'PRJ-7328\' not found.','2026-07-11 00:19:33'),(39,21,'SYSTEM','Pending','Created workflow execution state EXE-WIM-AA76BCD242F7. Dispatching via WACP.','2026-07-11 04:10:33'),(40,21,'DISPATCH','Submitted','Successfully dispatched workflow request via WACP with Job ID: JOB-0000002.','2026-07-11 04:10:34'),(41,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:10:34'),(42,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:10:39'),(43,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:10:44'),(44,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:13'),(45,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:18'),(46,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:22'),(47,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:22'),(48,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:27'),(49,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:32'),(50,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:37'),(51,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:51'),(52,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:11:56'),(53,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:12:01'),(54,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:12:06'),(55,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:14:12'),(56,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:14:19'),(57,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:14:19'),(58,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:14:24'),(59,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:14:30'),(60,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:14:35'),(61,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:14:40'),(62,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:14:45'),(63,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:20:07'),(64,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:20:07'),(65,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:20:12'),(66,21,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-11 04:27:22'),(67,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 04:45:29'),(68,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 04:45:38'),(69,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 04:45:38'),(70,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 04:45:43'),(71,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 04:45:48'),(72,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 04:45:48'),(73,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 05:00:02'),(74,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 05:00:02'),(75,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 05:00:08'),(76,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 12:33:39'),(77,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 12:33:39'),(78,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 14:24:39'),(79,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 14:24:39'),(80,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 20:59:22'),(81,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 20:59:22'),(82,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-11 22:19:19'),(83,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-12 01:16:19'),(84,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-12 01:16:19'),(85,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-12 16:28:54'),(86,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-12 16:29:07'),(87,22,'SYSTEM','Pending','Created workflow execution state EXE-WIM-774B587BA888. Dispatching via WACP.','2026-07-14 01:17:56'),(88,22,'ERROR','Failed','Failed to submit workflow via WACP: WACP server returned an error while submitting job (workflow_code=WF_EXTERIOR_REMODEL) (WACP-401): No active workflow \'WF_EXTERIOR_REMODEL\' is assigned to this Client Application.','2026-07-14 01:17:57'),(89,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 03:32:28'),(90,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 03:32:28'),(91,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 03:32:33'),(92,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 03:32:38'),(93,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 03:32:43'),(94,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 03:33:18'),(95,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 03:34:06'),(96,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 04:07:45'),(97,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 13:07:06'),(98,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 13:07:06'),(99,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 13:07:18'),(100,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 13:07:23'),(101,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 13:07:28'),(102,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 13:07:33'),(103,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 15:06:39'),(104,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 15:06:39'),(105,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 15:10:09'),(106,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-16 15:10:09'),(107,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 16:18:21'),(108,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 16:18:34'),(109,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 16:19:39'),(110,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 16:19:55'),(111,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 16:25:00'),(112,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 16:25:16'),(113,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 20:20:03'),(114,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 20:20:16'),(115,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 20:23:34'),(116,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 20:23:50'),(117,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 20:47:13'),(118,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 20:47:30'),(119,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 20:47:43'),(120,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 21:35:58'),(121,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 21:36:12'),(122,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 21:36:29'),(123,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 21:53:20'),(124,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 21:53:34'),(125,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 22:45:39'),(126,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-16 22:45:54'),(127,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-17 01:17:25'),(128,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-17 01:17:40'),(129,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-17 03:38:03'),(130,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-17 03:38:17'),(131,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-17 03:38:30'),(132,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-17 03:38:39'),(133,21,'POLL','Queued','Failed to poll WACP status: Failed to reach the WACP server while polling status for job JOB-0000002: All 5 attempt(s) failed for GET https://127.0.0.1:9443/wacp/v1/jobs/JOB-0000002/status.','2026-07-17 03:43:25'),(134,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:52:01'),(135,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:52:01'),(136,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:53:54'),(137,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:53:55'),(138,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:54:00'),(139,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:54:05'),(140,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:54:10'),(141,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:54:15'),(142,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:54:20'),(143,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:54:39'),(144,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:09'),(145,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:09'),(146,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:14'),(147,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:19'),(148,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:25'),(149,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:39'),(150,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:44'),(151,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:49'),(152,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:56:54'),(153,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:57:23'),(154,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:57:44'),(155,21,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000002 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 12:57:49'),(156,23,'SYSTEM','Pending','Created workflow execution state EXE-WIM-1A773442248C. Dispatching via WACP.','2026-07-18 12:57:51'),(157,23,'DISPATCH','Submitted','Successfully dispatched workflow request via WACP with Job ID: JOB-0000004.','2026-07-18 12:57:51'),(158,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:57:51'),(159,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:57:56'),(160,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:01'),(161,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:06'),(162,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:11'),(163,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:16'),(164,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:21'),(165,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:26'),(166,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:32'),(167,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:37'),(168,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:42'),(169,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:47'),(170,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:58:52'),(171,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:59:05'),(172,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 12:59:36'),(173,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:00:40'),(174,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:01'),(175,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:05'),(176,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:05'),(177,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:10'),(178,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:15'),(179,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:20'),(180,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:25'),(181,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:30'),(182,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:35'),(183,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:40'),(184,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:45'),(185,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:47'),(186,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:52'),(187,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:01:57'),(188,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:02:03'),(189,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:02:08'),(190,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:02:18'),(191,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:02:28'),(192,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:02:47'),(193,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:03:02'),(194,23,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-18 13:12:06'),(195,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:14:55'),(196,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:16:44'),(197,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:32:06'),(198,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:32:06'),(199,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:32:11'),(200,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:35:24'),(201,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:36:17'),(202,24,'SYSTEM','Pending','Created workflow execution state EXE-WIM-E46D3C843347. Dispatching via WACP.','2026-07-18 13:36:19'),(203,24,'ERROR','Failed','Failed to submit workflow via WACP: WACP server returned an error while submitting job (workflow_code=WF_PROPERTY_ANALYSIS) (WACP-401): No active workflow \'WF_PROPERTY_ANALYSIS\' is assigned to this Client Application.','2026-07-18 13:36:19'),(204,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:36:37'),(205,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 13:36:57'),(206,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:09:55'),(207,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:09:55'),(208,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:10:00'),(209,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:10:05'),(210,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:10:10'),(211,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:11:08'),(212,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:11:18'),(213,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:11:28'),(214,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:12:28'),(215,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:12:38'),(216,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:12:43'),(217,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:13:19'),(218,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:14:01'),(219,25,'SYSTEM','Pending','Created workflow execution state EXE-WIM-A45CD7E4A250. Dispatching via WACP.','2026-07-18 22:14:02'),(220,25,'ERROR','Failed','Failed to submit workflow via WACP: WACP server returned an error while submitting job (workflow_code=WF_PROPERTY_ANALYSIS) (WACP-401): No workflow available.','2026-07-18 22:14:03'),(221,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:14:21'),(222,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:14:29'),(223,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:15:43'),(224,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:16:05'),(225,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:16:27'),(226,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:24:05'),(227,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 22:26:35'),(228,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:19:04'),(229,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:19:04'),(230,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:19:09'),(231,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:21:02'),(232,26,'SYSTEM','Pending','Created workflow execution state EXE-WIM-DB8C036C300C. Dispatching via WACP.','2026-07-18 23:21:09'),(233,26,'ERROR','Failed','Failed to submit workflow via WACP: WACP server returned an error while submitting job (workflow_code=WF_PROPERTY_ANALYSIS) (WACP-401): No workflow available.','2026-07-18 23:21:09'),(234,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:22:07'),(235,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:26:08'),(236,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:26:16'),(237,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:40:08'),(238,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:57:18'),(239,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:57:18'),(240,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-18 23:57:23'),(241,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 00:01:52'),(242,27,'SYSTEM','Pending','Created workflow execution state EXE-WIM-E1BC385CD4DB. Dispatching via WACP.','2026-07-19 00:01:55'),(243,27,'DISPATCH','Submitted','Successfully dispatched workflow request via WACP with Job ID: JOB-0000008.','2026-07-19 00:01:55'),(244,27,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-19 00:01:55'),(245,27,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-19 00:02:00'),(246,27,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-19 00:02:40'),(247,27,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-19 00:02:45'),(248,27,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-19 00:03:00'),(249,27,'SYSTEM','Completed','Workflow analysis successfully processed. Reports and generated assets have been cached.','2026-07-19 00:04:12'),(250,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 18:51:40'),(251,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 18:51:40'),(252,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 18:51:46'),(253,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 18:51:57'),(254,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 18:51:57'),(255,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 18:52:02'),(256,28,'SYSTEM','Pending','Created workflow execution state EXE-WIM-37694DE05463. Dispatching via WACP.','2026-07-19 18:52:04'),(257,28,'DISPATCH','Submitted','Successfully dispatched workflow request via WACP with Job ID: JOB-0000009.','2026-07-19 18:52:04'),(258,28,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-19 18:52:04'),(259,28,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-19 18:52:18'),(260,28,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-19 18:53:12'),(261,28,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-19 18:53:22'),(262,28,'SYSTEM','Completed','Workflow analysis successfully processed. Reports and generated assets have been cached.','2026-07-19 19:06:18'),(263,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:09:47'),(264,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:09:47'),(265,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:09:50'),(266,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:10:13'),(267,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:10:13'),(268,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:10:18'),(269,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:10:47'),(270,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:10:47'),(271,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:10:52'),(272,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:10:57'),(273,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:11:04'),(274,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:11:04'),(275,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:11:09'),(276,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:17:35'),(277,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:17:35'),(278,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:12'),(279,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:13'),(280,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:17'),(281,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:17'),(282,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:23'),(283,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:24'),(284,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:24'),(285,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:30'),(286,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:35'),(287,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:40'),(288,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 19:22:46'),(289,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 22:18:56'),(290,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-19 22:18:57'),(291,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 01:28:21'),(292,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 01:28:21'),(293,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 01:28:27'),(294,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 01:28:32'),(295,29,'SYSTEM','Pending','Created workflow execution state EXE-WIM-579E0CA31B27. Dispatching via WACP.','2026-07-20 01:28:36'),(296,29,'DISPATCH','Submitted','Successfully dispatched workflow request via WACP with Job ID: JOB-0000010.','2026-07-20 01:28:37'),(297,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:28:37'),(298,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:28:42'),(299,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:28:47'),(300,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:28:52'),(301,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:28:57'),(302,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:02'),(303,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:08'),(304,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:13'),(305,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:13'),(306,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:18'),(307,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:23'),(308,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:28'),(309,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:33'),(310,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:38'),(311,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:44'),(312,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:49'),(313,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:54'),(314,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:29:59'),(315,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:30:04'),(316,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:30:09'),(317,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:30:14'),(318,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:30:24'),(319,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:30:34'),(320,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:30:44'),(321,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:30:54'),(322,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:31:04'),(323,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:31:14'),(324,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:31:36'),(325,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:31:46'),(326,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:31:56'),(327,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:32:06'),(328,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:32:16'),(329,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:32:36'),(330,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:32:56'),(331,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:33:16'),(332,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:33:37'),(333,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:33:57'),(334,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:34:17'),(335,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:42:49'),(336,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:43:39'),(337,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:43:39'),(338,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:43:45'),(339,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:43:50'),(340,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:43:55'),(341,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:00'),(342,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:05'),(343,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:10'),(344,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:15'),(345,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:20'),(346,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:25'),(347,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:30'),(348,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:35'),(349,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 01:44:41'),(350,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:25:37'),(351,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:26:34'),(352,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:26:34'),(353,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:26:41'),(354,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:26:41'),(355,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:26:46'),(356,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:08'),(357,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:08'),(358,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:17'),(359,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:17'),(360,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:22'),(361,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:27'),(362,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:32'),(363,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:38'),(364,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:43'),(365,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:48'),(366,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:53'),(367,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:37:58'),(368,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:38:03'),(369,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:38:08'),(370,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:38:13'),(371,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:38:18'),(372,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:38:28'),(373,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:38:38'),(374,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:38:48'),(375,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:38:58'),(376,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:39:09'),(377,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:39:19'),(378,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:39:29'),(379,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:39:39'),(380,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:39:49'),(381,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:39:59'),(382,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:40:09'),(383,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:40:19'),(384,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:41:09'),(385,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:41:26'),(386,29,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 03:52:34'),(387,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:22:31'),(388,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:22:31'),(389,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:22:36'),(390,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:22:41'),(391,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:22:46'),(392,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:22:51'),(393,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:22:56'),(394,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:23:14'),(395,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:23:14'),(396,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:23:20'),(397,29,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:23:20'),(398,29,'SYSTEM','Completed','Workflow analysis successfully processed. Reports and generated assets have been cached.','2026-07-20 04:23:27'),(399,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 04:26:04'),(400,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 04:26:04'),(401,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 04:26:11'),(402,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 04:26:12'),(403,23,'POLL','Queued','Failed to poll WACP status: WACP server returned an error while polling status for job JOB-0000004 (WACP-901): No active steps configured for this workflow template version.','2026-07-20 04:26:17'),(404,30,'SYSTEM','Pending','Created workflow execution state EXE-WIM-E80F13AEEB0C. Dispatching via WACP.','2026-07-20 04:26:19'),(405,30,'DISPATCH','Submitted','Successfully dispatched workflow request via WACP with Job ID: JOB-0000011.','2026-07-20 04:26:20'),(406,30,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 04:26:20'),(407,30,'POLL','Queued','Polled WACP status: \'QUEUED\' (mapped to \'Queued\'). No terminal state yet.','2026-07-20 04:26:24'),(408,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:26:40'),(409,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:26:45'),(410,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:26:50'),(411,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:26:55'),(412,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:27:01'),(413,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:27:06'),(414,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:27:11'),(415,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:27:16'),(416,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:27:21'),(417,30,'POLL','Running','Polled WACP status: \'RUNNING\' (mapped to \'Running\'). No terminal state yet.','2026-07-20 04:27:31'),(418,30,'SYSTEM','Completed','Workflow analysis successfully processed. Reports and generated assets have been cached.','2026-07-20 04:27:41');
+/*!40000 ALTER TABLE `cre_workflow_events` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_workflow_executions`
+--
+
+DROP TABLE IF EXISTS `cre_workflow_executions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_workflow_executions` (
+  `execution_id` bigint NOT NULL AUTO_INCREMENT,
+  `execution_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `project_id` bigint NOT NULL,
+  `property_id` bigint NOT NULL,
+  `scenario_id` bigint DEFAULT NULL,
+  `workflow_code` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `workflow_version` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `devtools_execution_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Submitted',
+  `priority` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Normal',
+  `requested_by` bigint DEFAULT NULL,
+  `submitted_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `started_at` datetime DEFAULT NULL,
+  `completed_at` datetime DEFAULT NULL,
+  `retry_count` int NOT NULL DEFAULT '0',
+  `error_message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `metadata_json` json DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `result_sync_error` text COLLATE utf8mb4_unicode_ci,
+  PRIMARY KEY (`execution_id`),
+  UNIQUE KEY `execution_number` (`execution_number`),
+  KEY `idx_exec_project` (`project_id`),
+  KEY `idx_exec_property` (`property_id`),
+  KEY `idx_exec_status` (`status`),
+  KEY `idx_exec_submitted` (`submitted_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_workflow_executions`
+--
+
+LOCK TABLES `cre_workflow_executions` WRITE;
+/*!40000 ALTER TABLE `cre_workflow_executions` DISABLE KEYS */;
+INSERT INTO `cre_workflow_executions` VALUES (1,'EXE-WIM-564E825B7854',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Pending','Normal',NULL,'2026-07-04 04:14:57',NULL,NULL,0,NULL,'{\"is_scheduled\": true, \"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"schedule_timestamp\": \"2026-07-04T06:14\", \"custom_instructions\": \"Auto Run\"}','2026-07-04 04:14:57','2026-07-04 04:14:57',NULL),(2,'EXE-WIM-4E8FD6EC9B1D',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Pending','Normal',NULL,'2026-07-04 04:17:03',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Auto Run\"}','2026-07-04 04:17:03','2026-07-04 04:17:03',NULL),(3,'EXE-WIM-BC67C25A02B7',16,927,NULL,'RENOVATION_ESTIMATE','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-04 04:24:10',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-04 04:24:10','2026-07-04 04:24:13',NULL),(4,'EXE-WIM-225BD67696FF',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-08 12:15:27',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Testing DEV-TOOLS Queue\"}','2026-07-08 12:15:27','2026-07-08 12:15:30',NULL),(5,'EXE-WIM-DA0AC7F14265',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-08 12:49:02',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Test Queue\"}','2026-07-08 12:49:02','2026-07-08 12:49:02',NULL),(6,'EXE-WIM-D367BCAD04DC',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-08 12:50:11',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Test Queue\"}','2026-07-08 12:50:11','2026-07-08 12:50:12',NULL),(7,'EXE-WIM-07505909AD9C',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 03:36:04',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Testing\"}','2026-07-10 03:36:04','2026-07-10 03:36:05',NULL),(8,'EXE-WIM-793D0E964E40',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 12:16:27',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 12:16:27','2026-07-10 12:16:27',NULL),(9,'EXE-WIM-425A9885A1D7',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 12:33:25',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 12:33:25','2026-07-10 12:33:30',NULL),(10,'EXE-WIM-EA1B13F5FFBF',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 12:39:15',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 12:39:15','2026-07-10 12:39:19',NULL),(11,'EXE-WIM-ABB680F84A05',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 12:40:40',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 12:40:40','2026-07-10 12:40:40',NULL),(12,'EXE-WIM-EC1B8D3FABC3',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 12:40:41',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 12:40:41','2026-07-10 12:40:41',NULL),(13,'EXE-WIM-B9D50476D02D',16,927,NULL,'RENOVATION_ESTIMATE','1.0.0',NULL,'Failed','Low',NULL,'2026-07-10 15:01:54',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Property Analysis for Zoning and others\"}','2026-07-10 15:01:54','2026-07-10 15:01:54',NULL),(14,'EXE-WIM-2FBEE0735A72',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 15:30:25',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 15:30:25','2026-07-10 15:30:30',NULL),(15,'EXE-WIM-96EA5E2462F6',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 15:56:29',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 15:56:29','2026-07-10 15:56:33',NULL),(16,'EXE-WIM-A7DE9F01884B',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 23:47:06',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 23:47:06','2026-07-10 23:47:11',NULL),(17,'EXE-WIM-1274E1311051',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 23:47:20',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 23:47:20','2026-07-10 23:47:25',NULL),(18,'EXE-WIM-B64E3B324FD7',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 23:50:55',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 23:50:55','2026-07-10 23:51:00',NULL),(19,'EXE-WIM-2375392E0E19',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-10 23:57:28',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-10 23:57:28','2026-07-10 23:57:33',NULL),(20,'EXE-WIM-DBCFC614C058',16,927,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-11 00:19:32',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-11 00:19:32','2026-07-11 00:19:33',NULL),(21,'EXE-WIM-AA76BCD242F7',16,927,NULL,'ZONING_ANALYSIS','1.0.0','JOB-0000002','Queued','Normal',NULL,'2026-07-11 04:10:33',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-11 04:10:33','2026-07-11 04:10:34',NULL),(22,'EXE-WIM-774B587BA888',16,927,NULL,'WF_EXTERIOR_REMODEL','1.0.0',NULL,'Failed','Normal',NULL,'2026-07-14 01:17:56',NULL,NULL,0,NULL,'{}','2026-07-14 01:17:56','2026-07-14 01:17:57',NULL),(23,'EXE-WIM-1A773442248C',20,929,NULL,'ZONING_ANALYSIS','1.0.0','JOB-0000004','Queued','High',NULL,'2026-07-18 12:57:51',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Job Prompt:\\nCreate a coordinated Coastal Modern renovation concept for the exterior front elevation, living room, and kitchen. Maintain a consistent warm-neutral palette, natural wood accents, matte black details, and durable low-maintenance finishes across all three spaces.\\n\\nJob Constraints:\\nDo not change the building footprint, roof geometry, exterior window locations, exterior door locations, room dimensions, ceiling heights, plumbing wall, or major appliance locations. Preserve all structural elements. Cosmetic and finish-level improvements only unless explicitly permitted by the image-specific context.\"}','2026-07-18 12:57:51','2026-07-18 12:57:51',NULL),(24,'EXE-WIM-E46D3C843347',20,929,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','High',NULL,'2026-07-18 13:36:19',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Job Prompt:\\nCreate a coordinated Coastal Modern renovation concept for the exterior front elevation, living room, and kitchen. Maintain a consistent warm-neutral palette, natural wood accents, matte black details, and durable low-maintenance finishes across all three spaces.\\n\\nJob Constraints:\\nDo not change the building footprint, roof geometry, exterior window locations, exterior door locations, room dimensions, ceiling heights, plumbing wall, or major appliance locations. Preserve all structural elements. Cosmetic and finish-level improvements only unless explicitly permitted by the image-specific context.\"}','2026-07-18 13:36:19','2026-07-18 13:36:19',NULL),(25,'EXE-WIM-A45CD7E4A250',20,929,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','High',NULL,'2026-07-18 22:14:02',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Analyze only the front building.\\n\\nIgnore detached garage.\\n\\nPrioritize zoning compliance.\\n\\nEstimate renovation costs only.\\n\\nFocus on maximizing rental income.\\n\\nPreserve existing landscaping.\"}','2026-07-18 22:14:02','2026-07-18 22:14:03',NULL),(26,'EXE-WIM-DB8C036C300C',20,929,NULL,'ZONING_ANALYSIS','1.0.0',NULL,'Failed','High',NULL,'2026-07-18 23:21:09',NULL,NULL,0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\", \"custom_instructions\": \"Special Analysis Instructions (Optional)\\n\\n• Focus on ADU feasibility.\\n• Budget under $250,000.\\n• Ignore swimming pool renovation.\\n• Preserve all mature trees.\\n• Prioritize rental ROI over resale value.\\n• Consider SB-9 lot split opportunities.\"}','2026-07-18 23:21:09','2026-07-18 23:21:09',NULL),(27,'EXE-WIM-E1BC385CD4DB',20,929,NULL,'ZONING_ANALYSIS','1.0.0','JOB-0000008','Completed','High',NULL,'2026-07-19 00:01:55',NULL,'2026-07-19 00:04:13',0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-19 00:01:55','2026-07-19 00:04:12',NULL),(28,'EXE-WIM-37694DE05463',20,929,NULL,'ZONING_ANALYSIS','1.0.0','JOB-0000009','Completed','Normal',NULL,'2026-07-19 18:52:04',NULL,'2026-07-19 19:06:19',0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-19 18:52:04','2026-07-19 19:06:18',NULL),(29,'EXE-WIM-579E0CA31B27',20,929,NULL,'ZONING_ANALYSIS','1.0.0','JOB-0000010','Completed','Normal',NULL,'2026-07-20 01:28:36',NULL,'2026-07-20 04:23:27',0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-20 01:28:36','2026-07-20 04:23:27',NULL),(30,'EXE-WIM-E80F13AEEB0C',20,929,NULL,'ZONING_ANALYSIS','1.0.0','JOB-0000011','Completed','Low',NULL,'2026-07-20 04:26:19',NULL,'2026-07-20 04:27:42',0,NULL,'{\"submitted_via\": \"WIMLOGIC CRE AI-Client\"}','2026-07-20 04:26:19','2026-07-20 04:27:41',NULL);
+/*!40000 ALTER TABLE `cre_workflow_executions` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_workflow_results`
+--
+
+DROP TABLE IF EXISTS `cre_workflow_results`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_workflow_results` (
+  `result_id` bigint NOT NULL AUTO_INCREMENT,
+  `execution_id` bigint NOT NULL,
+  `result_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `result_version` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `response_json` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `normalized` tinyint(1) NOT NULL DEFAULT '0',
+  `received_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`result_id`),
+  KEY `idx_result_execution` (`execution_id`),
+  CONSTRAINT `fk_result_execution` FOREIGN KEY (`execution_id`) REFERENCES `cre_workflow_executions` (`execution_id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_workflow_results`
+--
+
+LOCK TABLES `cre_workflow_results` WRITE;
+/*!40000 ALTER TABLE `cre_workflow_results` DISABLE KEYS */;
+INSERT INTO `cre_workflow_results` VALUES (1,27,'ZONING_ANALYSIS','1.0.0','{}',1,'2026-07-19 00:04:12','2026-07-19 00:04:12'),(2,28,'ZONING_ANALYSIS','1.0.0','{}',1,'2026-07-19 19:06:18','2026-07-19 19:06:18'),(3,29,'ZONING_ANALYSIS','1.0.0','{}',1,'2026-07-20 04:23:27','2026-07-20 04:23:27'),(4,30,'ZONING_ANALYSIS','1.0.0','{\"outputs\": [{\"output_id\": \"08dfa959-e266-4765-ae1c-0dc6b813a52b\", \"output_type\": \"json\", \"title\": \"Agent Output for 7736ef6e\", \"content\": \"{\\n  \\\"executive_summary\\\": \\\"The Coastal Family Home Renovation project has a clear strategic objective: modernize the property while preserving the existing structure, improving comfort, durability, curb appeal, and resale potential within an estimated $75,000 to $125,000 budget. However, the property record is not yet decision-ready. The validation review identified material data conflicts involving the property address, geolocation, and assessed value totals. These issues should be resolved before proceeding with design approvals, budgeting, valuation, permitting, or HOA-related decisions. The renovation scope appears directionally feasible because the requested improvements are primarily cosmetic and preservation-based, but execution should be paused until core property data is verified.\\\",\\n  \\\"key_findings\\\": [\\n    \\\"Validation status is \'needs_review\' due to multiple inconsistencies in the property record.\\\",\\n    \\\"The primary property record lists 15541 Product Lane, Huntington Beach, CA 92649, while project instructions reference 2458 Pacific View Drive, Huntington Beach, CA 92648.\\\",\\n    \\\"The provided latitude and longitude do not appear to align with the Huntington Beach address information and require re-geocoding.\\\",\\n    \\\"Financial data is inconsistent: land value of $1,000,000 plus improvement value of $500,000 equals $1,500,000, but the submitted total assessed value is $2,000,000.\\\",\\n    \\\"Key property attributes are partially complete: lot size, building size, year built, zoning, use, APN, and images are present; bedrooms, bathrooms, property name, verified address, verified geocode, and legal parcel documentation remain unconfirmed.\\\",\\n    \\\"The renovation goals and constraints are well-defined: preserve roofline, window locations, building footprint, room footprints, plumbing wall, fireplace location, and major appliance locations.\\\",\\n    \\\"The design direction is aligned with market-relevant preferences for Huntington Beach: coastal modern, warm contemporary, durable low-maintenance materials, neutral coastal tones, natural wood accents, and efficient lighting.\\\",\\n    \\\"Uploaded images and notes provide usable renovation direction for kitchen, living room, and front elevation improvements.\\\"\\n  ],\\n  \\\"business_health\\\": \\\"Business health is assessed as moderate but not decision-ready. The project has a strong strategic renovation concept, defined budget range, clear design preferences, and scope discipline that supports cost control and HOA compliance. However, data integrity risk is high because the property identity, location, and financial baseline are not fully reliable. Proceeding without resolving these issues could lead to incorrect budgeting, appraisal assumptions, permit misalignment, HOA submission errors, or investment decisions based on the wrong property record.\\\",\\n  \\\"priority_actions\\\": [\\n    \\\"Confirm the canonical property address immediately: determine whether the active project property is 15541 Product Lane, 92649 or 2458 Pacific View Drive, 92648.\\\",\\n    \\\"Re-run geocoding after address confirmation and update latitude and longitude in the property record.\\\",\\n    \\\"Reconcile assessed values by obtaining the latest county assessor record and resolving the $500,000 discrepancy between calculated and submitted assessed value.\\\",\\n    \\\"Verify the APN against Orange County assessor records and confirm whether APN 2222-666-88 is formatted and assigned correctly.\\\",\\n    \\\"Add confirmed bedroom count, bathroom count, and property name into the structured property record before further workflow use.\\\",\\n    \\\"Convert renovation budget assumptions into structured fields: budget_low = 75000 and budget_high = 125000.\\\",\\n    \\\"Collect supporting documents before design or valuation decisions: parcel map, assessor report, title or deed record, site plan, and available floor plans.\\\"\\n  ],\\n  \\\"recommendations\\\": [\\n    \\\"Pause valuation, permitting, and final design decisions until address, geocode, APN, and financial records are verified.\\\",\\n    \\\"Assign one accountable owner to complete property data reconciliation within 3 business days and update the system of record.\\\",\\n    \\\"Use the $75,000 to $125,000 budget as a preliminary planning range only until the correct property and improvement scope are confirmed.\\\",\\n    \\\"Proceed with conceptual design exploration for kitchen, living room, and front elevation only if outputs are clearly marked as preliminary and non-binding.\\\",\\n    \\\"Prioritize cosmetic, HOA-compliant improvements: cabinetry refresh or replacement, updated backsplash, improved lighting, durable countertops, warm wall finishes, improved furniture layout, neutral exterior paint, enhanced entry details, and low-maintenance coastal materials.\\\",\\n    \\\"Avoid any scope that changes roofline, window locations, porch columns, building footprint, plumbing wall, or major appliance locations unless separately approved.\\\",\\n    \\\"Create a pre-renovation decision gate requiring verified property identity, reconciled financials, confirmed HOA constraints, and approved preliminary scope before committing contractor pricing or procurement.\\\",\\n    \\\"Upload additional visual and technical assets to improve planning accuracy: floor plans, exterior elevations, roof plan if available, site plan, and additional interior room photos.\\\"\\n  ],\\n  \\\"conclusion\\\": \\\"The renovation opportunity remains attractive and strategically aligned with the stated goal of improving comfort, durability, curb appeal, and resale appeal. The primary barrier is not the renovation concept; it is the reliability of the underlying property data. Executive decision-makers should authorize immediate data reconciliation before advancing to budgeting, valuation, HOA submission, permitting, or contractor engagement. Once the property record is corrected, the project can move forward with a controlled, cosmetic renovation strategy that preserves the structure, respects HOA rules, and supports market-facing value creation.\\\"\\n}\"}, {\"output_id\": \"6bdeb5c4-c4f8-478e-a565-fac18bcae623\", \"output_type\": \"json\", \"title\": \"Agent Output for af45bd82\", \"content\": \"{\\n  \\\"validation_status\\\": \\\"needs_review\\\",\\n  \\\"summary\\\": \\\"Property record is largely populated but contains multiple important inconsistencies and missing required fields that require confirmation before use.\\\",\\n  \\\"property_reference\\\": {\\n    \\\"property_id\\\": 929,\\n    \\\"property_uid\\\": \\\"PROP-93172120\\\",\\n    \\\"apn\\\": \\\"2222-666-88\\\",\\n    \\\"apn_notes\\\": \\\"APN provided with hyphens. Verify APN format against county assessor (APN length/segmenting may differ by county).\\\"\\n  },\\n  \\\"address\\\": {\\n    \\\"source_record\\\": {\\n      \\\"raw_address\\\": \\\"15541 PRODUCT LANE\\\",\\n      \\\"city\\\": \\\"HUNTINGTON BEACH\\\",\\n      \\\"state\\\": \\\"CA\\\",\\n      \\\"zip\\\": \\\"92649\\\"\\n    },\\n    \\\"normalized\\\": {\\n      \\\"street\\\": \\\"15541 Product Lane\\\",\\n      \\\"city\\\": \\\"Huntington Beach\\\",\\n      \\\"state\\\": \\\"CA\\\",\\n      \\\"zip\\\": \\\"92649\\\",\\n      \\\"country\\\": \\\"US\\\",\\n      \\\"full_address\\\": \\\"15541 Product Lane, Huntington Beach, CA 92649\\\"\\n    },\\n    \\\"alternate_address_from_instructions\\\": {\\n      \\\"raw\\\": \\\"2458 Pacific View Drive, Huntington Beach, CA 92648\\\",\\n      \\\"notes\\\": \\\"An alternate property address (2458 Pacific View Drive, 92648) is present in instructions/additional_notes and conflicts with property record address. Confirm correct address.\\\"\\n    },\\n    \\\"discrepancy\\\": \\\"Address in property record (15541 Product Lane, 92649) conflicts with address in instructions (2458 Pacific View Drive, 92648).\\\"\\n  },\\n  \\\"geolocation\\\": {\\n    \\\"latitude\\\": 34.08185,\\n    \\\"longitude\\\": -118.14872,\\n    \\\"coordinate_format_valid\\\": true,\\n    \\\"coordinate_address_consistency\\\": {\\n      \\\"match\\\": false,\\n      \\\"confidence\\\": \\\"low\\\",\\n      \\\"notes\\\": \\\"Provided coordinates (34.08185, -118.14872) do not strongly match the Huntington Beach addresses (92648/92649). Recommend geocoding address and/or confirming coordinates.\\\"\\n    }\\n  },\\n  \\\"physical_attributes\\\": {\\n    \\\"lot_sqft\\\": 7000,\\n    \\\"building_sqft\\\": 3000,\\n    \\\"year_built\\\": 2005,\\n    \\\"zoning_code\\\": \\\"R-2\\\",\\n    \\\"existing_use\\\": \\\"Multi-Family Residential\\\"\\n  },\\n  \\\"financials\\\": {\\n    \\\"land_value\\\": 1000000.0,\\n    \\\"improvement_value\\\": 500000.0,\\n    \\\"total_assessed_value\\\": 2000000.0,\\n    \\\"consistency_check\\\": {\\n      \\\"expected_total\\\": 1500000.0,\\n      \\\"provided_total\\\": 2000000.0,\\n      \\\"consistent\\\": false,\\n      \\\"notes\\\": \\\"Sum of land_value and improvement_value (1,500,000) does not equal total_assessed_value (2,000,000). Investigate source of discrepancy or additional assessed items.\\\"\\n    },\\n    \\\"project_budget_from_description\\\": {\\n      \\\"budget_low\\\": 75000,\\n      \\\"budget_high\\\": 125000,\\n      \\\"notes\\\": \\\"Extracted from project.description; consider promoting these to structured fields if used programmatically.\\\"\\n    }\\n  },\\n  \\\"images\\\": [\\n    {\\n      \\\"url\\\": \\\"http://127.0.0.1:8000/uploads/properties/929/original/01acd027e07a49e58458a5f22dedf67b.jpg\\\",\\n      \\\"image_type\\\": \\\"uploaded\\\",\\n      \\\"notes\\\": \\\"Kitchen viewed from the dining area. Preserve the room footprint, exterior windows, plumbing wall, and main appliance locations. Improve cabinetry, backsplash, lighting, storage efficiency, and countertop appearance.\\\",\\n      \\\"validation\\\": {\\n        \\\"url_format_valid\\\": true,\\n        \\\"notes_present\\\": true,\\n        \\\"recommended_usage\\\": \\\"interior - kitchen\\\"\\n      }\\n    },\\n    {\\n      \\\"url\\\": \\\"http://127.0.0.1:8000/uploads/properties/929/original/763f26f14cb14fb39019b08006d610ae.jpg\\\",\\n      \\\"image_type\\\": \\\"uploaded\\\",\\n      \\\"notes\\\": \\\"Living room viewed from the entry side. Preserve the window openings, ceiling height, fireplace location, and flooring footprint. Improve furniture layout, lighting, wall finishes, and visual warmth.\\\",\\n      \\\"validation\\\": {\\n        \\\"url_format_valid\\\": true,\\n        \\\"notes_present\\\": true,\\n        \\\"recommended_usage\\\": \\\"interior - living room\\\"\\n      }\\n    },\\n    {\\n      \\\"url\\\": \\\"http://127.0.0.1:8000/uploads/properties/929/original/d64652a967e04565bdeaa6893e636810.jpg\\\",\\n      \\\"image_type\\\": \\\"uploaded\\\",\\n      \\\"notes\\\": \\\"Front elevation of the house. Preserve the existing roof shape, window locations, porch columns, front door location, and building footprint. Improve curb appeal using cosmetic exterior changes only.\\\",\\n      \\\"validation\\\": {\\n        \\\"url_format_valid\\\": true,\\n        \\\"notes_present\\\": true,\\n        \\\"recommended_usage\\\": \\\"exterior - front elevation\\\"\\n      }\\n    }\\n  ],\\n  \\\"required_fields_check\\\": {\\n    \\\"present\\\": [\\n      \\\"property_id\\\",\\n      \\\"property_uid\\\",\\n      \\\"apn\\\",\\n      \\\"address (record)\\\",\\n      \\\"city\\\",\\n      \\\"state\\\",\\n      \\\"zip\\\",\\n      \\\"latitude\\\",\\n      \\\"longitude\\\",\\n      \\\"lot_sqft\\\",\\n      \\\"building_sqft\\\",\\n      \\\"year_built\\\",\\n      \\\"zoning_code\\\",\\n      \\\"existing_use\\\",\\n      \\\"land_value\\\",\\n      \\\"improvement_value\\\",\\n      \\\"total_assessed_value\\\",\\n      \\\"images\\\"\\n    ],\\n    \\\"missing_or_not_confirmed\\\": [\\n      {\\n        \\\"field\\\": \\\"bedrooms\\\",\\n        \\\"notes\\\": \\\"Not present in property record. Instructions mention \'Bedrooms: 3\' \\u2014 confirm and place into property record if accurate.\\\"\\n      },\\n      {\\n        \\\"field\\\": \\\"bathrooms\\\",\\n        \\\"notes\\\": \\\"Not present in property record. Instructions mention \'Bathrooms: 2.5\' \\u2014 confirm and place into property record if accurate.\\\"\\n      },\\n      {\\n        \\\"field\\\": \\\"property_name\\\",\\n        \\\"notes\\\": \\\"Not present in main property record. Additional_notes include \'Phase 1.2A Knowledge Inheritance Test Home\' \\u2014 confirm whether this is the property_name.\\\"\\n      },\\n      {\\n        \\\"field\\\": \\\"verified_address\\\",\\n        \\\"notes\\\": \\\"Conflicting addresses present; verification required to determine canonical address.\\\"\\n      },\\n      {\\n        \\\"field\\\": \\\"verified_geocode\\\",\\n        \\\"notes\\\": \\\"Coordinates likely do not match address; re-geocode or provide verified coordinates.\\\"\\n      },\\n      {\\n        \\\"field\\\": \\\"legal/parcel_map_document\\\",\\n        \\\"notes\\\": \\\"No uploaded title, parcel map, or deed provided \\u2014 recommended for APN/parcel verification.\\\"\\n      }\\n    ]\\n  },\\n  \\\"discrepancies_found\\\": [\\n    \\\"Property address (15541 Product Lane, 92649) vs instructions address (2458 Pacific View Drive, 92648) \\u2014 conflict\\\",\\n    \\\"Latitude/Longitude (34.08185, -118.14872) do not appear to match Huntington Beach address(es) \\u2014 confirm coordinates\\\",\\n    \\\"Sum of land_value + improvement_value (1,500,000) != total_assessed_value (2,000,000) \\u2014 financial inconsistency\\\"\\n  ],\\n  \\\"recommendations\\\": [\\n    \\\"Confirm correct canonical property address (15541 Product Lane, 92649) OR (2458 Pacific View Drive, 92648). Update property record accordingly.\\\",\\n    \\\"Re-run geocoding for the confirmed address and update latitude/longitude or provide authoritative coordinates from survey/parcel map.\\\",\\n    \\\"Reconcile assessed values: provide source documents (assessor parcel report) or correct total_assessed_value to equal land + improvement (or provide breakdown for additional assessed items).\\\",\\n    \\\"Add missing key fields to property record: bedrooms (3?), bathrooms (2.5?), property_name if applicable.\\\",\\n    \\\"Verify APN with county assessor and supply scanned parcel map or deed if available.\\\",\\n    \\\"If this record is used for design/budget decisions, ensure project budget fields are moved into structured fields (budget_low, budget_high) and confirm budgets align with scope.\\\",\\n    \\\"Consider uploading additional assets if needed: site plan, floor plans, parcel map, title report, and exterior aerial image for better validation.\\\"\\n  ],\\n  \\\"actions_required\\\": [\\n    \\\"Address confirmation (required)\\\",\\n    \\\"Geocode verification (required)\\\",\\n    \\\"Financial reconciliation (recommended before appraisal/valuation workflows)\\\",\\n    \\\"Add/confirm bedrooms & bathrooms (recommended)\\\"\\n  ],\\n  \\\"notes\\\": \\\"All returned data reflect values present in the submitted payload. No external lookups or network fetches were performed; geocode/address mismatch flagged by heuristic comparison and should be validated with an authoritative geocoding service or county records.\\\"\\n}\"}]}',1,'2026-07-20 04:27:41','2026-07-20 04:27:41');
+/*!40000 ALTER TABLE `cre_workflow_results` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `cre_zoning_notes`
+--
+
+DROP TABLE IF EXISTS `cre_zoning_notes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cre_zoning_notes` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `property_id` bigint NOT NULL,
+  `zoning_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `allowed_use_summary` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `conditional_use_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `parking_notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `entitlement_risk` enum('low','medium','high') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'medium',
+  `source_url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `property_id` (`property_id`),
+  CONSTRAINT `cre_zoning_notes_ibfk_1` FOREIGN KEY (`property_id`) REFERENCES `cre_properties` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `cre_zoning_notes`
+--
+
+LOCK TABLES `cre_zoning_notes` WRITE;
+/*!40000 ALTER TABLE `cre_zoning_notes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `cre_zoning_notes` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-07-20 16:01:56
