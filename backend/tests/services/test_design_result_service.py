@@ -262,9 +262,9 @@ class TestImageDesignArtifactIngestion:
         assert calls[0]["method"] == "GET"
         assert calls[0]["url"] == "https://devtools.example/wacp/v1/artifacts/file"
         assert calls[0]["headers"] == {
-            "X-WACP-Application-Id": "test-app",
-            "X-WACP-Api-Key": "test-key",
-            "X-WACP-Api-Secret": "test-secret",
+            "X-App-Code": "test-app",
+            "X-API-Key": "test-key",
+            "X-API-Secret": "test-secret",
         }
         assert version.generated_asset_id is not None
         asset = db.get(GeneratedAsset, version.generated_asset_id)
