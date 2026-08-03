@@ -1,0 +1,50 @@
+services:
+
+  mariadb:
+    image: mariadb:10.11
+    container_name: aihome-mariadb
+    restart: unless-stopped
+
+    environment:
+      MARIADB_ROOT_PASSWORD: KSC4363*ms*
+      MARIADB_DATABASE: ai_cre_wimlogic
+
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: aihome-backend
+
+    depends_on:
+      - mariadb
+
+    env_file:
+      - ./backend/.env
+
+    ports:
+      - "8030:8030"
+
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: aihome-frontend
+
+    depends_on:
+      - backend
+
+    ports:
+      - "4173:4173"
+
+    restart: unless-stopped
+
+volumes:
+  mariadb_data:
