@@ -15,6 +15,12 @@ services:
     volumes:
       - mariadb_data:/var/lib/mysql
 
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5   
+
   backend:
     build:
       context: ./backend
@@ -22,7 +28,8 @@ services:
     container_name: aihome-backend
 
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
 
     env_file:
       - ./backend/.env
@@ -32,6 +39,12 @@ services:
 
     restart: unless-stopped
 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8030/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   frontend:
     build:
       context: ./frontend
@@ -39,12 +52,19 @@ services:
     container_name: aihome-frontend
 
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
     ports:
       - "4173:4173"
 
     restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://127.0.0.1:4173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   mariadb_data:
