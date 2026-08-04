@@ -31,9 +31,20 @@ class GeneratedAssetService:
             search=search
         )
 
-    def create_asset(self, db: Session, asset_in: GeneratedAssetCreate) -> GeneratedAsset:
-        """Create a new record for a workflow-generated asset."""
-        return crud_generated_asset.create(db, obj_in=asset_in)
+    def create_asset(
+        self,
+        db: Session,
+        asset_in: GeneratedAssetCreate,
+        *,
+        commit: bool = True,
+    ) -> GeneratedAsset:
+        """Create a workflow-generated asset.
+
+        ``commit=False`` lets an orchestration service include the asset in
+        a larger atomic transaction while preserving this service/schema as
+        the single GeneratedAsset creation convention.
+        """
+        return crud_generated_asset.create(db, obj_in=asset_in, commit=commit)
 
     def update_asset(self, db: Session, asset_id: int, asset_in: GeneratedAssetUpdate) -> Optional[GeneratedAsset]:
         """Update fields of an existing generated asset by database primary key ID."""

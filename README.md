@@ -161,6 +161,10 @@ AIHOME WIMLOGIC includes a complete Docker development environment for simplifie
 ## Prerequisites
 
 Install the following software before getting started:
+# Screenshots
+
+<img width="2041" height="1260" alt="AI-HOME STUDIO" src="https://github.com/user-attachments/assets/376bf55a-6beb-41f7-ab25-66a5385e99b9" />
+<img width="2043" height="1261" alt="AI-HOME - ORCHASTRATION " src="https://github.com/user-attachments/assets/35f11f3a-55fe-4943-8147-232f386f74e4" />
 
 - Docker Desktop 4.x or later
 - Docker Compose
@@ -374,6 +378,42 @@ Containers automatically report their runtime health status through Docker Compo
 
 <img width="2041" height="1260" alt="AI-HOME STUDIO" src="https://github.com/user-attachments/assets/376bf55a-6beb-41f7-ab25-66a5385e99b9" />
 <img width="2043" height="1261" alt="AI-HOME - ORCHASTRATION " src="https://github.com/user-attachments/assets/35f11f3a-55fe-4943-8147-232f386f74e4" />
+
+---
+
+# Roadmap
+
+## Version 1.x
+
+- ✅ Property Management
+- ✅ AI Property Intelligence
+- ✅ Workflow Integration
+- ✅ WACP Integration
+
+## Version 2.x
+
+- 🚧 AI Design Studio
+- 🚧 Image Enhancement
+- 🚧 Design Concepts
+- 🚧 Property Intelligence Expansion
+
+---
+
+# Relationship to WIMLOGIC
+
+AIHOME is an open-source business application built on top of the **WIMLOGIC AI Orchestration Platform**.
+
+The platform is responsible for:
+
+- AI Workflow Execution
+- AI Agent Orchestration
+- Prompt Management
+- AI Provider Integration
+- Workflow Runtime
+- Governance
+- Result Aggregation
+
+This separation allows multiple business applications to share the same AI infrastructure.
 
 ---
 

@@ -31,10 +31,10 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence
 
-import requests
+import httpx
 from PIL import Image
 from io import BytesIO
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -56,6 +56,8 @@ from app.models.workflow_execution import WorkflowExecution
 from app.models.design_image_version import DesignImageVersion
 from app.models.design_image_lineage import DesignImageLineage
 from app.models.approved_design_baseline import ApprovedDesignBaseline
+from app.schemas.generated_asset import GeneratedAssetCreate
+from app.services.generated_asset_service import generated_asset_service
 from app.integrations.storage.filesystem_storage_provider import FilesystemStorageProvider
 
 logger = logging.getLogger(__name__)
@@ -137,8 +139,10 @@ def create_design_image_version(
     file_size: Optional[int] = None,
     width: Optional[int] = None,
     height: Optional[int] = None,
+    generated_asset_id: Optional[int] = None,
     source_property_image_ids: Sequence[int] = (),
     source_image_version_ids: Sequence[int] = (),
+    commit: bool = True,
 ) -> DesignImageVersion:
     """
     Creates one DesignImageVersion row from a completed Design Studio
@@ -178,6 +182,7 @@ def create_design_image_version(
             "file_size": file_size,
             "width": width,
             "height": height,
+            "generated_asset_id": generated_asset_id,
             "status": "generated",
             "generated_at": workflow_execution.completed_at or datetime.now(),
         },
@@ -207,8 +212,11 @@ def create_design_image_version(
             commit=False,
         )
 
-    db.commit()
-    db.refresh(version)
+    if commit:
+        db.commit()
+        db.refresh(version)
+    else:
+        db.flush()
     logger.info(
         "Created DesignImageVersion id=%s version_uid=%s design_job_id=%s version_number=%s "
         "with %d property-image source(s) and %d prior-version source(s).",
@@ -519,6 +527,12 @@ def _resolve_artifact_url(raw_url: str) -> str:
     return urljoin(settings.WACP_BASE_URL.rstrip("/") + "/", raw_url.lstrip("/"))
 
 
+def _safe_artifact_url_for_log(url: str) -> str:
+    """Remove query/fragment data that could contain a temporary token."""
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
+
+
 def _download_artifact(url: str, expected_mime_type: str) -> "_DownloadedArtifact":
     """
     Downloads the generated image's raw bytes, per
@@ -538,61 +552,79 @@ def _download_artifact(url: str, expected_mime_type: str) -> "_DownloadedArtifac
         merely "contains png") - a mismatch is rejected outright, per the
         spec's explicit MIME-mismatch handling.
 
-    Raises ImageDesignIngestionError (never a raw requests exception) on
+    Raises ImageDesignIngestionError (never a raw httpx exception) on
     any failure, so the caller's per-image try/except catches a single,
     predictable error type.
     """
     last_exc: Optional[Exception] = None
+    auth_headers = {
+        "X-App-Code": settings.WACP_APPLICATION_ID,
+        "X-API-Key": settings.WACP_API_KEY,
+        "X-API-Secret": settings.WACP_API_SECRET,
+    }
+    auth_headers = {name: value for name, value in auth_headers.items() if value}
+    safe_url = _safe_artifact_url_for_log(url)
+
     for attempt in range(_ARTIFACT_DOWNLOAD_MAX_RETRIES + 1):
         try:
-            response = requests.get(url, timeout=_ARTIFACT_DOWNLOAD_TIMEOUT_SECONDS)
-        except requests.RequestException as exc:
+            with httpx.stream(
+                "GET",
+                url,
+                headers=auth_headers,
+                timeout=_ARTIFACT_DOWNLOAD_TIMEOUT_SECONDS,
+            ) as response:
+                status_code = response.status_code
+                response_headers = response.headers
+                response_data = (
+                    b"".join(response.iter_bytes()) if status_code == 200 else b""
+                )
+        except httpx.HTTPError as exc:
             last_exc = exc
             if attempt < _ARTIFACT_DOWNLOAD_MAX_RETRIES:
                 time.sleep(_ARTIFACT_DOWNLOAD_RETRY_BASE_SECONDS * (2 ** attempt))
                 continue
-            raise ImageDesignIngestionError(f"Network error downloading artifact from '{url}': {exc}") from exc
+            raise ImageDesignIngestionError(f"Network error downloading artifact from '{safe_url}': {exc}") from exc
 
-        if response.status_code == 404:
+        if status_code == 404:
             raise ImageDesignIngestionError(
-                f"Artifact endpoint returned HTTP 404 for '{url}' - the artifact is unavailable "
+                f"Artifact endpoint returned HTTP 404 for '{safe_url}' - the artifact is unavailable "
                 "or expired; regeneration is required rather than retrying."
             )
-        if 500 <= response.status_code < 600:
+        if 500 <= status_code < 600:
             if attempt < _ARTIFACT_DOWNLOAD_MAX_RETRIES:
                 logger.warning(
                     "Artifact endpoint returned HTTP %s for '%s' (attempt %d/%d) - retrying "
                     "after bounded exponential backoff.",
-                    response.status_code, url, attempt + 1, _ARTIFACT_DOWNLOAD_MAX_RETRIES + 1,
+                    status_code, safe_url, attempt + 1, _ARTIFACT_DOWNLOAD_MAX_RETRIES + 1,
                 )
                 time.sleep(_ARTIFACT_DOWNLOAD_RETRY_BASE_SECONDS * (2 ** attempt))
                 continue
             raise ImageDesignIngestionError(
-                f"Artifact endpoint returned HTTP {response.status_code} for '{url}' after "
+                f"Artifact endpoint returned HTTP {status_code} for '{safe_url}' after "
                 f"{_ARTIFACT_DOWNLOAD_MAX_RETRIES + 1} attempts."
             )
-        if response.status_code != 200:
+        if status_code != 200:
             raise ImageDesignIngestionError(
-                f"Artifact endpoint returned HTTP {response.status_code} for '{url}' (expected 200)."
+                f"Artifact endpoint returned HTTP {status_code} for '{safe_url}' (expected 200)."
             )
 
-        response_mime_type = response.headers.get("Content-Type", "").split(";")[0].strip()
+        response_mime_type = response_headers.get("Content-Type", "").split(";")[0].strip()
         if response_mime_type != expected_mime_type:
             raise ImageDesignIngestionError(
-                f"Artifact MIME mismatch for '{url}': expected {expected_mime_type!r}, "
+                f"Artifact MIME mismatch for '{safe_url}': expected {expected_mime_type!r}, "
                 f"received {response_mime_type!r}."
             )
 
         return _DownloadedArtifact(
-            data=response.content,
-            content_disposition=response.headers.get("Content-Disposition"),
+            data=response_data,
+            content_disposition=response_headers.get("Content-Disposition"),
             mime_type=response_mime_type,
         )
 
     # Unreachable in practice (every branch above either returns or
     # raises), but keeps type-checkers satisfied and fails loudly rather
     # than silently returning None if control flow is ever changed.
-    raise ImageDesignIngestionError(f"Exhausted retries downloading artifact from '{url}'.") from last_exc
+    raise ImageDesignIngestionError(f"Exhausted retries downloading artifact from '{safe_url}'.") from last_exc
 
 
 class _DownloadedArtifact:
@@ -668,6 +700,104 @@ def _verify_checksum(data: bytes, expected_checksum: Optional[str]) -> None:
             f"to {actual!r}. Rejecting this artifact - the downloaded bytes do not match what "
             "DEV-TOOLS reported, per the documented SHA-256 checksum contract."
         )
+
+
+def _find_imported_artifact(
+    db: Session,
+    *,
+    execution_id: int,
+    source_image_id: Optional[str],
+    source_checksum: Optional[str],
+    source_artifact_url: str,
+) -> Optional[DesignImageVersion]:
+    """Find an existing import before any network or filesystem work."""
+    if source_image_id:
+        identity_filter = DesignImageVersion.source_image_id == source_image_id
+    elif source_checksum:
+        identity_filter = DesignImageVersion.source_checksum == source_checksum
+    else:
+        identity_filter = DesignImageVersion.source_artifact_url == source_artifact_url
+
+    return db.execute(
+        select(DesignImageVersion).where(
+            DesignImageVersion.workflow_execution_id == execution_id,
+            identity_filter,
+        )
+    ).scalars().first()
+
+
+def _asset_input_for_version(
+    *,
+    execution: WorkflowExecution,
+    version: DesignImageVersion,
+) -> GeneratedAssetCreate:
+    return GeneratedAssetCreate(
+        execution_id=execution.execution_id,
+        property_id=version.property_id,
+        asset_type="image",
+        asset_category="design",
+        title=f"Generated design image {version.file_name}",
+        description="Imported from a completed DEV-TOOLS IMAGE_DESIGN result.",
+        file_name=version.file_name,
+        storage_path=version.storage_path,
+        thumbnail_path=version.thumbnail_path,
+        mime_type=version.mime_type,
+        file_size=version.file_size,
+        version=str(version.version_number),
+    )
+
+
+def _link_existing_import_asset(
+    db: Session,
+    *,
+    execution: WorkflowExecution,
+    version: DesignImageVersion,
+) -> DesignImageVersion:
+    """Backfill the asset link for an earlier import without re-downloading."""
+    if version.generated_asset_id is not None:
+        return version
+    if not _storage_provider.exists(relative_path=version.storage_path):
+        raise ImageDesignIngestionError(
+            "An existing DesignImageVersion matched this artifact but its stored file is missing; "
+            "refusing to create a duplicate import."
+        )
+
+    try:
+        asset = generated_asset_service.create_asset(
+            db,
+            _asset_input_for_version(execution=execution, version=version),
+            commit=False,
+        )
+        version.generated_asset_id = asset.asset_id
+        db.add(version)
+        db.commit()
+        db.refresh(version)
+    except Exception as exc:
+        db.rollback()
+        raise ImageDesignIngestionError(
+            f"Failed to link an existing image version to GeneratedAsset metadata: {exc}"
+        ) from exc
+
+    logger.info(
+        "GeneratedAsset created for existing IMAGE_DESIGN import",
+        extra={
+            "event": "image_design.generated_asset_created",
+            "execution_id": execution.execution_id,
+            "source_image_id": version.source_image_id,
+            "generated_asset_id": asset.asset_id,
+        },
+    )
+    logger.info(
+        "Existing DesignImageVersion linked to GeneratedAsset",
+        extra={
+            "event": "image_design.version_linked",
+            "execution_id": execution.execution_id,
+            "source_image_id": version.source_image_id,
+            "image_version_id": version.id,
+            "generated_asset_id": asset.asset_id,
+        },
+    )
+    return version
 
 
 def ingest_one_generated_image(
@@ -747,7 +877,46 @@ def ingest_one_generated_image(
         raise ImageDesignIngestionError(f"design_images entry (image_id={image_id!r}) has no 'url' field.")
 
     download_url = _resolve_artifact_url(raw_url)
+    source_image_id = str(image_id) if image_id is not None else None
+    logger.info(
+        "IMAGE_DESIGN artifact discovered",
+        extra={
+            "event": "image_design.artifact_discovered",
+            "execution_id": execution.execution_id,
+            "source_image_id": source_image_id,
+        },
+    )
+
+    existing = _find_imported_artifact(
+        db,
+        execution_id=execution.execution_id,
+        source_image_id=source_image_id,
+        source_checksum=checksum,
+        source_artifact_url=download_url,
+    )
+    if existing is not None:
+        logger.info(
+            "Duplicate IMAGE_DESIGN artifact skipped before download",
+            extra={
+                "event": "image_design.duplicate_skipped",
+                "execution_id": execution.execution_id,
+                "source_image_id": source_image_id,
+                "image_version_id": existing.id,
+                "generated_asset_id": existing.generated_asset_id,
+            },
+        )
+        return _link_existing_import_asset(db, execution=execution, version=existing)
+
     artifact = _download_artifact(download_url, expected_mime_type=mime_type)
+    logger.info(
+        "IMAGE_DESIGN artifact download completed",
+        extra={
+            "event": "image_design.download_completed",
+            "execution_id": execution.execution_id,
+            "source_image_id": source_image_id,
+            "byte_count": len(artifact.data),
+        },
+    )
     _verify_checksum(artifact.data, checksum)
     data = artifact.data
 
@@ -765,11 +934,25 @@ def ingest_one_generated_image(
             f"Downloaded artifact for image_id={image_id!r} is not a valid image: {exc}"
         ) from exc
 
-    file_name = _resolve_filename(
+    resolved_file_name = _resolve_filename(
         image_id=image_id, mime_type=mime_type, content_disposition=artifact.content_disposition,
         metadata_filename=metadata_filename,
     )
+    file_name = _storage_provider.generate_unique_filename(resolved_file_name)
+    logger.info(
+        "IMAGE_DESIGN artifact validation completed",
+        extra={
+            "event": "image_design.validation_completed",
+            "execution_id": execution.execution_id,
+            "source_image_id": source_image_id,
+            "mime_type": mime_type,
+            "width": actual_width,
+            "height": actual_height,
+        },
+    )
 
+    storage_path = None
+    thumbnail_path = None
     try:
         storage_path = _storage_provider.save_file(
             property_id=design_job.property_id,
@@ -782,6 +965,19 @@ def ingest_one_generated_image(
             source_relative_path=storage_path,
         )
     except Exception as exc:
+        if thumbnail_path:
+            _storage_provider.delete(relative_path=thumbnail_path)
+        if storage_path:
+            _storage_provider.delete(relative_path=storage_path)
+        logger.error(
+            "IMAGE_DESIGN ingestion failed during storage",
+            extra={
+                "event": "image_design.ingestion_failed",
+                "execution_id": execution.execution_id,
+                "source_image_id": source_image_id,
+                "stage": "storage",
+            },
+        )
         raise ImageDesignIngestionError(
             f"Failed to save downloaded artifact for image_id={image_id!r} to AIHOME storage: {exc}"
         ) from exc
@@ -796,40 +992,96 @@ def ingest_one_generated_image(
         ).scalars().all()
     ]
 
-    version = create_design_image_version(
-        db,
-        design_job=design_job,
-        workflow_execution=execution,
-        file_name=file_name,
-        storage_path=storage_path,
-        thumbnail_path=thumbnail_path,
-        mime_type=mime_type,
-        file_size=len(data),
-        width=actual_width,
-        height=actual_height,
-        source_property_image_ids=source_property_image_ids,
-    )
+    try:
+        asset = generated_asset_service.create_asset(
+            db,
+            GeneratedAssetCreate(
+                execution_id=execution.execution_id,
+                property_id=design_job.property_id,
+                asset_type="image",
+                asset_category="design",
+                title=f"Generated design image {file_name}",
+                description="Imported from a completed DEV-TOOLS IMAGE_DESIGN result.",
+                file_name=file_name,
+                storage_path=storage_path,
+                thumbnail_path=thumbnail_path,
+                mime_type=mime_type,
+                file_size=len(data),
+            ),
+            commit=False,
+        )
 
-    # Provenance (requires the six columns from
-    # add_design_image_version_provenance_columns.sql / the model patch -
-    # set here via a direct, minimal update rather than threading six
-    # new parameters through create_design_image_version()'s existing
-    # signature, since none of its OTHER callers have any provenance to
-    # supply and its signature is otherwise unchanged).
-    version.source_image_id = str(image_id) if image_id is not None else None
-    version.source_provider = image_entry.get("provider")
-    version.source_model = image_entry.get("model")
-    version.source_checksum = checksum
-    version.source_artifact_url = download_url
-    version.quality_approved = quality_approved
-    db.commit()
-    db.refresh(version)
+        version = create_design_image_version(
+            db,
+            design_job=design_job,
+            workflow_execution=execution,
+            file_name=file_name,
+            storage_path=storage_path,
+            thumbnail_path=thumbnail_path,
+            mime_type=mime_type,
+            file_size=len(data),
+            width=actual_width,
+            height=actual_height,
+            generated_asset_id=asset.asset_id,
+            source_property_image_ids=source_property_image_ids,
+            commit=False,
+        )
+        version.source_image_id = source_image_id
+        version.source_provider = image_entry.get("provider")
+        version.source_model = image_entry.get("model")
+        version.source_checksum = checksum
+        version.source_artifact_url = download_url
+        version.quality_approved = quality_approved
+        db.add(version)
+        db.commit()
+        db.refresh(version)
+    except Exception as exc:
+        db.rollback()
+        for relative_path in (thumbnail_path, storage_path):
+            if relative_path:
+                try:
+                    _storage_provider.delete(relative_path=relative_path)
+                except Exception:
+                    logger.exception(
+                        "Failed to remove newly created IMAGE_DESIGN file after database rollback",
+                        extra={
+                            "event": "image_design.cleanup_failed",
+                            "execution_id": execution.execution_id,
+                            "source_image_id": source_image_id,
+                        },
+                    )
+        logger.error(
+            "IMAGE_DESIGN ingestion failed during database transaction",
+            extra={
+                "event": "image_design.ingestion_failed",
+                "execution_id": execution.execution_id,
+                "source_image_id": source_image_id,
+                "stage": "database",
+            },
+        )
+        raise ImageDesignIngestionError(
+            f"Failed to persist IMAGE_DESIGN artifact image_id={image_id!r}: {exc}"
+        ) from exc
 
     logger.info(
-        "Imported generated design image image_id=%s (provider=%s, model=%s, quality_approved=%s) as "
-        "DesignImageVersion id=%s version_uid=%s for property_id=%s.",
-        image_id, image_entry.get("provider"), image_entry.get("model"), quality_approved,
-        version.id, version.version_uid, design_job.property_id,
+        "GeneratedAsset created for IMAGE_DESIGN artifact",
+        extra={
+            "event": "image_design.generated_asset_created",
+            "execution_id": execution.execution_id,
+            "source_image_id": source_image_id,
+            "generated_asset_id": version.generated_asset_id,
+        },
+    )
+    logger.info(
+        "DesignImageVersion created and linked to GeneratedAsset",
+        extra={
+            "event": "image_design.version_linked",
+            "execution_id": execution.execution_id,
+            "source_image_id": source_image_id,
+            "image_version_id": version.id,
+            "generated_asset_id": version.generated_asset_id,
+            "property_id": design_job.property_id,
+        },
     )
     return version
 
@@ -938,7 +1190,11 @@ def ingest_image_design_results(
                 payload.get("artifact_type") == "IMAGE"
                 or str(payload.get("mime_type", "")).startswith("image/")
             )
-            if is_image and payload.get("url"):
+            download_meta = payload.get("download")
+            has_download_url = payload.get("url") or (
+                isinstance(download_meta, dict) and download_meta.get("url")
+            )
+            if is_image and has_download_url:
                 if design_job is None:
                     design_job = ensure_import_design_job(db, execution=execution)
                 artifact_key = payload.get("image_id") or payload.get("artifact_id")
@@ -956,6 +1212,12 @@ def ingest_image_design_results(
                     logger.error(
                         "Skipping one generated artifact image (image_id=%s) for execution_id=%s: %s",
                         payload.get("image_id"), execution.execution_id, exc,
+                        extra={
+                            "event": "image_design.ingestion_failed",
+                            "execution_id": execution.execution_id,
+                            "source_image_id": payload.get("image_id") or payload.get("artifact_id"),
+                            "stage": "artifact_import",
+                        },
                     )
             continue
 
@@ -1009,6 +1271,12 @@ def ingest_image_design_results(
                 logger.error(
                     "Skipping one generated image (image_id=%s) for execution_id=%s: %s",
                     image_entry.get("image_id"), execution.execution_id, exc,
+                    extra={
+                        "event": "image_design.ingestion_failed",
+                        "execution_id": execution.execution_id,
+                        "source_image_id": image_entry.get("image_id") or image_entry.get("artifact_id"),
+                        "stage": "artifact_import",
+                    },
                 )
                 continue
 
