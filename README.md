@@ -154,10 +154,266 @@ require a separate commercial license or service agreement.
 
 ---
 
+# Docker Deployment
+
+AIHOME WIMLOGIC includes a complete Docker development environment for simplified installation and deployment.
+
+## Prerequisites
+
+Install the following software before getting started:
 # Screenshots
 
 <img width="2041" height="1260" alt="AI-HOME STUDIO" src="https://github.com/user-attachments/assets/376bf55a-6beb-41f7-ab25-66a5385e99b9" />
 <img width="2043" height="1261" alt="AI-HOME - ORCHASTRATION " src="https://github.com/user-attachments/assets/35f11f3a-55fe-4943-8147-232f386f74e4" />
+
+- Docker Desktop 4.x or later
+- Docker Compose
+- Git
+
+Verify Docker installation:
+
+```bash
+docker --version
+docker compose version
+```
+
+---
+
+## Clone Repository
+
+```bash
+git clone https://github.com/wimlogic/ai-cre-wimlogic.git
+cd ai-cre-wimlogic
+```
+
+---
+
+## Configure Environment
+
+Copy the backend environment template:
+
+### Windows PowerShell
+
+```powershell
+copy backend\.env.example backend\.env
+```
+
+### Linux / macOS
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Edit **backend/.env** and configure:
+
+- Database credentials
+- OpenAI API Key
+- Google API Key (optional)
+- WACP API credentials
+- DEV-TOOLS Runtime URL
+
+---
+
+## Start AIHOME
+
+Build and start all services:
+
+```bash
+docker compose up --build -d
+```
+
+Docker automatically starts:
+
+- MariaDB
+- AIHOME Backend
+- AIHOME Frontend
+
+---
+
+## Verify Deployment
+
+Check container status:
+
+```bash
+docker ps
+```
+
+Expected:
+
+- ✅ MariaDB (healthy)
+- ✅ AIHOME Backend (healthy)
+- ✅ AIHOME Frontend (healthy)
+
+---
+
+## Application URLs
+
+Frontend
+
+```
+http://localhost:4173
+```
+
+Backend API
+
+```
+http://localhost:8030
+```
+
+Swagger API Documentation
+
+```
+http://localhost:8030/docs
+```
+
+Health Check
+
+```
+http://localhost:8030/health
+```
+
+---
+
+## Docker Commands
+
+Start
+
+```bash
+docker compose up --build -d
+```
+
+Stop
+
+```bash
+docker compose down
+```
+
+Restart
+
+```bash
+docker compose down
+docker compose up --build -d
+```
+
+View running containers
+
+```bash
+docker ps
+```
+
+View backend logs
+
+```bash
+docker logs aihome-backend
+```
+
+View frontend logs
+
+```bash
+docker logs aihome-frontend
+```
+
+View database logs
+
+```bash
+docker logs aihome-mariadb
+```
+
+---
+
+## Persistent Storage
+
+The Docker environment uses persistent storage to preserve application data.
+
+### MariaDB Database
+
+Database files are stored in a Docker volume and remain available after containers are recreated.
+
+### Uploaded Images
+
+Property images are stored in:
+
+```
+backend/uploads
+```
+
+Uploaded files remain available after rebuilding or restarting containers.
+
+---
+
+## Docker Architecture
+
+```
+                Docker Compose
+                      │
+      ┌───────────────┼───────────────┐
+      │               │               │
+      ▼               ▼               ▼
+  MariaDB        AIHOME Backend   AIHOME Frontend
+      │               │               │
+      └───────────────┼───────────────┘
+                      │
+                WIMLOGIC Platform
+                      │
+              OpenAI • Gemini • Claude
+```
+
+---
+
+## Health Monitoring
+
+Docker automatically monitors all services.
+
+Health checks are configured for:
+
+- MariaDB
+- AIHOME Backend
+- AIHOME Frontend
+
+Containers automatically report their runtime health status through Docker Compose.
+
+---
+
+# Screenshots
+
+<img width="2041" height="1260" alt="AI-HOME STUDIO" src="https://github.com/user-attachments/assets/376bf55a-6beb-41f7-ab25-66a5385e99b9" />
+<img width="2043" height="1261" alt="AI-HOME - ORCHASTRATION " src="https://github.com/user-attachments/assets/35f11f3a-55fe-4943-8147-232f386f74e4" />
+
+---
+
+# Roadmap
+
+## Version 1.x
+
+- ✅ Property Management
+- ✅ AI Property Intelligence
+- ✅ Workflow Integration
+- ✅ WACP Integration
+
+## Version 2.x
+
+- 🚧 AI Design Studio
+- 🚧 Image Enhancement
+- 🚧 Design Concepts
+- 🚧 Property Intelligence Expansion
+
+---
+
+# Relationship to WIMLOGIC
+
+AIHOME is an open-source business application built on top of the **WIMLOGIC AI Orchestration Platform**.
+
+The platform is responsible for:
+
+- AI Workflow Execution
+- AI Agent Orchestration
+- Prompt Management
+- AI Provider Integration
+- Workflow Runtime
+- Governance
+- Result Aggregation
+
+This separation allows multiple business applications to share the same AI infrastructure.
 
 ---
 
